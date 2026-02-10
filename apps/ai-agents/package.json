@@ -12,6 +12,7 @@
   "dependencies": {
     "@salesos/core": "*",
     "@salesos/queue-core": "*",
+    "bottleneck": "^2.19.5",
     "cheerio": "^1.0.0-rc.12",
     "puppeteer": "^21.0.0",
     "puppeteer-extra": "^3.3.6",
@@ -19,10 +20,10 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "tsx": "^4.0.0",
-    "typescript": "^5.0.0",
     "@types/node": "^20.0.0",
     "eslint": "^8.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0",
     "vitest": "^0.34.0"
   }
 }
