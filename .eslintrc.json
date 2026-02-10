@@ -36,6 +36,28 @@
           }
         ]
       }
+    },
+    {
+      "files": ["apps/web/app/**/_components/**/*.{ts,tsx}", "apps/web/components/**/*.{ts,tsx}"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "@salesos/core/prisma",
+                "message": "Do not import Prisma client in client components."
+              }
+            ],
+            "patterns": [
+              {
+                "group": ["**/libs/core/src/prisma", "**/libs/db/**"],
+                "message": "Do not import database modules in client components."
+              }
+            ]
+          }
+        ]
+      }
     }
   ],
   "settings": {
