@@ -12,3 +12,5 @@ export * from './schemas';
 export * from './timestamp.dto';
 export * from './types';
 export * from './validate';
+export * from './types/geo';
+export * from './schemas/geo.schema';
