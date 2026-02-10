@@ -4,8 +4,8 @@
   "main": "src/index.ts",
   "types": "src/index.ts",
   "dependencies": {
-    "@prisma/client": "^5.21.0",
-    "pino": "^10.3.1",
+    "axios": "^1.13.5",
+    "ioredis": "^5.9.2",
     "zod": "^3.22.4"
   },
   "devDependencies": {

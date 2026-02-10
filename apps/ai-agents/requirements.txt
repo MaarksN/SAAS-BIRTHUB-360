@@ -1,3 +1,11 @@
 fastapi
 uvicorn
 pydantic
+redis
+playwright
+beautifulsoup4
+lxml
+tenacity
+psycopg2-binary
+pgvector
+openai
