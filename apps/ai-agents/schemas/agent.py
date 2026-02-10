@@ -47,3 +47,15 @@ class AgentResponse(BaseModel):
     final_answer: str
     steps: List[AgentStep]
     sources: List[str]
+
+# --- Worker Models (Cycle 16) ---
+class CrawlJobPayload(BaseModel):
+    url: str
+    depth: int = 1
+    max_pages: int = 3
+
+class JobEnvelope(BaseModel):
+    type: str
+    payload: Dict[str, Any]
+    timestamp: float
+    retryCount: int

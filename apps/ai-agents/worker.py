@@ -5,9 +5,12 @@ import os
 import time
 import psutil
 from services.crawler import DeepCrawler
+from pydantic import ValidationError
+from schemas.agent import CrawlJobPayload, JobEnvelope
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
 QUEUE_NAME = "ai:agents:crawl_queue"
+DLQ_NAME = "ai:agents:dlq"
 
 class Worker:
     def __init__(self):
@@ -27,17 +30,30 @@ class Worker:
                 item = await self.redis.blpop(QUEUE_NAME, timeout=1)
 
                 if item:
-                    queue, data = item
-                    job = json.loads(data)
-                    print(f"Processing job: {job}")
+                    queue, raw_data = item
+                    try:
+                        # 1. Parse JSON
+                        data = json.loads(raw_data)
 
-                    if job.get("type") == "crawl":
-                        url = job["payload"].get("url")
-                        await self.process_crawl(url)
-                        self.jobs_processed += 1
-                    elif job.get("type") == "rag_index":
-                        # await self.process_rag(job["payload"])
-                        pass
+                        # 2. Validate Envelope (Cycle 16)
+                        envelope = JobEnvelope(**data)
+                        print(f"Processing job: {envelope.type}")
+
+                        # 3. Process by Type
+                        if envelope.type == "crawl":
+                            # 4. Validate Specific Payload
+                            payload = CrawlJobPayload(**envelope.payload)
+                            await self.process_crawl(payload)
+                            self.jobs_processed += 1
+
+                        elif envelope.type == "rag_index":
+                            # Implement RAG payload validation here
+                            pass
+
+                    except (json.JSONDecodeError, ValidationError) as e:
+                        print(f"Schema Mismatch / Validation Error: {e}")
+                        # Cycle 16: Dead Letter Queue logic
+                        await self.send_to_dlq(raw_data, str(e))
 
                 # Check memory usage (Cycle 12)
                 if self.should_restart():
@@ -65,25 +81,33 @@ class Worker:
 
         return False
 
-    async def process_crawl(self, url: str):
-        if not url:
-            return
+    async def process_crawl(self, payload: CrawlJobPayload):
+        url = payload.url
 
-        domain = url.split("/")[2]
+        domain = url.split("/")[2] if "//" in url else url.split("/")[0]
         if await self.is_circuit_open(domain):
             print(f"Circuit open for {domain}. Skipping.")
             return
 
         try:
+            # Pass depth limits from payload to crawler if supported
             result = await self.crawler.crawl(url)
             print(f"Crawl result for {url}: {result}")
             # Save result to DB or Redis
-            # Example: Store result in Redis
             result_key = f"crawl:result:{url}"
             await self.redis.set(result_key, json.dumps(result), ex=86400)
         except Exception as e:
             print(f"Crawl failed: {e}")
             await self.record_failure(domain)
+
+    async def send_to_dlq(self, raw_data: str, reason: str):
+        dlq_entry = {
+            "original_message": raw_data,
+            "error": reason,
+            "timestamp": time.time()
+        }
+        await self.redis.rpush(DLQ_NAME, json.dumps(dlq_entry))
+        print(f"Sent invalid job to DLQ: {DLQ_NAME}")
 
     async def is_circuit_open(self, domain: str) -> bool:
         return await self.redis.get(f"circuit:open:{domain}") is not None

@@ -11,3 +11,4 @@ pgvector
 openai
 psutil
 jinja2
+numpy
