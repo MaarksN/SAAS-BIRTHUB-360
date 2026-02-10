@@ -1,0 +1,17 @@
+{
+  "name": "@salesos/ai-assistant",
+  "version": "0.0.0",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint \"**/*.ts*\""
+  },
+  "dependencies": {
+    "@salesos/core": "*",
+    "@salesos/ai": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
