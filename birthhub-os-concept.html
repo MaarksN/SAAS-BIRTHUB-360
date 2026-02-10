@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="pt-PT" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BirthHub 360º Sales OS 🚀</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, query, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'birthhub-360-unified';
+
+        window.db = db;
+        window.appId = appId;
+        window.auth = auth;
+
+        const initAuth = async () => {
+          if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            await signInWithCustomToken(auth, __initial_auth_token);
+          } else {
+            await signInAnonymously(auth);
+          }
+        };
+        initAuth();
+
+        window.saveToHistory = async (toolName, content, mode) => {
+            if (!auth.currentUser) return;
+            try {
+                const path = ['artifacts', appId, 'public', 'data', 'history'];
+                await addDoc(collection(db, ...path), {
+                    tool: toolName,
+                    mode: mode,
+                    content: content,
+                    timestamp: serverTimestamp(),
+                    userId: auth.currentUser.uid,
+                    operator: "Marcelo"
+                });
+                showToast(`DADOS SALVOS (${mode})! 💾`);
+            } catch (e) {
+                console.error(e);
+                showToast("ERRO AO SALVAR.");
+            }
+        };
+    </script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            primary: '#6366F1',
+                            secondary: '#10B981',
+                            accent: '#F43F5E',
+                            gold: '#F59E0B',
+                            dark: '#0F172A',
+                            surface: '#1E293B'
+                        }
+                    },
+                    borderRadius: { '4xl': '2rem', '5xl': '2.5rem' },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root { --font-main: 'Plus Jakarta Sans', sans-serif; --font-head: 'Outfit', sans-serif; }
+        body { font-family: var(--font-main); transition: background 0.5s ease; overflow-x: hidden; }
+
+        .dark body {
+            background-color: #0F172A;
+            background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+            color: #f8fafc;
+        }
+        .light body {
+            background-color: #F8FAFC;
+            background-image: radial-gradient(at 0% 0%, hsla(210,100%,96%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(250,100%,98%,1) 0, transparent 50%);
+            color: #1e293b;
+        }
+        h1, h2, h3 { font-family: var(--font-head); }
+        .glass { backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .dark .glass { background: rgba(15, 23, 42, 0.65); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); }
+        .light .glass { background: rgba(255, 255, 255, 0.85); border-color: rgba(0, 0, 0, 0.05); }
+
+        .tool-card { transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); opacity: 0; transform: translateY(20px); animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+        .tool-card:hover { transform: translateY(-4px) scale(1.01); box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.3); border-color: rgba(99, 102, 241, 0.5); }
+        @keyframes popIn { to { opacity: 1; transform: translateY(0); } }
+
+        .view-section { display: none; opacity: 0; transform: scale(0.95); transition: opacity 0.4s ease, transform 0.4s ease; }
+        .view-active { display: block; opacity: 1; transform: scale(1); animation: fadeInView 0.5s ease-out forwards; }
+        @keyframes fadeInView { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #6366F1; border-radius: 20px; }
+        .loader-spinner { border: 3px solid rgba(255, 255, 255, 0.1); border-top: 3px solid currentColor; border-radius: 50%; width: 24px; height: 24px; animation: spin 0.8s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        input, textarea, select { transition: all 0.2s ease; }
+        input:focus, textarea:focus, select:focus { transform: translateY(-1px); }
+    </style>
+</head>
+<body class="min-h-screen pb-12 selection:bg-brand-primary selection:text-white">
+
+    <!-- Header Unified -->
+    <header class="fixed top-6 left-1/2 -translate-x-1/2 z-[100] w-[92%] max-w-7xl glass rounded-full px-6 py-2.5 flex items-center justify-between shadow-2xl backdrop-blur-xl transition-all duration-500">
+        <div class="flex items-center gap-3 cursor-pointer group" onclick="goHome()">
+            <div id="header-logo-bg" class="w-10 h-10 bg-gradient-to-br from-brand-primary to-purple-600 rounded-full flex items-center justify-center shadow-lg group-hover:rotate-12 transition-transform duration-300">
+                <i data-lucide="layers" class="w-5 h-5 text-white"></i>
+            </div>
+            <div>
+                <h1 class="font-extrabold text-lg tracking-tight leading-none dark:text-white text-slate-900 group-hover:text-brand-primary transition-colors">BirthHub <span id="header-sub" class="text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-pink-500">360º OS</span></h1>
+                <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                    <span id="greeting-text">MARCELO ONLINE</span>
+                </p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="hidden md:flex flex-col text-right">
+                <p class="text-[10px] font-black text-slate-400 font-mono tracking-widest" id="header-time">00:00</p>
+                <p class="text-[8px] font-bold text-slate-500 uppercase" id="header-date">--/--</p>
+            </div>
+            <button onclick="toggleTheme()" class="w-9 h-9 rounded-full glass hover:bg-white/10 flex items-center justify-center transition-all active:scale-90 group">
+                <i id="theme-icon" data-lucide="moon" class="w-4 h-4 text-indigo-400 group-hover:text-yellow-400 transition-colors"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="w-full max-w-7xl mx-auto p-4 mt-24">
+
+        <!-- HUB CENTRAL (Menu Principal) -->
+        <div id="view-hub" class="view-section view-active min-h-[70vh] flex flex-col items-center justify-center">
+            <div class="text-center mb-5 animate-[popIn_0.5s_ease-out]">
+                <h2 class="text-3xl md:text-5xl font-black tracking-tighter mb-0.5 dark:text-white text-slate-900">SALES <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">OS</span></h2>
+                <p class="text-slate-500 font-bold uppercase tracking-[0.3em] text-[9px]">Selecione o Módulo Operacional</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 w-full max-w-4xl px-4">
+                <!-- BDR Module -->
+                <div onclick="selectModule('bdr')" class="group relative p-4 rounded-3xl glass cursor-pointer overflow-hidden hover:border-indigo-500/50 transition-all hover:-translate-y-1 tool-card border border-transparent shadow-sm" style="animation-delay: 0.1s">
+                    <div class="absolute inset-0 bg-gradient-to-br from-indigo-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center group-hover:scale-90 transition-transform flex-shrink-0">
+                            <i data-lucide="scan-search" class="w-5 h-5"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-base font-black uppercase tracking-tighter leading-none mb-0.5">BDR <span class="text-indigo-500 text-[10px] inline-block ml-1">Intel</span></h3>
+                            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest truncate">Research & Pre-Sales</p>
+                        </div>
+                        <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity -translate-x-2 group-hover:translate-x-0"></i>
+                    </div>
+                    <div class="w-full h-0.5 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden mt-3">
+                        <div class="h-full bg-indigo-500 w-0 group-hover:w-full transition-all duration-300 ease-out"></div>
+                    </div>
+                </div>
+
+                <!-- SDR Module -->
+                <div onclick="selectModule('sdr')" class="group relative p-4 rounded-3xl glass cursor-pointer overflow-hidden hover:border-rose-500/50 transition-all hover:-translate-y-1 tool-card border border-transparent shadow-sm" style="animation-delay: 0.2s">
+                    <div class="absolute inset-0 bg-gradient-to-br from-rose-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center group-hover:scale-90 transition-transform flex-shrink-0">
+                            <i data-lucide="flame" class="w-5 h-5"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-base font-black uppercase tracking-tighter leading-none mb-0.5">SDR <span class="text-rose-500 text-[10px] inline-block ml-1">Hunter</span></h3>
+                            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest truncate">Outbound & Qualificação</p>
+                        </div>
+                        <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity -translate-x-2 group-hover:translate-x-0"></i>
+                    </div>
+                    <div class="w-full h-0.5 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden mt-3">
+                        <div class="h-full bg-rose-500 w-0 group-hover:w-full transition-all duration-300 ease-out"></div>
+                    </div>
+                </div>
+
+                <!-- Closer Module -->
+                <div onclick="selectModule('closer')" class="group relative p-4 rounded-3xl glass cursor-pointer overflow-hidden hover:border-amber-500/50 transition-all hover:-translate-y-1 tool-card border border-transparent shadow-sm" style="animation-delay: 0.3s">
+                    <div class="absolute inset-0 bg-gradient-to-br from-amber-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center group-hover:scale-90 transition-transform flex-shrink-0">
+                            <i data-lucide="crown" class="w-5 h-5"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-base font-black uppercase tracking-tighter leading-none mb-0.5">Closer <span class="text-amber-500 text-[10px] inline-block ml-1">Elite</span></h3>
+                            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest truncate">Negociação & Fecho</p>
+                        </div>
+                        <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity -translate-x-2 group-hover:translate-x-0"></i>
+                    </div>
+                    <div class="w-full h-0.5 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden mt-3">
+                        <div class="h-full bg-amber-500 w-0 group-hover:w-full transition-all duration-300 ease-out"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GRID DE FERRAMENTAS -->
+        <div id="view-grid" class="view-section">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 px-2">
+                <div>
+                    <span id="module-badge" class="inline-block py-0.5 px-2 rounded-full bg-white/5 text-white text-[9px] font-black uppercase tracking-widest mb-2 border border-white/10">Módulo Selecionado</span>
+                    <h2 class="text-2xl font-black tracking-tight dark:text-white text-slate-900 flex items-center gap-2">
+                        Arsenal <span class="emoji-float" id="module-emoji">⚡</span>
+                    </h2>
+                </div>
+                <button onclick="goHome()" class="px-5 py-2 glass rounded-full text-[10px] font-bold text-slate-400 hover:text-white hover:bg-white/5 flex items-center gap-2 transition-all active:scale-95">
+                    <i data-lucide="layout-grid" class="w-3 h-3"></i> MENU
+                </button>
+            </div>
+
+            <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3" id="tool-grid">
+                <!-- Cards renderizados via JS -->
+            </div>
+        </div>
+
+        <!-- TOOL EXECUTION VIEW -->
+        <div id="view-tool" class="view-section">
+            <div id="tool-container" class="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
+                <!-- Injetado via JS -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Chat Mentor Global -->
+    <div id="chat-window" class="fixed bottom-24 right-8 w-80 h-[450px] glass rounded-[2rem] shadow-2xl z-[200] hidden flex flex-col overflow-hidden border-2 border-white/5 transition-transform duration-300 origin-bottom-right">
+        <div id="chat-header" class="p-4 bg-gradient-to-r from-brand-primary to-indigo-600 text-white flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="p-1.5 bg-white/20 rounded-lg"><i data-lucide="bot" class="w-4 h-4"></i></div>
+                <div>
+                    <h3 class="font-black text-xs uppercase tracking-wide">Mentor <span id="chat-mode-text">Sales</span></h3>
+                    <p class="text-[9px] opacity-80 font-medium">Gemini 2.5 Live</p>
+                </div>
+            </div>
+            <button onclick="toggleChat()" class="p-1.5 hover:bg-white/20 rounded-full transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+
+        <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 custom-scrollbar bg-slate-50/50 dark:bg-slate-900/50 backdrop-blur-sm">
+            <div class="flex gap-2">
+                <div class="w-6 h-6 rounded-full bg-indigo-500 flex-shrink-0 flex items-center justify-center text-white text-[9px] font-bold">IA</div>
+                <div class="bg-white dark:bg-slate-800 p-3 rounded-xl rounded-tl-none shadow-sm text-[11px] leading-relaxed text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                    Olá Marcelo! Em que fase do funil vamos focar agora? Estou pronto. 🚀
+                </div>
+            </div>
+        </div>
+
+        <div class="p-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur border-t border-slate-200 dark:border-white/5 flex gap-2">
+            <input id="chat-input" type="text" placeholder="Dúvida estratégica..." class="flex-1 bg-slate-100 dark:bg-slate-800 rounded-full px-4 py-2 text-[11px] font-medium outline-none focus:ring-2 focus:ring-brand-primary/50 transition-all dark:text-white text-slate-900 border border-transparent">
+            <button onclick="sendChatMessage()" class="w-8 h-8 bg-brand-primary rounded-full text-white shadow-lg hover:bg-indigo-500 active:scale-90 transition-all flex items-center justify-center">
+                <i data-lucide="send" class="w-3 h-3 ml-0.5"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Floating Actions -->
+    <div class="fixed bottom-6 right-6 flex flex-col gap-3 z-[150]">
+        <button onclick="startGlobalVoice()" id="voice-btn" class="w-12 h-12 bg-gradient-to-tr from-rose-500 to-pink-600 rounded-full flex items-center justify-center shadow-lg shadow-rose-500/30 hover:scale-110 hover:-translate-y-1 transition-all border-2 border-white/10 group">
+            <i data-lucide="mic" class="w-5 h-5 text-white group-hover:animate-pulse"></i>
+        </button>
+        <button onclick="toggleChat()" class="w-12 h-12 bg-gradient-to-tr from-brand-primary to-indigo-600 rounded-full flex items-center justify-center shadow-lg shadow-indigo-500/30 hover:scale-110 hover:-translate-y-1 transition-all border-2 border-white/10 group">
+            <i data-lucide="message-circle" class="w-5 h-5 text-white"></i>
+            <span class="absolute top-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-slate-900"></span>
+        </button>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast-msg" class="fixed bottom-10 left-1/2 -translate-x-1/2 px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-full font-black shadow-2xl opacity-0 translate-y-10 transition-all duration-300 pointer-events-none z-[250] text-[10px] uppercase tracking-widest flex items-center gap-2 border border-white/10">
+        <i data-lucide="check-circle" class="w-4 h-4 text-green-500"></i>
+        <span>Ação Realizada!</span>
+    </div>
+
+    <script>
+        // CONFIG
+        const apiKey = ""; // Provided by Environment
+        const endpoints = {
+            text: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
+            image: `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`,
+            tts: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`
+        };
+
+        let currentModule = 'hub';
+        let roleplayHistory = {};
+
+        // MASTER TOOL LIST - COM CAMPOS APRIMORADOS PARA GEMINI 2.5
+        const masterTools = [
+            // --- BDR Tools ---
+            {
+                id: 'bdr_vision', modules: ['bdr', 'sdr'], name: 'Vision Intel', icon: 'eye', color: 'cyan', emoji: '👁️', desc: 'Análise de Prints',
+                prompt: 'Você é um BDR Sênior. Analise esta imagem com visão computacional. Identifique oportunidades de venda.', acceptsImage: true,
+                fields: [
+                    { id: 'focus', label: 'Foco da Análise', type: 'select', options: ['Tecnologias Utilizadas', 'Estrutura do Time', 'Dores/Gaps Visíveis', 'Notícias/Expansão'] },
+                    { id: 'ctx', label: 'Contexto Extra', type: 'text', placeholder: 'Ex: Vendemos software de RH' }
+                ]
+            },
+            {
+                id: 'bdr_content', modules: ['bdr'], name: 'Ghostwriter', icon: 'pen-tool', color: 'pink', emoji: '👻', desc: 'LinkedIn Viral',
+                prompt: 'Você é um Copywriter Top Voice do LinkedIn especializado em B2B.',
+                fields: [
+                    { id: 'topic', label: 'Tema do Post', type: 'text', placeholder: 'Ex: Erros na contratação de Tech' },
+                    { id: 'audience', label: 'Público Alvo', type: 'text', placeholder: 'Ex: CTOs de Startups' },
+                    { id: 'style', label: 'Estilo', type: 'select', options: ['Polêmico/Contrarian', 'Storytelling Emocional', 'Lista Prática (How-to)', 'Análise de Dados'] }
+                ]
+            },
+            {
+                id: 'bdr_script', modules: ['bdr'], name: 'Script BDR', icon: 'zap', color: 'indigo', emoji: '📝', desc: 'AIDA & Persuasão',
+                prompt: 'Você é um especialista em Cold Calling e Scripts.',
+                fields: [
+                    { id: 'prospect', label: 'Cargo do Lead', type: 'text', placeholder: 'Ex: Diretor de Marketing' },
+                    { id: 'company', label: 'Nome da Empresa', type: 'text', placeholder: 'Ex: Fintech X' },
+                    { id: 'value_prop', label: 'Proposta de Valor', type: 'textarea', placeholder: 'Ex: Reduzimos o CAC em 30%...' },
+                    { id: 'framework', label: 'Framework', type: 'select', options: ['AIDA (Atenção, Interesse...)', 'PAS (Problema, Agitação...)', 'Depoimento/Prova Social'] }
+                ]
+            },
+            {
+                id: 'bdr_summary', modules: ['bdr', 'sdr'], name: 'Resumo Web', icon: 'globe', color: 'blue', emoji: '🌐', desc: 'News & Dores Atuais',
+                prompt: 'Realize uma pesquisa profunda na web sobre a empresa alvo.', useSearch: true,
+                fields: [
+                    { id: 'company', label: 'Empresa Alvo', type: 'text', placeholder: 'Ex: Coca-Cola Brasil' },
+                    { id: 'focus', label: 'O que buscar?', type: 'select', options: ['Notícias Recentes', 'Saúde Financeira/Layoffs', 'Lançamentos de Produtos', 'Fusões e Aquisições'] }
+                ]
+            },
+
+            // --- SDR Tools ---
+            {
+                id: 'roleplay_gk', modules: ['sdr'], name: 'Roleplay: Secretária', icon: 'shield', color: 'orange', emoji: '🛡️', desc: 'Simulador em Chat', isChat: true,
+                persona: 'Uma secretária executiva protetora e experiente. Sua missão é bloquear vendedores. Use desculpas como "está em reunião", "mande por email".',
+                firstMsg: 'Bom dia, escritório da Diretoria. Quem deseja falar?'
+            },
+            {
+                id: 'sdr_cadence', modules: ['sdr'], name: 'Cadência Total', icon: 'layers', color: 'rose', emoji: '📅', desc: 'Fluxo de Prospecção',
+                prompt: 'Crie uma cadência de prospecção outbound multicanal.',
+                fields: [
+                    { id: 'persona', label: 'Persona Alvo', type: 'text', placeholder: 'Ex: Gerente de Logística' },
+                    { id: 'sector', label: 'Setor', type: 'text', placeholder: 'Ex: Varejo' },
+                    { id: 'duration', label: 'Duração', type: 'select', options: ['15 Dias (Agressiva)', '30 Dias (Consultiva)'] }
+                ]
+            },
+            {
+                id: 'sdr_coldcall', modules: ['sdr'], name: 'Cold Call Sim', icon: 'phone-incoming', color: 'orange', emoji: '📞', desc: 'Simulador de Objeções',
+                prompt: 'Atue como um prospect que recebeu uma ligação fria.',
+                fields: [
+                    { id: 'pitch', label: 'Seu Pitch Inicial', type: 'textarea', placeholder: 'Cole aqui como você começa a ligação...' },
+                    { id: 'difficulty', label: 'Nível de Dificuldade', type: 'select', options: ['Fácil (Curioso)', 'Médio (Cético)', 'Difícil (Ocupado/Rude)'] }
+                ]
+            },
+
+            // --- Closer Tools ---
+            {
+                id: 'closer_warroom', modules: ['closer'], name: 'Deal War Room', icon: 'users', color: 'indigo', emoji: '🏛️', desc: 'Simulação Multi-Agente',
+                prompt: 'Simule um diálogo privado (formato script) entre os C-Levels da empresa sobre a compra.',
+                fields: [
+                    { id: 'company', label: 'Empresa', type: 'text', placeholder: 'Ex: Enterprise Co.' },
+                    { id: 'deal_value', label: 'Valor do Contrato', type: 'text', placeholder: 'Ex: R$ 500k/ano' },
+                    { id: 'stakeholders', label: 'Envolvidos', type: 'text', placeholder: 'Ex: CEO, CFO, CTO' }
+                ]
+            },
+            {
+                id: 'roleplay_cfo', modules: ['closer'], name: 'Roleplay: CFO Cético', icon: 'user-x', color: 'red', emoji: '😤', desc: 'Negociação Tensa', isChat: true,
+                persona: 'Um CFO analítico, focado exclusivamente em EBITDA e redução de custos. Você odeia risco. Questione cada centavo.',
+                firstMsg: 'Tenho exatos 5 minutos. Me dê um motivo financeiro para não vetar esse projeto agora.'
+            },
+            {
+                id: 'close_email', modules: ['closer'], name: 'Email Closer', icon: 'mail-check', color: 'sky', emoji: '📧', desc: 'Respostas Finais',
+                prompt: 'Escreva um e-mail de fechamento decisivo.',
+                fields: [
+                    { id: 'situation', label: 'Situação Atual', type: 'textarea', placeholder: 'Ex: Cliente pediu desconto e parou de responder...' },
+                    { id: 'strategy', label: 'Estratégia', type: 'select', options: ['Desapego (Break-up)', 'Urgência (Gatilho Temporal)', 'Concessão Estratégica', 'Recap de Valor'] }
+                ]
+            },
+
+            // --- Visual & Creative (All Modules) ---
+            {
+                id: 'gen_persona', modules: ['bdr', 'sdr', 'closer'], name: 'Visual Persona', icon: 'image', color: 'cyan', emoji: '👤', desc: 'Retrato ICP',
+                prompt: 'Gere um retrato fotorealista profissional de estúdio.', acceptsImage: false, isImage: true,
+                fields: [
+                    { id: 'job', label: 'Cargo', type: 'text', placeholder: 'Ex: CEO de Startup' },
+                    { id: 'age', label: 'Idade Aprox.', type: 'text', placeholder: 'Ex: 45 anos' },
+                    { id: 'vibe', label: 'Ambiente/Vibe', type: 'text', placeholder: 'Ex: Escritório moderno, confiante' }
+                ]
+            }
+        ];
+
+        // LOGIC
+        function goHome() {
+            showView('hub');
+            currentModule = 'hub';
+            updateTheme('hub');
+        }
+
+        function selectModule(mode) {
+            currentModule = mode;
+            showView('grid');
+            renderGrid(mode);
+            updateTheme(mode);
+        }
+
+        function updateTheme(mode) {
+            const themes = {
+                hub: { text: 'Sales OS', color: 'indigo' },
+                bdr: { text: 'BDR Intel', color: 'indigo' },
+                sdr: { text: 'SDR Hunter', color: 'rose' },
+                closer: { text: 'Closer Elite', color: 'amber' }
+            };
+
+            const badge = document.getElementById('module-badge');
+            const sub = document.getElementById('header-sub');
+            const logo = document.getElementById('header-logo-bg');
+            const chatMode = document.getElementById('chat-mode-text');
+            const chatHeader = document.getElementById('chat-header');
+
+            if(badge) badge.innerText = themes[mode].text;
+            if(sub) sub.innerText = themes[mode].text;
+            if(chatMode) chatMode.innerText = themes[mode].text;
+
+            let grad = 'from-brand-primary to-purple-600';
+            let chatGrad = 'from-brand-primary to-indigo-600';
+
+            if (mode === 'sdr') { grad = 'from-rose-500 to-orange-600'; chatGrad = 'from-rose-500 to-orange-600'; }
+            if (mode === 'closer') { grad = 'from-amber-500 to-yellow-600'; chatGrad = 'from-amber-500 to-yellow-600'; }
+
+            if(logo) logo.className = `w-10 h-10 bg-gradient-to-br ${grad} rounded-full flex items-center justify-center shadow-lg group-hover:rotate-12 transition-transform duration-300`;
+            if(chatHeader) chatHeader.className = `p-4 bg-gradient-to-r ${chatGrad} text-white flex justify-between items-center`;
+        }
+
+        function renderGrid(mode) {
+            const grid = document.getElementById('tool-grid');
+            const filtered = masterTools.filter(t => t.modules.includes(mode));
+
+            grid.innerHTML = filtered.map((t, index) => `
+                <div onclick="openTool('${t.id}')" class="tool-card relative p-2.5 rounded-xl glass cursor-pointer group overflow-hidden hover:bg-white/5 transition-colors border border-transparent hover:border-${t.color}-500/20 shadow-sm hover:shadow-md" style="animation-delay: ${index * 0.05}s">
+                    <div class="absolute -right-3 -bottom-3 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500 pointer-events-none">
+                        <i data-lucide="${t.icon}" class="w-12 h-12 text-${t.color}-500"></i>
+                    </div>
+
+                    <div class="flex items-start gap-2 relative z-10">
+                        <div class="w-7 h-7 rounded-md bg-${t.color}-500/10 flex items-center justify-center group-hover:bg-${t.color}-500 group-hover:text-white transition-all duration-200 shadow-sm flex-shrink-0 mt-0.5">
+                            <i data-lucide="${t.icon}" class="text-${t.color}-500 w-3.5 h-3.5 group-hover:text-white transition-colors"></i>
+                        </div>
+
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-center mb-0.5">
+                                <h3 class="text-[11px] font-black text-slate-800 dark:text-white leading-none group-hover:text-${t.color}-400 transition-colors uppercase tracking-tight truncate">${t.name}</h3>
+                                <span class="text-[9px] filter grayscale group-hover:grayscale-0 transition-all opacity-70 group-hover:opacity-100 transform">${t.emoji}</span>
+                            </div>
+                            <p class="text-[9px] text-slate-500 dark:text-slate-400 font-medium leading-3 opacity-80 line-clamp-2">${t.desc}</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function showView(id) {
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('view-active'));
+            const target = document.getElementById(`view-${id}`);
+            if (target) {
+                target.classList.add('view-active');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function openTool(id) {
+            const tool = masterTools.find(t => t.id === id);
+            const container = document.getElementById('tool-container');
+
+            if(tool.isChat) {
+                roleplayHistory[id] = [];
+                renderChatInterface(container, tool);
+            } else {
+                renderStandardInterface(container, tool);
+            }
+            lucide.createIcons();
+            showView('tool');
+        }
+
+        function renderStandardInterface(container, tool) {
+            const showUpload = tool.acceptsImage ? '' : 'hidden';
+
+            // Build Dynamic Fields
+            let fieldsHTML = '';
+            if (tool.fields) {
+                fieldsHTML = tool.fields.map(field => {
+                    if (field.type === 'select') {
+                        const options = field.options.map(opt => `<option value="${opt}">${opt}</option>`).join('');
+                        return `
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-2">${field.label}</label>
+                                <select id="field-${field.id}" class="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-xs font-medium outline-none focus:border-${tool.color}-500/50 dark:text-white text-slate-800 appearance-none">
+                                    ${options}
+                                </select>
+                            </div>`;
+                    } else if (field.type === 'textarea') {
+                        return `
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-2">${field.label}</label>
+                                <textarea id="field-${field.id}" placeholder="${field.placeholder}" class="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs font-medium outline-none h-24 focus:border-${tool.color}-500/50 dark:text-white text-slate-800 resize-none"></textarea>
+                            </div>`;
+                    } else {
+                        return `
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-2">${field.label}</label>
+                                <input type="text" id="field-${field.id}" placeholder="${field.placeholder}" class="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-xs font-medium outline-none focus:border-${tool.color}-500/50 dark:text-white text-slate-800">
+                            </div>`;
+                    }
+                }).join('');
+            } else {
+                // Fallback generic field
+                fieldsHTML = `
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-3">Contexto</label>
+                        <textarea id="t-input" placeholder="Insira o contexto aqui..." class="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs font-medium outline-none h-32 focus:border-${tool.color}-500/50 dark:text-white text-slate-800 resize-none"></textarea>
+                    </div>`;
+            }
+
+            container.innerHTML = `
+                <!-- INPUT -->
+                <div class="lg:col-span-5 flex flex-col gap-5 h-full">
+                    <div class="glass p-6 rounded-[2.5rem] shadow-2xl animate-[popIn_0.4s_ease-out] flex flex-col h-full">
+                        <div class="flex items-center justify-between mb-6 shrink-0">
+                            <button onclick="showView('grid')" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center hover:bg-white hover:text-brand-primary transition-all dark:text-white text-slate-900 shadow-md">
+                                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                            </button>
+                            <div class="flex items-center gap-2 bg-${tool.color}-500/10 px-3 py-1.5 rounded-full border border-${tool.color}-500/20">
+                                <i data-lucide="${tool.icon}" class="w-3.5 h-3.5 text-${tool.color}-500"></i>
+                                <h3 class="text-[10px] font-black uppercase text-${tool.color}-500 tracking-widest">${tool.name}</h3>
+                            </div>
+                        </div>
+
+                        <div class="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-4">
+                            ${fieldsHTML}
+
+                            <div class="${showUpload} mt-2">
+                                <label class="flex items-center gap-2 cursor-pointer w-full justify-center px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-dashed border-white/20 transition-all hover:border-${tool.color}-500/50">
+                                    <i data-lucide="image-plus" class="w-4 h-4 text-${tool.color}-400"></i>
+                                    <span class="text-[10px] font-bold text-slate-300 uppercase">Carregar Imagem</span>
+                                    <input type="file" id="t-file" accept="image/*" class="hidden" onchange="showToast('Imagem Carregada! 📸')">
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 pt-4 border-t border-white/5 shrink-0">
+                            <button onclick="runIA('${tool.id}')" id="exec-btn" class="w-full py-3.5 bg-gradient-to-r from-${tool.color}-500 to-${tool.color}-600 rounded-xl text-xs font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 text-white shadow-lg shadow-${tool.color}-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all group overflow-hidden relative">
+                                <span class="relative z-10">Gerar Estratégia</span>
+                                <i data-lucide="zap" class="w-4 h-4 relative z-10 group-hover:rotate-12 transition-transform"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- OUTPUT -->
+                <div class="lg:col-span-7 flex flex-col h-full min-h-[500px]">
+                    <div class="glass flex-1 p-6 md:p-8 rounded-[2.5rem] shadow-2xl relative flex flex-col border border-white/10 animate-[popIn_0.6s_ease-out]">
+                        <div class="flex justify-between items-center mb-4">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2.5 h-2.5 rounded-full bg-${tool.color}-500 animate-pulse shadow-[0_0_10px_currentColor]"></div>
+                                <span class="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">Resultado Gemini Pro</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="saveResult('${tool.name}')" class="w-8 h-8 rounded-full glass flex items-center justify-center hover:bg-green-500 hover:text-white hover:border-green-400 transition-all text-slate-400" title="Salvar">
+                                    <i data-lucide="save" class="w-3.5 h-3.5"></i>
+                                </button>
+                                <button onclick="copyRes()" class="w-8 h-8 rounded-full bg-brand-primary text-white flex items-center justify-center hover:bg-indigo-400 shadow-lg shadow-brand-primary/30 transition-all active:scale-90" title="Copiar">
+                                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="t-output" class="flex-1 text-sm leading-relaxed dark:text-slate-200 text-slate-700 custom-scrollbar overflow-y-auto whitespace-pre-wrap font-medium p-1 relative">
+                            <div class="h-full flex flex-col items-center justify-center opacity-30 text-center space-y-4">
+                                <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center">
+                                    <i data-lucide="cpu" class="w-8 h-8"></i>
+                                </div>
+                                <p class="uppercase tracking-[0.3em] font-black text-[10px]">Aguardando Dados...</p>
+                            </div>
+                        </div>
+
+                        <!-- Magic Actions -->
+                        <div id="magic-actions" class="mt-4 pt-4 border-t border-white/5 flex gap-2 hidden">
+                            <button onclick="refineOutput('shorter')" class="flex-1 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-[9px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-colors"><i data-lucide="scissors" class="w-3 h-3"></i> Encurtar</button>
+                            <button onclick="refineOutput('formal')" class="flex-1 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-[9px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-colors"><i data-lucide="briefcase" class="w-3 h-3"></i> Formal</button>
+                            <button onclick="refineOutput('english')" class="flex-1 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-[9px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-colors"><i data-lucide="languages" class="w-3 h-3"></i> English</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderChatInterface(container, tool) {
+            container.innerHTML = `
+                <div class="col-span-12 h-[70vh] flex flex-col glass rounded-[2.5rem] overflow-hidden shadow-2xl relative">
+                    <!-- Header -->
+                    <div class="p-6 bg-gradient-to-r from-${tool.color}-600 to-${tool.color}-800 flex justify-between items-center text-white shrink-0">
+                        <div class="flex items-center gap-4">
+                            <button onclick="showView('grid')" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white hover:text-${tool.color}-600 transition-colors">
+                                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                            </button>
+                            <div>
+                                <h3 class="font-black text-sm uppercase tracking-wide flex items-center gap-2">
+                                    ${tool.name} <span class="bg-white/20 text-[9px] px-2 py-0.5 rounded-full">SIMULAÇÃO GEMINI</span>
+                                </h3>
+                                <p class="text-[10px] opacity-80">${tool.desc}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chat Area -->
+                    <div id="roleplay-messages" class="flex-1 p-6 overflow-y-auto space-y-4 custom-scrollbar bg-slate-900/50">
+                        <div class="flex gap-3">
+                            <div class="w-8 h-8 rounded-full bg-${tool.color}-500 flex-shrink-0 flex items-center justify-center text-white text-xs font-bold shadow-lg">${tool.emoji}</div>
+                            <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl rounded-tl-none shadow-md text-sm leading-relaxed text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 max-w-[80%]">
+                                ${tool.firstMsg}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Input Area -->
+                    <div class="p-4 bg-slate-100 dark:bg-slate-900/80 border-t border-white/5 flex gap-3 items-center shrink-0">
+                        <button onclick="startRoleplayVoice()" class="w-12 h-12 rounded-full bg-rose-500 hover:bg-rose-600 text-white flex items-center justify-center shadow-lg transition-transform active:scale-95 group">
+                            <i data-lucide="mic" class="w-5 h-5 group-hover:animate-pulse"></i>
+                        </button>
+                        <input id="roleplay-input" type="text" placeholder="Responda como se estivesse na chamada..." class="flex-1 bg-white dark:bg-black/20 rounded-full px-6 py-3 text-xs outline-none focus:ring-2 focus:ring-${tool.color}-500/50 transition-all dark:text-white text-slate-900 shadow-inner">
+                        <button onclick="sendRoleplayMessage('${tool.id}')" class="w-12 h-12 rounded-full bg-${tool.color}-500 hover:bg-${tool.color}-600 text-white flex items-center justify-center shadow-lg transition-transform active:scale-95">
+                            <i data-lucide="send" class="w-5 h-5 ml-0.5"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            speakResult(tool.firstMsg);
+        }
+
+        async function refineOutput(action) {
+            const output = document.getElementById('t-output');
+            const currentText = output.innerText;
+            if(!currentText || currentText.includes("Aguardando")) return;
+
+            output.innerHTML = `<div class="flex items-center justify-center h-full opacity-50"><div class="loader-spinner"></div></div>`;
+
+            let prompt = "";
+            if (action === 'shorter') prompt = "Resuma o texto abaixo mantendo os pontos chave. Seja extremamente conciso e direto ao ponto:";
+            if (action === 'formal') prompt = "Reescreva o texto abaixo com um tom executivo, formal e altamente profissional:";
+            if (action === 'english') prompt = "Translate the following text to professional Business English:";
+
+            try {
+                const res = await fetchWithRetry(endpoints.text, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: `${prompt}\n\n${currentText}` }] }] })
+                });
+                output.innerText = res.candidates?.[0]?.content?.parts?.[0]?.text || currentText;
+            } catch (e) { output.innerText = currentText; }
+        }
+
+        async function runIA(id) {
+            const tool = masterTools.find(t => t.id === id);
+            const output = document.getElementById('t-output');
+            const btn = document.getElementById('exec-btn');
+            const magicActions = document.getElementById('magic-actions');
+            const fileInput = document.getElementById('t-file');
+
+            // Collect Form Data
+            let collectedData = "";
+            let isEmpty = true;
+
+            if (tool.fields) {
+                const parts = [];
+                tool.fields.forEach(field => {
+                    const el = document.getElementById(`field-${field.id}`);
+                    if (el && el.value) {
+                        parts.push(`${field.label}: ${el.value}`);
+                        isEmpty = false;
+                    }
+                });
+                collectedData = parts.join('\n');
+            } else {
+                // Fallback for simple input
+                const simpleInput = document.getElementById('t-input');
+                if (simpleInput && simpleInput.value) {
+                    collectedData = simpleInput.value;
+                    isEmpty = false;
+                }
+            }
+
+            if(isEmpty && (!fileInput || !fileInput.files.length) && !tool.isImage) return;
+
+            if(magicActions) magicActions.classList.add('hidden');
+            btn.disabled = true;
+            const originalBtn = btn.innerHTML;
+            btn.innerHTML = `<div class="loader-spinner"></div>`;
+
+            output.innerHTML = `
+                <div class="h-full flex flex-col items-center justify-center gap-4 animate-pulse">
+                    <div class="relative">
+                        <div class="w-12 h-12 rounded-full border-4 border-slate-200 dark:border-slate-700 border-t-brand-primary animate-spin"></div>
+                    </div>
+                    <span class="text-[10px] font-black uppercase tracking-[0.3em] text-brand-primary">Processando...</span>
+                </div>`;
+
+            try {
+                if (tool.isImage) {
+                    // Generative Image (Imagen)
+                    const result = await fetchWithRetry(endpoints.image, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            instances: { prompt: `${tool.prompt} Detalhes: ${collectedData}. Cinematic lighting, 8k.` },
+                            parameters: { sampleCount: 1 }
+                        })
+                    });
+                    const imageUrl = `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`;
+                    output.innerHTML = `<img src="${imageUrl}" class="w-full rounded-[2rem] shadow-2xl border-4 border-white/10" alt="Generated Image">`;
+                } else {
+                    // Text Generation (Gemini 2.5) with Multimodal support
+                    const parts = [{ text: `Você é uma IA de elite especializada em vendas (${currentModule.toUpperCase()}).
+
+                    INSTRUÇÕES MESTRAS:
+                    1. Aja como um especialista sênior.
+                    2. Seja direto, evite "fluff" ou introduções longas.
+                    3. Use formatação Markdown (negrito, listas) para legibilidade.
+                    4. ${tool.prompt}
+
+                    DADOS DE ENTRADA:
+                    ${collectedData}
+
+                    Resposta:` }];
+
+                    if (tool.acceptsImage && fileInput && fileInput.files.length > 0) {
+                        const base64Data = await fileToGenerativePart(fileInput.files[0]);
+                        parts.push(base64Data);
+                    }
+
+                    const payload = {
+                        contents: [{ parts: parts }],
+                        generationConfig: { temperature: 0.7 }
+                    };
+                    if (tool.useSearch) payload.tools = [{ "google_search": {} }];
+
+                    const result = await fetchWithRetry(endpoints.text, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const text = result.candidates?.[0]?.content?.parts?.[0]?.text || "Erro de processamento.";
+                    output.innerText = text;
+                    if(magicActions) magicActions.classList.remove('hidden');
+
+                    if (id.includes('coldcall') || id.includes('reverser')) speakResult(text);
+                }
+            } catch (e) {
+                console.error(e);
+                output.innerHTML = `<div class="text-rose-500 font-bold text-center">Falha na conexão neural. Tente novamente.</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalBtn;
+            }
+        }
+
+        async function sendRoleplayMessage(toolId) {
+            const tool = masterTools.find(t => t.id === toolId);
+            const input = document.getElementById('roleplay-input');
+            const msgs = document.getElementById('roleplay-messages');
+            if(!input.value) return;
+
+            const userText = input.value;
+            input.value = '';
+
+            // User Bubble
+            msgs.innerHTML += `
+                <div class="flex gap-3 flex-row-reverse animate-[popIn_0.3s_ease-out]">
+                    <div class="w-8 h-8 rounded-full bg-slate-300 dark:bg-slate-700 flex-shrink-0 flex items-center justify-center text-[10px] font-bold">EU</div>
+                    <div class="bg-brand-primary p-4 rounded-2xl rounded-tr-none shadow-md text-sm leading-relaxed text-white max-w-[80%]">
+                        ${userText}
+                    </div>
+                </div>
+            `;
+            msgs.scrollTop = msgs.scrollHeight;
+
+            if (!roleplayHistory[toolId]) roleplayHistory[toolId] = [];
+
+            const historyPrompt = roleplayHistory[toolId].map(m => `${m.role}: ${m.text}`).join('\n');
+            const fullPrompt = `Roleplay Context: Você é ${tool.persona}.\nHistórico da conversa:\n${historyPrompt}\nO usuário (Vendedor) disse: "${userText}".\nResponda como a persona. Seja curto (máx 3 frases). Mantenha a personagem difícil.`;
+
+            try {
+                const res = await fetchWithRetry(endpoints.text, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }] })
+                });
+                const aiText = res.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                roleplayHistory[toolId].push({ role: 'Vendedor', text: userText });
+                roleplayHistory[toolId].push({ role: 'Persona', text: aiText });
+
+                msgs.innerHTML += `
+                    <div class="flex gap-3 animate-[popIn_0.3s_ease-out]">
+                        <div class="w-8 h-8 rounded-full bg-${tool.color}-500 flex-shrink-0 flex items-center justify-center text-white text-xs font-bold shadow-lg">${tool.emoji}</div>
+                        <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl rounded-tl-none shadow-md text-sm leading-relaxed text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 max-w-[80%]">
+                            ${aiText}
+                        </div>
+                    </div>
+                `;
+                msgs.scrollTop = msgs.scrollHeight;
+                speakResult(aiText);
+            } catch(e) {}
+        }
+
+        async function fileToGenerativePart(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    const base64Data = reader.result.split(',')[1];
+                    resolve({
+                        inlineData: {
+                            data: base64Data,
+                            mimeType: file.type
+                        }
+                    });
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function fetchWithRetry(url, options, maxRetries = 3) {
+            let delay = 1000;
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.ok) return await response.json();
+                } catch (err) {}
+                await new Promise(r => setTimeout(r, delay));
+                delay *= 2;
+            }
+            throw new Error('Falha API');
+        }
+
+        async function speakResult(text) {
+            try {
+                const response = await fetch(endpoints.tts, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: text.substring(0, 400) }] }],
+                        generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Puck" } } } },
+                        model: "gemini-2.5-flash-preview-tts"
+                    })
+                });
+                const result = await response.json();
+                const pcmData = result.candidates[0].content.parts[0].inlineData.data;
+                const wavBuffer = pcmToWav(pcmData);
+                new Audio(URL.createObjectURL(new Blob([wavBuffer], { type: 'audio/wav' }))).play();
+            } catch (e) {}
+        }
+
+        function pcmToWav(pcmBase64) {
+            const pcm = atob(pcmBase64);
+            const buffer = new ArrayBuffer(44 + pcm.length);
+            const view = new DataView(buffer);
+            const writeString = (o, s) => { for (let i = 0; i < s.length; i++) view.setUint8(o + i, s.charCodeAt(i)); };
+            writeString(0, 'RIFF'); view.setUint32(4, 36 + pcm.length, true); writeString(8, 'WAVE');
+            writeString(12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true);
+            view.setUint16(22, 1, true); view.setUint32(24, 24000, true); view.setUint32(28, 48000, true);
+            view.setUint16(32, 2, true); view.setUint16(34, 16, true); writeString(36, 'data');
+            view.setUint32(40, pcm.length, true);
+            for (let i = 0; i < pcm.length; i++) view.setUint8(44 + i, pcm.charCodeAt(i));
+            return buffer;
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const msgs = document.getElementById('chat-messages');
+            if(!input.value) return;
+            const text = input.value;
+            msgs.innerHTML += `<div class="bg-brand-primary p-4 rounded-2xl rounded-tr-none shadow-md text-xs leading-relaxed text-white ml-auto max-w-[80%]">${text}</div>`;
+            input.value = "";
+            msgs.scrollTop = msgs.scrollHeight;
+
+            try {
+                const res = await fetchWithRetry(endpoints.text, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: `Aja como um Mentor ${currentModule.toUpperCase()}. Responda curto: ${text}` }] }] })
+                });
+                const ai = res.candidates?.[0]?.content?.parts?.[0]?.text;
+                msgs.innerHTML += `<div class="bg-white dark:bg-slate-800 p-4 rounded-2xl rounded-tl-none shadow-sm text-xs leading-relaxed text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 max-w-[90%]">${ai}</div>`;
+                msgs.scrollTop = msgs.scrollHeight;
+            } catch(e) {}
+        }
+
+        function saveResult(name) {
+            const content = document.getElementById('t-output').innerText;
+            if(window.saveToHistory) window.saveToHistory(name, content, currentModule);
+        }
+
+        function copyRes() {
+            navigator.clipboard.writeText(document.getElementById('t-output').innerText);
+            showToast("COPIADO! 📋");
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast-msg');
+            toast.querySelector('span').innerText = msg;
+            toast.style.opacity = '1';
+            toast.style.transform = 'translate(-50%, 0)';
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translate(-50%, 40px)'; }, 2500);
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            document.getElementById('theme-icon').setAttribute('data-lucide', isDark ? 'moon' : 'sun');
+            lucide.createIcons();
+        }
+
+        function toggleChat() {
+            document.getElementById('chat-window').classList.toggle('hidden');
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const timeEl = document.getElementById('header-time');
+            const dateEl = document.getElementById('header-date');
+            if (timeEl) timeEl.innerText = now.toLocaleTimeString('pt-PT', {hour: '2-digit', minute:'2-digit'});
+            if (dateEl) dateEl.innerText = now.toLocaleDateString('pt-PT');
+        }
+
+        function startGlobalVoice() {
+            if (!('webkitSpeechRecognition' in window)) return showToast("Sem suporte a voz.");
+            const recognition = new webkitSpeechRecognition();
+            recognition.lang = 'pt-BR';
+            const btn = document.getElementById('voice-btn');
+            btn.classList.add('animate-pulse', 'border-white');
+            recognition.onresult = (e) => {
+                const active = document.getElementById('t-input') || document.getElementById('chat-input');
+                if(active) active.value = e.results[0][0].transcript;
+            };
+            recognition.onend = () => btn.classList.remove('animate-pulse', 'border-white');
+            recognition.start();
+        }
+
+        function startRoleplayVoice() {
+            if (!('webkitSpeechRecognition' in window)) return showToast("Sem suporte a voz.");
+            const recognition = new webkitSpeechRecognition();
+            recognition.lang = 'pt-BR';
+            const btn = document.querySelector('#roleplay-input').previousElementSibling;
+            btn.classList.add('animate-pulse', 'bg-red-600');
+            recognition.onresult = (e) => {
+                const active = document.getElementById('roleplay-input');
+                if(active) active.value = e.results[0][0].transcript;
+            };
+            recognition.onend = () => btn.classList.remove('animate-pulse', 'bg-red-600');
+            recognition.start();
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+        lucide.createIcons();
+    </script>
+</body>
+</html>
