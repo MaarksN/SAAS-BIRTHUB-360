@@ -3,7 +3,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState } from 'react';
-import { ThemeProvider, ToasterHot } from '@salesos/ui';
+import { ThemeProvider } from './theme-provider';
+import { ToasterHot } from './toaster-hot';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
