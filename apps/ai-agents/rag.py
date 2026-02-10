@@ -5,7 +5,8 @@ import os
 import json
 from typing import List, Dict, Any
 
-DB_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost:5432/salesos")
+DB_URL = os.getenv("DATABASE_URL")
+
 
 class RAGService:
     def __init__(self):
@@ -18,8 +19,11 @@ class RAGService:
             print(f"Warning: Could not connect to DB for RAG: {e}")
             self.conn = None
 
-    def store_embedding(self, text: str, embedding: List[float], metadata: Dict[str, Any]):
-        if not self.conn: return
+    def store_embedding(
+        self, text: str, embedding: List[float], metadata: Dict[str, Any]
+    ):
+        if not self.conn:
+            return
         try:
             with self.conn.cursor() as cur:
                 query = """
@@ -32,8 +36,11 @@ class RAGService:
             self.conn.rollback()
             print(f"Error storing embedding: {e}")
 
-    def search_similar(self, query_embedding: List[float], limit: int = 5) -> List[Dict[str, Any]]:
-        if not self.conn: return []
+    def search_similar(
+        self, query_embedding: List[float], limit: int = 5
+    ) -> List[Dict[str, Any]]:
+        if not self.conn:
+            return []
         try:
             with self.conn.cursor() as cur:
                 query = """
