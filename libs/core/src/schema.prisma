@@ -18,7 +18,6 @@ model Organization {
   name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  deletedAt DateTime?
   users     User[]
   leads     Lead[]
 
@@ -38,7 +37,6 @@ model User {
   deals          Deal[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
-  deletedAt      DateTime?
 
   @@map("users")
 }
@@ -50,7 +48,6 @@ model Permission {
   roles       Role[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  deletedAt   DateTime?
 
   @@map("permissions")
 }
@@ -72,7 +69,6 @@ model CompanyProfile {
   deals          Deal[]
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-  deletedAt      DateTime?
 
   @@map("company_profiles")
 }
@@ -87,7 +83,6 @@ model EnrichmentLog {
   newValue        String?
   confidenceScore Float
   performedAt     DateTime       @default(now())
-  deletedAt       DateTime?
 
   @@map("enrichment_logs")
 }
@@ -99,7 +94,6 @@ model DataReliabilityScore {
   score     Float          // 0 to 100
   factors   Json           // Detailed breakdown of factors
   updatedAt DateTime       @updatedAt
-  deletedAt DateTime?
 
   @@map("data_reliability_scores")
 }
@@ -112,7 +106,6 @@ model BuyingCommittee {
   company        CompanyProfile @relation(fields: [companyId], references: [id])
   contacts       Contact[]
   updatedAt      DateTime @updatedAt
-  deletedAt      DateTime?
 
   @@map("buying_committees")
 }
@@ -134,7 +127,6 @@ model Contact {
   influenceLevel    String?         // High, Medium, Low
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
-  deletedAt         DateTime?
 
   @@map("contacts")
 }
@@ -146,7 +138,6 @@ model OutboundSequence {
   targetAudience Json
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  deletedAt   DateTime?
 
   @@map("outbound_sequences")
 }
@@ -161,17 +152,12 @@ model Lead {
   companyName    String?
   score          Float    @default(0)
   status         String   @default("NEW") // NEW, QUALIFIED, DISQUALIFIED
-  linkedInUrl    String?
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-  deletedAt      DateTime?
   leadScores     LeadScore[]
 
-  @@unique([email, organizationId])
-  @@index([organizationId, status])
-  @@index([linkedInUrl])
   @@map("leads")
 }
 
@@ -182,7 +168,6 @@ model LeadScore {
   score     Float
   reason    String
   createdAt DateTime @default(now())
-  deletedAt DateTime?
 
   @@map("lead_scores")
 }
@@ -193,7 +178,6 @@ model Cadence {
   steps     Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  deletedAt DateTime?
 
   @@map("cadences")
 }
@@ -217,7 +201,6 @@ model Deal {
   @@index([companyId])
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-  deletedAt      DateTime?
   quotes         Quote[]
   meetings       Meeting[]
 
@@ -234,7 +217,6 @@ model Quote {
   content   Json     // Line items, terms
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  deletedAt DateTime?
 
   @@map("quotes")
 }
@@ -251,7 +233,6 @@ model Meeting {
   analysis  Json?    // AI analysis result
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  deletedAt DateTime?
 
   @@map("meetings")
 }

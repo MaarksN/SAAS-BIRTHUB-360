@@ -3,6 +3,7 @@ import json
 import redis.asyncio as redis
 import os
 import time
+import psutil
 from services.crawler import DeepCrawler
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
@@ -14,6 +15,9 @@ class Worker:
         self.redis = redis.from_url(REDIS_URL, decode_responses=True)
         self.running = True
         self.failure_threshold = 5
+        self.jobs_processed = 0
+        self.max_jobs = 100
+        self.max_memory_mb = 500
 
     async def start(self):
         print(f"Worker started. Listening on {QUEUE_NAME}...")
@@ -30,16 +34,36 @@ class Worker:
                     if job.get("type") == "crawl":
                         url = job["payload"].get("url")
                         await self.process_crawl(url)
+                        self.jobs_processed += 1
                     elif job.get("type") == "rag_index":
                         # await self.process_rag(job["payload"])
                         pass
 
                 # Check memory usage (Cycle 12)
-                # TODO: Implement memory check
+                if self.should_restart():
+                    print("Restarting worker due to memory/job limit...")
+                    self.running = False
+                    # Allow orchestrator (Docker/PM2) to restart process
+                    break
 
             except Exception as e:
                 print(f"Worker Error: {e}")
                 await asyncio.sleep(1)
+
+    def should_restart(self) -> bool:
+        if self.jobs_processed >= self.max_jobs:
+            print(f"Max jobs processed ({self.jobs_processed}). Restarting.")
+            return True
+
+        process = psutil.Process(os.getpid())
+        mem_info = process.memory_info()
+        mem_mb = mem_info.rss / 1024 / 1024
+
+        if mem_mb > self.max_memory_mb:
+            print(f"Memory limit exceeded ({mem_mb:.2f}MB > {self.max_memory_mb}MB). Restarting.")
+            return True
+
+        return False
 
     async def process_crawl(self, url: str):
         if not url:
