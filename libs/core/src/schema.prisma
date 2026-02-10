@@ -14,13 +14,20 @@ enum Role {
 }
 
 model Organization {
-  id        String   @id @default(uuid())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime?
-  users     User[]
-  leads     Lead[]
+  id                 String            @id @default(uuid())
+  name               String
+  stripeCustomerId   String?
+  subscriptionStatus String? // active, past_due, canceled, trialing, incomplete_expired
+  currentPeriodEnd   DateTime?
+  planId             String?
+  plan               SubscriptionPlan? @relation(fields: [planId], references: [id])
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  deletedAt          DateTime?
+  users              User[]
+  leads              Lead[]
+  usageLogs          UsageLog[]
+  creditTransactions CreditTransaction[]
 
   @@map("organizations")
 }
@@ -36,6 +43,8 @@ model User {
   @@index([organizationId])
   @@index([email])
   deals          Deal[]
+  usageLogs      UsageLog[]
+  aiFeedback     AiFeedback[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
@@ -254,4 +263,71 @@ model Meeting {
   deletedAt DateTime?
 
   @@map("meetings")
+}
+
+// FinOps & Governance Models
+
+model SubscriptionPlan {
+  id            String         @id @default(cuid())
+  name          String         @unique
+  limits        Json // { "max_leads": 1000, "ai_tokens": 50000, "features": [...] }
+  priceMonthly  Decimal
+  priceYearly   Decimal
+  isActive      Boolean        @default(true)
+  organizations Organization[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  deletedAt     DateTime?
+
+  @@map("subscription_plans")
+}
+
+model UsageLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  userId         String?
+  user           User?        @relation(fields: [userId], references: [id])
+  modelUsed      String
+  inputTokens    Int
+  outputTokens   Int
+  cachedTokens   Int          @default(0)
+  latencyMs      Int
+  estimatedCost  Decimal      @db.Decimal(10, 6)
+  contextType    String
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
+  @@index([createdAt])
+  @@map("usage_logs")
+}
+
+model CreditTransaction {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  amount         Decimal      @db.Decimal(10, 2)
+  type           String // 'DEBIT', 'CREDIT', 'REFUND', 'EXPIRATION'
+  description    String
+  balanceAfter   Decimal      @db.Decimal(10, 2)
+  referenceId    String?
+  expirationDate DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
+  @@map("credit_transactions")
+}
+
+model AiFeedback {
+  id        String   @id @default(cuid())
+  prompt    String
+  response  String
+  rating    Boolean // true = thumbs up, false = thumbs down
+  reason    String?
+  model     String
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@map("ai_feedback")
 }

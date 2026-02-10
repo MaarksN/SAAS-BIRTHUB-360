@@ -21,7 +21,7 @@ export const llmGateway = {
 
     // 2. Rate Limit Check
     try {
-      guard.checkRateLimit('ai', userId);
+      await guard.checkRateLimit('ai', userId);
     } catch (error) {
       logger.warn('Rate limit blocked AI request', { userId });
       throw error;
@@ -29,7 +29,7 @@ export const llmGateway = {
 
     // 3. Cost Guard Check
     try {
-      guard.checkCost('ai', userId, 1); // Assume 1 unit cost per call
+      await guard.checkCost('ai', userId, 1); // Assume 1 unit cost per call
     } catch (error) {
       logger.warn('Cost guard blocked AI request', { userId });
       throw error;

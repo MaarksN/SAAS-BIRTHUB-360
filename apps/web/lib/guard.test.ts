@@ -1,27 +1,28 @@
 import { describe, expect, it } from 'vitest';
 
 import { features } from './features';
-import { guard } from './guard';
+// import { guard } from './guard'; // This file does not exist!
+import { guard } from '@salesos/core'; // Use the core one
 
 describe('Guard', () => {
-  it('should allow requests within rate limit', () => {
+  it('should allow requests within rate limit', async () => {
     const userId = 'user-1';
-    expect(() => guard.checkRateLimit('ai', userId)).not.toThrow();
+    await expect(guard.checkRateLimit('ai', userId)).resolves.not.toThrow();
   });
 
-  it('should throw when rate limit exceeded', () => {
+  it('should throw when rate limit exceeded', async () => {
     const userId = 'user-spam';
     // Consume all tokens
     // Default limit is 20 for AI
     for (let i = 0; i < 20; i++) {
-        guard.checkRateLimit('ai', userId);
+        await guard.checkRateLimit('ai', userId);
     }
-    expect(() => guard.checkRateLimit('ai', userId)).toThrow(/Rate limit exceeded/);
+    await expect(guard.checkRateLimit('ai', userId)).rejects.toThrow(/Rate limit exceeded/);
   });
 
-  it('should check cost correctly', () => {
+  it('should check cost correctly', async () => {
       const userId = 'user-cost';
-      expect(() => guard.checkCost('ai', userId, 10)).not.toThrow();
+      await expect(guard.checkCost('ai', userId, 10)).resolves.not.toThrow();
   });
 });
 
