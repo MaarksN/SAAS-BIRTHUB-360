@@ -1,32 +1,22 @@
-import { getContext } from './context';
+import pino from 'pino';
+import { getRequestId } from './correlation';
+import { env } from './env';
 
-export const logger = {
-  info: (message: string, meta?: Record<string, unknown>) => {
-    const ctx = getContext();
-    console.log(JSON.stringify({
-      level: 'info',
-      message,
-      meta: { ...meta, requestId: ctx.requestId, userId: ctx.userId },
-      timestamp: new Date().toISOString()
-    }));
+export const logger = pino({
+  level: env.NODE_ENV === 'development' ? 'debug' : 'info',
+  transport:
+    env.NODE_ENV === 'development'
+      ? {
+          target: 'pino-pretty',
+          options: {
+            colorize: true,
+            translateTime: 'SYS:standard',
+            ignore: 'pid,hostname',
+          },
+        }
+      : undefined,
+  mixin() {
+    const requestId = getRequestId();
+    return requestId ? { requestId } : {};
   },
-  error: (message: string, error?: unknown) => {
-    const ctx = getContext();
-    console.error(JSON.stringify({
-      level: 'error',
-      message,
-      error,
-      meta: { requestId: ctx.requestId, userId: ctx.userId },
-      timestamp: new Date().toISOString()
-    }));
-  },
-  warn: (message: string, meta?: Record<string, unknown>) => {
-    const ctx = getContext();
-    console.warn(JSON.stringify({
-      level: 'warn',
-      message,
-      meta: { ...meta, requestId: ctx.requestId, userId: ctx.userId },
-      timestamp: new Date().toISOString()
-    }));
-  }
-};
+});
