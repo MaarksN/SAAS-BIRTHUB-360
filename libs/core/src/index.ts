@@ -17,4 +17,5 @@ export * from './finops/tokenizer';
 export * from './finops/usage';
 export * from './finops/alerts';
 export * from './security/firewall';
+export * from './media/chunking';
 export * from './redis';
