@@ -8,6 +8,7 @@ const nextConfig = {
   },
   transpilePackages: ["@salesos/ui"],
   reactStrictMode: true,
+  output: "standalone",
 };
 
 module.exports = nextConfig;
