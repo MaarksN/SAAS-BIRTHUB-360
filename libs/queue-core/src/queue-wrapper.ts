@@ -8,7 +8,7 @@ const createConnection = () => {
   });
 };
 
-export const createQueue = <T>(name: string, options?: QueueOptions) => {
+export const createQueue = <T>(name: string, options?: Partial<QueueOptions>) => {
   return new Queue<T>(name, {
     connection: createConnection(),
     defaultJobOptions: {
@@ -25,7 +25,7 @@ export const createQueue = <T>(name: string, options?: QueueOptions) => {
   });
 };
 
-export const createWorker = <T>(name: string, processor: Processor<T>, options?: WorkerOptions) => {
+export const createWorker = <T = any>(name: string, processor: Processor<T>, options?: Partial<WorkerOptions>) => {
   const worker = new Worker<T>(name, async (job) => {
     const start = Date.now();
     logger.info({ jobId: job.id, queue: name, data: job.data }, 'Job processing started');

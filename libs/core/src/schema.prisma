@@ -34,6 +34,7 @@ model Organization {
   notifications      Notification[]
   emailAccounts      EmailAccount[]
   campaigns          Campaign[]
+  scheduledEmails    ScheduledEmail[]
 
   @@map("organizations")
 }
@@ -222,6 +223,7 @@ model Lead {
   updatedAt      DateTime @updatedAt
   deletedAt      DateTime?
   leadScores     LeadScore[]
+  scheduledEmails ScheduledEmail[]
 
   @@unique([email, organizationId])
   @@index([organizationId, status])
@@ -388,6 +390,7 @@ model Campaign {
   audiences      Json?    // Target audience definition
   schedule       Json?    // Schedule definition
   stats          Json?    // Aggregated stats (sent, opened, clicked, replied, bounced)
+  scheduledEmails ScheduledEmail[]
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   deletedAt      DateTime?
@@ -407,10 +410,43 @@ model EmailAccount {
   usedToday      Int      @default(0)
   stats          Json?    // Reputation stats
   isActive       Boolean  @default(true)
+  scheduledEmails ScheduledEmail[]
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   deletedAt      DateTime?
 
   @@index([organizationId])
   @@map("email_accounts")
+}
+
+model ScheduledEmail {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  campaignId     String?
+  campaign       Campaign? @relation(fields: [campaignId], references: [id])
+  leadId         String?
+  lead           Lead?    @relation(fields: [leadId], references: [id])
+  senderId       String?
+  sender         EmailAccount? @relation(fields: [senderId], references: [id])
+
+  to             String
+  subject        String
+  body           String
+
+  status         String   // PENDING, QUEUED, SENT, FAILED, CANCELLED
+  sendAt         DateTime
+  sentAt         DateTime?
+  error          String?
+
+  trackingId     String?  // For pixel tracking
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  @@index([organizationId])
+  @@index([status, sendAt])
+  @@index([leadId])
+  @@map("scheduled_emails")
 }

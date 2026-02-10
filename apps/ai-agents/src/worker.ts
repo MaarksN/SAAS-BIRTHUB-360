@@ -1,9 +1,11 @@
-import { createWorker } from '@salesos/queue-core';
+import { createWorker, createQueue } from '@salesos/queue-core';
 import { ScraperEngine } from './scraper/scraper-engine';
-import { logger, prisma, AuditLogData } from '@salesos/core';
+import { logger, prisma, AuditLogData, SenderEngine } from '@salesos/core';
 
-// Initialize Scraper Engine
+// Initialize Engines
 const scraperEngine = new ScraperEngine();
+const senderEngine = new SenderEngine();
+const emailQueue = createQueue('email-queue');
 
 // Scraping Worker
 createWorker('scraping-queue', async (job) => {
@@ -38,14 +40,69 @@ createWorker('ai-analysis-queue', async (job) => {
   concurrency: 2, // CPU bound
 });
 
-// Email Queue Worker (Placeholder)
-createWorker('email-queue', async (job) => {
-  logger.info({ jobId: job.id }, 'Processing email job');
-  // ... Email sending logic ...
+// Email Queue Worker (Consumer)
+createWorker<{ scheduledEmailId: string }>('email-queue', async (job) => {
+  const { scheduledEmailId } = job.data;
+  logger.info({ jobId: job.id, scheduledEmailId }, 'Processing email send task');
+
+  await senderEngine.sendEmail(scheduledEmailId);
+
   return { sent: true };
 }, {
   concurrency: 10, // IO bound
 });
+
+// Dispatcher (Cron - Runs every 60s)
+// In a real production setup, this should be a separate service or use a distributed lock (e.g. Redlock)
+// to prevent multiple workers from dispatching the same emails if scaled horizontally.
+// For now, we assume a single worker instance or that `updateMany` handles concurrency via row locking (skip locked).
+async function runDispatcher() {
+  try {
+    const now = new Date();
+
+    // 1. Find Pending Emails due now
+    // We use a transaction or simple update to mark them as QUEUED to avoid double processing
+    // But Prisma doesn't support "UPDATE ... RETURNING" cleanly with "limit" easily in one go for varying IDs without raw query.
+    // We'll fetch first, then loop.
+
+    const pendingEmails = await prisma.scheduledEmail.findMany({
+      where: {
+        status: 'PENDING',
+        sendAt: { lte: now }
+      },
+      take: 100 // Batch size
+    });
+
+    if (pendingEmails.length === 0) return;
+
+    logger.info({ count: pendingEmails.length }, 'Dispatcher found pending emails');
+
+    for (const email of pendingEmails) {
+      try {
+        // Optimistic locking or just update status first
+        const updated = await prisma.scheduledEmail.update({
+          where: { id: email.id, status: 'PENDING' }, // Ensure it's still pending
+          data: { status: 'QUEUED' }
+        });
+
+        // Add to Queue
+        await emailQueue.add('send-email', { scheduledEmailId: email.id }, {
+           jobId: `email-${email.id}`, // Deduplication
+           removeOnComplete: true
+        });
+      } catch (e) {
+        // Race condition or update failed (already processed), ignore
+      }
+    }
+  } catch (error) {
+    logger.error({ error }, 'Dispatcher failed');
+  }
+}
+
+// Start Dispatcher Loop
+setInterval(runDispatcher, 60000);
+// Run immediately on startup
+runDispatcher();
 
 // Audit Log Worker
 createWorker<AuditLogData>('audit-queue', async (job) => {

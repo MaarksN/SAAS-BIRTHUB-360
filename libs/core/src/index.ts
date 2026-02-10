@@ -2,6 +2,8 @@ export * from './env';
 export * from './context';
 export * from './prisma';
 export * from './audit';
+export * from './mail';
+export * from './security/rate-limit';
 export * from './logger';
 export * from './pagination.dto';
 export * from './rbac';
