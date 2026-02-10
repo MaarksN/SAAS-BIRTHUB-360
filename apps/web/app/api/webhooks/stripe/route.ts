@@ -1,6 +1,6 @@
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { stripe, prisma, env, redis } from '@salesos/core';
+import { stripe, prisma, env, redis, createTransaction } from '@salesos/core';
 import Stripe from 'stripe';
 
 export async function POST(req: Request) {
@@ -61,6 +61,24 @@ export async function POST(req: Request) {
                 });
             }
         }
+      } else if (session.mode === 'payment') {
+          // Handle one-time credit purchase
+          const organizationId = session.metadata?.organizationId;
+          const type = session.metadata?.type;
+          const creditAmount = session.metadata?.creditAmount;
+
+          if (organizationId && type === 'CREDITS' && creditAmount) {
+              const amount = parseFloat(creditAmount);
+
+              // Add credits to ledger
+              await createTransaction(
+                  organizationId,
+                  amount,
+                  'CREDIT',
+                  `Top-up via Stripe Session ${session.id}`,
+                  session.id
+              );
+          }
       }
     } else if (event.type === 'invoice.payment_succeeded') {
       const invoice = event.data.object as Stripe.Invoice;

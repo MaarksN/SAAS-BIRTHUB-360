@@ -15,4 +15,5 @@ export * from './billing/stripe';
 export * from './finops/ledger';
 export * from './finops/tokenizer';
 export * from './finops/usage';
+export * from './security/firewall';
 export * from './redis';

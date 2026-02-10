@@ -1,4 +1,4 @@
-import { guard, features, logger, countTokens, usage } from '@salesos/core';
+import { guard, features, logger, countTokens, usage, firewall } from '@salesos/core';
 
 export type LLMProvider = 'openai' | 'anthropic';
 
@@ -23,13 +23,16 @@ export const llmGateway = {
       throw new Error('AI services are temporarily disabled.');
     }
 
-    // 2. Token Counting (Pre-flight)
+    // 2. Firewall Check (Input)
+    await firewall.checkInput(request.prompt);
+
+    // 3. Token Counting (Pre-flight)
     const inputTokens = countTokens(request.prompt, model);
     // Estimate output (e.g., max tokens or avg) for budget check
     const estimatedOutputTokens = 500;
     const estimatedCost = usage.calculateCost(model, inputTokens, estimatedOutputTokens);
 
-    // 3. Rate Limit Check
+    // 4. Rate Limit Check
     try {
       await guard.checkRateLimit('ai', userId);
     } catch (error) {
@@ -77,7 +80,8 @@ export const llmGateway = {
         contextType: request.contextType || 'chat',
     }).catch(err => logger.error('Failed to record usage', err));
 
-    return response;
+    // 7. Firewall Sanitize (Output)
+    return firewall.sanitizeOutput(response);
   }
 };
 
