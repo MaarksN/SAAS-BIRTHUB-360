@@ -45,6 +45,8 @@ model User {
   deals          Deal[]
   usageLogs      UsageLog[]
   aiFeedback     AiFeedback[]
+  voiceConsents  VoiceConsent[]
+  voiceClones    VoiceClone[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
@@ -330,4 +332,41 @@ model AiFeedback {
   createdAt DateTime @default(now())
 
   @@map("ai_feedback")
+}
+
+// Voice Personalization Models (Cycle 22)
+
+model VoiceConsent {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  ipAddress      String
+  browserInfo    String?
+  timestamp      DateTime @default(now())
+  consentText    String
+  audioHash      String   // SHA-256 hash of the consent audio
+  s3Key          String   // Path to raw audio in S3 Glacier
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  @@index([userId])
+  @@map("voice_consents")
+}
+
+model VoiceClone {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  name           String
+  status         String   // PENDING, PROCESSING, READY, FAILED
+  providerId     String?  // External ID (e.g. ElevenLabs ID)
+  s3Key          String?  // Path to processed model or samples
+  styleProfile   Json?    // Stylometry data
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  @@index([userId])
+  @@map("voice_clones")
 }
