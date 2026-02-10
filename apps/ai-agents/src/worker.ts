@@ -80,10 +80,13 @@ async function runDispatcher() {
     for (const email of pendingEmails) {
       try {
         // Optimistic locking or just update status first
-        const updated = await prisma.scheduledEmail.update({
-          where: { id: email.id, status: 'PENDING' }, // Ensure it's still pending
+        // Prisma update only accepts unique where. To use composite check (id + status), we must use updateMany.
+        const result = await prisma.scheduledEmail.updateMany({
+          where: { id: email.id, status: 'PENDING' },
           data: { status: 'QUEUED' }
         });
+
+        if (result.count === 0) continue; // Already processed or not pending
 
         // Add to Queue
         await emailQueue.add('send-email', { scheduledEmailId: email.id }, {

@@ -1,6 +1,7 @@
 import { prisma } from '../prisma';
 import { IEmailProvider } from './types';
 import { MockProvider } from './providers/mock-provider';
+import { ResendProvider } from './providers/resend-provider';
 import { injectTracking } from './tracking';
 import { logger } from '../logger';
 
@@ -9,9 +10,10 @@ function getProvider(type: string, credentials: any): IEmailProvider {
   switch (type) {
     case 'MOCK':
       return new MockProvider(credentials);
+    case 'RESEND':
+      return new ResendProvider(credentials);
     case 'GMAIL':
     case 'OUTLOOK':
-    case 'RESEND':
       // Return Mock for now until implemented
       return new MockProvider(credentials);
     default:

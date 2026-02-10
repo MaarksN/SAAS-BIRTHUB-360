@@ -7,6 +7,7 @@ export * from './security/rate-limit';
 export * from './logger';
 export * from './pagination.dto';
 export * from './rbac';
+export * from './auth/invite';
 export * from './schemas';
 export * from './timestamp.dto';
 export * from './types';
