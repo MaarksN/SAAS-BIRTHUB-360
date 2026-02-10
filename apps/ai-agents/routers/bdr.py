@@ -1,7 +1,14 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from schemas.agent import AgentRunRequest, AgentResponse
+from services.bdr_agent import BDRAgent
 
 router = APIRouter()
+bdr_agent = BDRAgent()
 
-@router.get("/bdr")
-async def bdr_root():
-    return {"message": "BDR Router"}
+@router.post("/bdr/agent-run", response_model=AgentResponse)
+async def run_agent(request: AgentRunRequest):
+    try:
+        response = await bdr_agent.run(request)
+        return response
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
