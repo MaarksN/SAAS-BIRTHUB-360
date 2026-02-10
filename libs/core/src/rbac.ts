@@ -1,5 +1,4 @@
-import { User } from './index';
-import { Role } from '@salesos/core';
+import { User, Role } from '@prisma/client';
 
 const ROLE_HIERARCHY: Record<Role, number> = {
   'ADMIN': 3,
