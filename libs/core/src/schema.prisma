@@ -27,12 +27,13 @@ model Organization {
 
 model User {
   id             String       @id @default(uuid())
-  email          String       @unique
+  email          String
   name           String
   role           Role         @default(MEMBER)
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
 
+  @@unique([email, deletedAt])
   @@index([organizationId])
   @@index([email])
   deals          Deal[]
@@ -45,13 +46,14 @@ model User {
 
 model Permission {
   id          String   @id @default(cuid())
-  code        String   @unique
+  code        String
   description String?
   roles       Role[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   deletedAt   DateTime?
 
+  @@unique([code, deletedAt])
   @@map("permissions")
 }
 
@@ -59,7 +61,7 @@ model Permission {
 
 model CompanyProfile {
   id             String   @id @default(cuid())
-  cnpj           String   @unique
+  cnpj           String
   name           String
   segment        String?
   cnae           String?
@@ -67,13 +69,14 @@ model CompanyProfile {
   foundedAt      DateTime?
   isActive       Boolean  @default(true)
   enrichmentLogs EnrichmentLog[]
-  reliability    DataReliabilityScore?
+  reliability    DataReliabilityScore[]
   buyingCommittees BuyingCommittee[]
   deals          Deal[]
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   deletedAt      DateTime?
 
+  @@unique([cnpj, deletedAt])
   @@map("company_profiles")
 }
 
@@ -94,13 +97,14 @@ model EnrichmentLog {
 
 model DataReliabilityScore {
   id        String         @id @default(cuid())
-  companyId String         @unique
+  companyId String
   company   CompanyProfile @relation(fields: [companyId], references: [id])
   score     Float          // 0 to 100
   factors   Json           // Detailed breakdown of factors
   updatedAt DateTime       @updatedAt
   deletedAt DateTime?
 
+  @@unique([companyId, deletedAt])
   @@map("data_reliability_scores")
 }
 
@@ -169,7 +173,7 @@ model Lead {
   deletedAt      DateTime?
   leadScores     LeadScore[]
 
-  @@unique([email, organizationId])
+  @@unique([email, organizationId, deletedAt])
   @@index([organizationId, status])
   @@index([linkedInUrl])
   @@map("leads")

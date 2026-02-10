@@ -9,6 +9,9 @@ const scraperEngine = new ScraperEngine();
 createWorker('scraping-queue', async (job) => {
   logger.info({ jobId: job.id, url: job.data.url }, 'Processing scraping job');
 
+  // TODO: Implement strict per-domain rate limiting using Bottleneck or BullMQ Pro Groups.
+  // Currently relies on queue-level limits and exponential backoff.
+
   if (!job.data.url) {
     throw new Error('URL is required');
   }

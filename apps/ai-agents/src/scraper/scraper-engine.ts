@@ -37,6 +37,16 @@ export class ScraperEngine {
     const context = await this.browser!.createIncognitoBrowserContext();
     const page = await context.newPage();
 
+    // Randomize Viewport
+    await page.setViewport({
+      width: 1366 + Math.floor(Math.random() * 100),
+      height: 768 + Math.floor(Math.random() * 100),
+      deviceScaleFactor: 1,
+      hasTouch: false,
+      isLandscape: false,
+      isMobile: false,
+    });
+
     // Proxy handling would go here (e.g. page.authenticate if using proxy with auth)
     const proxy = this.proxyManager.getNextProxy();
     if (proxy) {

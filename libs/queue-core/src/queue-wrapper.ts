@@ -1,5 +1,5 @@
 import { Queue, Worker, QueueOptions, WorkerOptions, Processor, JobsOptions } from 'bullmq';
-import { logger, env } from '@salesos/core';
+import { logger, env, runWithContext } from '@salesos/core';
 import IORedis from 'ioredis';
 
 const createConnection = () => {
@@ -27,19 +27,23 @@ export const createQueue = <T>(name: string, options?: QueueOptions) => {
 
 export const createWorker = <T>(name: string, processor: Processor<T>, options?: WorkerOptions) => {
   const worker = new Worker<T>(name, async (job) => {
-    const start = Date.now();
-    logger.info({ jobId: job.id, queue: name, data: job.data }, 'Job processing started');
+    const traceId = (job.data as any)?.meta?.traceId || job.id || 'unknown-job';
 
-    try {
-      const result = await processor(job);
-      const duration = Date.now() - start;
-      logger.info({ jobId: job.id, queue: name, duration }, 'Job completed');
-      return result;
-    } catch (error) {
-      const duration = Date.now() - start;
-      logger.error({ jobId: job.id, queue: name, duration, error }, 'Job failed');
-      throw error;
-    }
+    return runWithContext(traceId, async () => {
+      const start = Date.now();
+      logger.info({ jobId: job.id, queue: name, data: job.data }, 'Job processing started');
+
+      try {
+        const result = await processor(job);
+        const duration = Date.now() - start;
+        logger.info({ jobId: job.id, queue: name, duration }, 'Job completed');
+        return result;
+      } catch (error) {
+        const duration = Date.now() - start;
+        logger.error({ jobId: job.id, queue: name, duration, error }, 'Job failed');
+        throw error;
+      }
+    });
   }, {
     connection: createConnection(),
     concurrency: options?.concurrency || 1,

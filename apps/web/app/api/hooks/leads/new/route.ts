@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { z } from 'zod';
-import { processLeadIngestion, logger } from '@salesos/core';
+import { processLeadIngestion, logger, runWithContext } from '@salesos/core';
 
 const LeadSchema = z.object({
   email: z.string().email(),
@@ -14,13 +14,16 @@ const LeadSchema = z.object({
 // By default, Zod strips unknown keys, preventing pollution.
 
 export async function POST(req: NextRequest) {
-  try {
-    const rawBody = await req.text();
-    const signature = req.headers.get('x-hub-signature-256');
-    const secret = process.env.WEBHOOK_SECRET;
+  const requestId = req.headers.get('x-request-id') || crypto.randomUUID();
 
-    // HMAC Verification
-    if (secret) {
+  return runWithContext(requestId, async () => {
+    try {
+      const rawBody = await req.text();
+      const signature = req.headers.get('x-hub-signature-256');
+      const secret = process.env.WEBHOOK_SECRET;
+
+      // HMAC Verification
+      if (secret) {
       if (!signature) {
         logger.warn('Missing webhook signature');
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -57,12 +60,13 @@ export async function POST(req: NextRequest) {
 
     const { data } = result;
 
-    // Process Ingestion
-    await processLeadIngestion(data);
+      // Process Ingestion
+      await processLeadIngestion(data);
 
-    return NextResponse.json({ success: true }, { status: 200 });
-  } catch (error) {
-    logger.error({ error }, 'Webhook processing failed');
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-  }
+      return NextResponse.json({ success: true }, { status: 200 });
+    } catch (error) {
+      logger.error({ error }, 'Webhook processing failed');
+      return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+  });
 }
