@@ -14,4 +14,5 @@ export * from './billing/plans';
 export * from './billing/stripe';
 export * from './finops/ledger';
 export * from './finops/tokenizer';
+export * from './finops/usage';
 export * from './redis';
