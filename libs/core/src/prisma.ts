@@ -1,8 +1,9 @@
 import { PrismaClient } from '@prisma/client';
 import { env } from './env';
+import { getOrganizationId } from './context';
 
 const prismaClientSingleton = () => {
-  const client = new PrismaClient({
+  return new PrismaClient({
     datasources: {
       db: {
         url: env.DATABASE_URL,
@@ -10,68 +11,144 @@ const prismaClientSingleton = () => {
     },
     log: env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
   });
-
-  // Soft Delete Middleware
-  client.$use(async (params, next) => {
-    // Check if model has deletedAt field (optimization: only apply if model is in a list, or assume all)
-    // For now apply to all models as per schema update
-
-    if (params.model) {
-      if (params.action === 'delete') {
-        // Change to update
-        params.action = 'update';
-        params.args['data'] = { deletedAt: new Date() };
-      }
-      if (params.action === 'deleteMany') {
-        // Change to updateMany
-        params.action = 'updateMany';
-        if (params.args.data !== undefined) {
-          params.args.data['deletedAt'] = new Date();
-        } else {
-          params.args['data'] = { deletedAt: new Date() };
-        }
-      }
-    }
-    return next(params);
-  });
-
-  // Filter Soft Deleted Middleware
-  client.$use(async (params, next) => {
-    if (params.model) {
-      if (params.action === 'findUnique' || params.action === 'findFirst') {
-        // Change findUnique to findFirst
-        params.action = 'findFirst';
-        if (!params.args) params.args = {};
-        if (!params.args.where) params.args.where = {};
-        if (params.args.where.deletedAt === undefined) {
-          params.args.where.deletedAt = null;
-        }
-      }
-      if (params.action === 'findMany') {
-        if (!params.args) params.args = {};
-        if (!params.args.where) params.args.where = {};
-        if (params.args.where.deletedAt === undefined) {
-          params.args.where.deletedAt = null;
-        }
-      }
-      if (params.action === 'count') {
-         if (!params.args) params.args = {};
-         if (!params.args.where) params.args.where = {};
-         if (params.args.where.deletedAt === undefined) {
-           params.args.where.deletedAt = null;
-         }
-      }
-    }
-    return next(params);
-  });
-
-  return client;
 };
 
 declare global {
-  var prisma: undefined | ReturnType<typeof prismaClientSingleton>;
+  var prismaBase: undefined | ReturnType<typeof prismaClientSingleton>;
 }
 
-export const prisma = globalThis.prisma ?? prismaClientSingleton();
+const basePrisma = globalThis.prismaBase ?? prismaClientSingleton();
 
-if (env.NODE_ENV !== 'production') globalThis.prisma = prisma;
+if (env.NODE_ENV !== 'production') globalThis.prismaBase = basePrisma;
+
+const TENANT_MODELS = [
+  'User',
+  'Lead',
+  'UsageLog',
+  'CreditTransaction',
+  'AuditLog',
+  'Notification',
+  'Campaign',
+  'EmailAccount'
+];
+
+const SOFT_DELETE_MODELS = [
+  'Organization', 'User', 'Permission', 'CompanyProfile', 'EnrichmentLog',
+  'DataReliabilityScore', 'BuyingCommittee', 'Contact', 'OutboundSequence',
+  'Lead', 'LeadScore', 'Cadence', 'Deal', 'Quote', 'Meeting',
+  'SubscriptionPlan', 'UsageLog', 'CreditTransaction', 'AiFeedback',
+  'Notification', 'Campaign', 'EmailAccount'
+];
+
+export const prisma = basePrisma.$extends({
+  query: {
+    $allModels: {
+      async $allOperations({ model, operation, args, query }) {
+        const orgId = getOrganizationId();
+
+        // 1. Audit Log Immutability
+        if (model === 'AuditLog' && ['update', 'updateMany', 'delete', 'deleteMany', 'upsert'].includes(operation)) {
+          throw new Error('Audit Logs are immutable.');
+        }
+
+        // 2. Soft Delete - Transform delete to update
+        if (operation === 'delete') {
+           // We must check if model supports soft delete
+           if (SOFT_DELETE_MODELS.includes(model)) {
+               const where = { ...(args.where || {}) } as any;
+               where['deletedAt'] = null;
+               if (orgId && TENANT_MODELS.includes(model)) {
+                  where['organizationId'] = orgId;
+               }
+
+               // Find first to get ID and ensure existence/ownership
+               const record = await (basePrisma as any)[model].findFirst({ where });
+
+               if (!record) {
+                  // Mimic Prisma error
+                  throw new Error('Record to delete does not exist.');
+               }
+
+               return (basePrisma as any)[model].update({
+                 where: { id: record.id },
+                 data: { deletedAt: new Date() }
+               });
+           }
+           // If model doesn't support soft delete (e.g. AuditLog, but that is immutable anyway), proceed with normal delete?
+           // AuditLog throws on delete.
+           // Other models? If any other model exists without soft delete, we let it pass.
+        }
+
+        if (operation === 'deleteMany') {
+           if (SOFT_DELETE_MODELS.includes(model)) {
+               const where = { ...(args.where || {}) } as any;
+               if (orgId && TENANT_MODELS.includes(model)) {
+                  where['organizationId'] = orgId;
+               }
+               where['deletedAt'] = null;
+
+               return (basePrisma as any)[model].updateMany({
+                 where,
+                 data: { deletedAt: new Date() }
+               });
+           }
+        }
+
+        // 3. RLS Injection & Soft Delete Filtering (Read/Update)
+        const anyArgs = args as any;
+
+        // Ensure args.where exists for relevant operations
+        if (['findUnique', 'findFirst', 'findMany', 'count', 'aggregate', 'groupBy', 'update', 'updateMany'].includes(operation)) {
+           if (!anyArgs.where) {
+             anyArgs.where = {};
+           }
+        }
+
+        // Soft Delete Filter
+        let softDeleteInjected = false;
+        if (SOFT_DELETE_MODELS.includes(model)) {
+            if (['findUnique', 'findFirst', 'findMany', 'count', 'aggregate', 'groupBy'].includes(operation)) {
+               if (anyArgs.where.deletedAt === undefined) {
+                  anyArgs.where.deletedAt = null;
+                  softDeleteInjected = true;
+               }
+            }
+        }
+
+        // RLS Injection
+        let rlsInjected = false;
+        if (orgId && TENANT_MODELS.includes(model)) {
+            if (['findUnique', 'findFirst', 'findMany', 'count', 'aggregate', 'groupBy', 'update', 'updateMany'].includes(operation)) {
+                anyArgs.where.organizationId = orgId;
+                rlsInjected = true;
+            }
+
+            if (operation === 'create') {
+                if (!anyArgs.data) anyArgs.data = {};
+                if (!anyArgs.data.organizationId) {
+                    anyArgs.data.organizationId = orgId;
+                }
+            }
+
+             // createMany
+            if (operation === 'createMany') {
+                 if (Array.isArray(anyArgs.data)) {
+                      anyArgs.data = anyArgs.data.map((item: any) => ({ ...item, organizationId: orgId }));
+                 } else if (anyArgs.data) {
+                      anyArgs.data.organizationId = orgId;
+                 }
+            }
+        }
+
+        // Handle findUnique -> findFirst conversion if we injected filters
+        if (operation === 'findUnique' && (softDeleteInjected || rlsInjected)) {
+             return (basePrisma as any)[model].findFirst({
+                 ...anyArgs
+             });
+        }
+
+        return query(args);
+      }
+    }
+  }
+});

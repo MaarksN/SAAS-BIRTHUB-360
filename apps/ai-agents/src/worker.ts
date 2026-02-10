@@ -1,6 +1,6 @@
 import { createWorker } from '@salesos/queue-core';
 import { ScraperEngine } from './scraper/scraper-engine';
-import { logger } from '@salesos/core';
+import { logger, prisma, AuditLogData } from '@salesos/core';
 
 // Initialize Scraper Engine
 const scraperEngine = new ScraperEngine();
@@ -45,6 +45,30 @@ createWorker('email-queue', async (job) => {
   return { sent: true };
 }, {
   concurrency: 10, // IO bound
+});
+
+// Audit Log Worker
+createWorker<AuditLogData>('audit-queue', async (job) => {
+  logger.info({ jobId: job.id, action: job.data.action }, 'Processing audit log');
+
+  const { organizationId, actorId, action, entity, entityId, metadata, ipAddress, userAgent } = job.data;
+
+  await prisma.auditLog.create({
+    data: {
+      organizationId,
+      actorId,
+      action,
+      entity,
+      entityId,
+      metadata: metadata || {},
+      ipAddress,
+      userAgent
+    }
+  });
+
+  return { logged: true };
+}, {
+  concurrency: 5,
 });
 
 logger.info('Workers started');
