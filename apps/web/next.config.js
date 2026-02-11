@@ -16,6 +16,11 @@ const nextConfig = {
   images: {
     formats: ['image/avif', 'image/webp'],
   },
+  modularizeImports: {
+    'lucide-react': {
+      transform: 'lucide-react/dist/esm/icons/{{kebabCase k}}',
+    },
+  },
 };
 
 const withBundleAnalyzer = require('@next/bundle-analyzer')({

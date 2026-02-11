@@ -7,7 +7,18 @@ import { ThemeProvider } from './theme-provider';
 import { ToasterHot } from './toaster-hot';
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient());
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        // Data is fresh for 5 minutes (avoids immediate refetch on component mount)
+        staleTime: 5 * 60 * 1000,
+        // Unused data remains in cache for 10 minutes before GC
+        gcTime: 10 * 60 * 1000,
+        refetchOnWindowFocus: false,
+        retry: 1,
+      },
+    },
+  }));
 
   return (
     <QueryClientProvider client={queryClient}>
