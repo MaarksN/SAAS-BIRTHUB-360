@@ -36,9 +36,9 @@ async def enrich_cnpj(request: CNPJEnrichmentRequest):
 
     # Lógica determinística baseada no CNPJ para testes consistentes
     seed = int(clean_cnpj[:8])
-    random.seed(seed)
+    rng = random.Random(seed)
 
-    reliability = random.uniform(0.7, 0.99)
+    reliability = rng.uniform(0.7, 0.99)
 
     return {
         "cnpj": request.cnpj,
