@@ -25,7 +25,26 @@ export const createQueue = <T>(name: string, options?: QueueOptions) => {
   });
 };
 
-export const createWorker = <T>(name: string, processor: Processor<T>, options?: WorkerOptions) => {
+// Registry to track active workers for graceful shutdown
+const workers = new Set<Worker>();
+let shutdownHandlerAttached = false;
+
+const shutdownHandler = async (signal: string) => {
+  logger.info({ signal }, 'Shutting down workers...');
+  const closePromises = Array.from(workers).map((worker) => worker.close());
+  await Promise.all(closePromises);
+  logger.info({ signal }, 'All workers closed');
+};
+
+const attachSignalListeners = () => {
+  if (shutdownHandlerAttached) return;
+  shutdownHandlerAttached = true;
+
+  process.once('SIGTERM', () => shutdownHandler('SIGTERM'));
+  process.once('SIGINT', () => shutdownHandler('SIGINT'));
+};
+
+export const createWorker = <T = any>(name: string, processor: Processor<T>, options?: Omit<WorkerOptions, 'connection'>) => {
   const worker = new Worker<T>(name, async (job) => {
     const start = Date.now();
     logger.info({ jobId: job.id, queue: name, data: job.data }, 'Job processing started');
@@ -50,21 +69,13 @@ export const createWorker = <T>(name: string, processor: Processor<T>, options?:
     logger.error({ jobId: job?.id, queue: name, error: err }, 'Job failed permanently (or will retry)');
   });
 
-  // Graceful shutdown logic is handled by the caller usually, but we can hook into process signals if this is the main process.
-  // However, multiple workers might be created in one process. Adding global listeners here might be problematic if called multiple times.
-  // Better to expose a close function or rely on the worker.close() being called by the app shutdown hook.
-  // The prompt asked for "Graceful Shutdown: Intercepte sinais SIGTERM/SIGINT".
-  // I will add a global handler only once or manage workers registry.
+  // Register worker for graceful shutdown
+  workers.add(worker);
+  attachSignalListeners();
 
-  // Simple implementation:
-  const gracefulShutdown = async (signal: string) => {
-    logger.info({ signal, queue: name }, 'Closing worker...');
-    await worker.close();
-    logger.info({ signal, queue: name }, 'Worker closed');
-  };
-
-  process.once('SIGTERM', () => gracefulShutdown('SIGTERM'));
-  process.once('SIGINT', () => gracefulShutdown('SIGINT'));
+  worker.on('closed', () => {
+    workers.delete(worker);
+  });
 
   return worker;
 };
