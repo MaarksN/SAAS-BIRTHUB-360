@@ -9,3 +9,5 @@ tenacity
 psycopg2-binary
 pgvector
 openai
+httpx
+pytest
