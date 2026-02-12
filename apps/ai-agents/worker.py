@@ -20,7 +20,7 @@ class Worker:
         while self.running:
             try:
                 # Use blpop async
-                item = await self.redis.blpop(QUEUE_NAME, timeout=1)
+                item = await self.redis.blpop(QUEUE_NAME, timeout=30)
 
                 if item:
                     queue, data = item
