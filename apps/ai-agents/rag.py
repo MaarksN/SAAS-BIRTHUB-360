@@ -1,5 +1,4 @@
 import psycopg2
-from pgvector.psycopg2 import register_vector
 import numpy as np
 import os
 import json
@@ -13,6 +12,7 @@ class RAGService:
         try:
             self.conn = psycopg2.connect(DB_URL)
             # Register vector type for numpy usage
+            # from pgvector.psycopg2 import register_vector
             # register_vector(self.conn) # Requires pgvector extension installed
         except Exception as e:
             print(f"Warning: Could not connect to DB for RAG: {e}")
