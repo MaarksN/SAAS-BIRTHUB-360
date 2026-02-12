@@ -1,13 +1,14 @@
 'use server';
 
-import { prisma, IcebreakerService } from '@salesos/core';
+import { prisma, IcebreakerService, EnrichmentService, getOrganizationId } from '@salesos/core';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { withContext } from '@/lib/context-wrapper';
-import { createQueue } from '@salesos/queue-core'; // Assuming this exists or mocked
+import { createQueue } from '@salesos/queue-core';
 
 const icebreakerService = new IcebreakerService();
-// const hubspotQueue = createQueue('hubspot-sync-queue'); // Need to import this safely if queue-core is available
+const enrichmentService = new EnrichmentService();
+// const hubspotQueue = createQueue('hubspot-sync-queue');
 
 // Zod Schema for input validation
 const updateLeadSchema = z.object({
@@ -44,6 +45,30 @@ export async function updateLeadStatus(formData: FormData) {
     } catch (error) {
       console.error('Failed to update lead status:', error);
       return { error: 'Failed to update lead status' };
+    }
+  });
+}
+
+export async function enrichLead(formData: FormData) {
+  return withContext(async () => {
+    const leadId = formData.get('leadId') as string;
+    if (!leadId) return { error: 'Lead ID required' };
+
+    // We need organizationId for credit transaction
+    const orgId = getOrganizationId();
+    if (!orgId) return { error: 'Organization Context missing' };
+
+    try {
+      const success = await enrichmentService.enrichLead(leadId, orgId);
+      if (success) {
+          revalidatePath('/leads');
+          return { success: true };
+      } else {
+          return { error: 'No data found' };
+      }
+    } catch (error) {
+      console.error('Failed to enrich lead:', error);
+      return { error: 'Failed to enrich lead' };
     }
   });
 }

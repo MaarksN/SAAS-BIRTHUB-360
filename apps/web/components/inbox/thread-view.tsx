@@ -33,6 +33,10 @@ export function ThreadView({ threadId }: { threadId: string }) {
                 <span>Today, 10:23 AM</span>
             </div>
             <div className="bg-slate-900 p-4 rounded-lg border border-slate-800 text-slate-300 text-sm">
+                {/*
+                  SAFETY: In production, use DOMPurify to sanitize HTML content.
+                  For prototype, we display text. If rich HTML is needed, use dangerouslySetInnerHTML with sanitization.
+                */}
                 <p>Hi Jules,</p>
                 <p className="mt-2">Just following up on the proposal. Did you have a chance to review?</p>
                 <p className="mt-2">Best,<br/>John</p>

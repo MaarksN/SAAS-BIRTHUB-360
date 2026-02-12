@@ -11,6 +11,7 @@ export * from './auth/invite';
 export * from './integrations/hubspot';
 export * from './ai/icebreaker';
 export * from './workflow/engine';
+export * from './enrichment/service';
 export * from './schemas';
 export * from './timestamp.dto';
 export * from './types';

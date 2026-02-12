@@ -5,6 +5,28 @@ export function middleware(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-salesos-request-id', crypto.randomUUID());
 
+  // --- SECURITY: Header Sanitation ---
+  // Prevent client from spoofing internal headers used for context propagation.
+  // In a real implementation with Auth (e.g. Clerk/NextAuth), we would decode the session here
+  // and SET these headers securely based on the token.
+  // For this prototype, we MUST clear them to ensure downstream logic doesn't trust spoofed data
+  // unless we are in a trusted dev environment where we might want to mock them (controlled via env).
+
+  if (process.env.NODE_ENV === 'production') {
+      requestHeaders.delete('x-org-id');
+      requestHeaders.delete('x-user-id');
+      requestHeaders.delete('x-user-role');
+
+      // TODO: Decode JWT/Session here and set headers securely.
+      // Example:
+      // const token = request.cookies.get('session');
+      // const user = verify(token);
+      // if (user) {
+      //    requestHeaders.set('x-org-id', user.orgId);
+      //    requestHeaders.set('x-user-id', user.id);
+      // }
+  }
+
   const response = NextResponse.next({
     request: {
       headers: requestHeaders,

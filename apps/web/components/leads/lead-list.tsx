@@ -2,7 +2,7 @@
 
 import { useOptimistic, startTransition } from 'react';
 import { LeadListItem } from './lead-list-item';
-import { updateLeadStatus, deleteLead, generateIcebreaker } from '../../actions/leads';
+import { updateLeadStatus, deleteLead, generateIcebreaker, enrichLead } from '../../actions/leads';
 import { toast } from '@/components/sonner';
 
 // Define the shape of our Lead (matching what we passed to LeadListItem earlier or close to it)
@@ -87,6 +87,17 @@ export function LeadList({ initialLeads }: LeadListProps) {
                 }}>
                     <button type="submit" className="text-xs text-indigo-400 hover:text-indigo-300 px-2 py-1">
                         ✨ AI Icebreaker
+                    </button>
+                </form>
+                <form action={async () => {
+                    const formData = new FormData();
+                    formData.append('leadId', lead.id);
+                    const res = await enrichLead(formData);
+                    if (res.success) toast.success('Lead enriched!');
+                    else toast.error(res.error || 'Failed');
+                }}>
+                    <button type="submit" className="text-xs text-amber-400 hover:text-amber-300 px-2 py-1">
+                        🕵️ Enrich
                     </button>
                 </form>
             </div>
