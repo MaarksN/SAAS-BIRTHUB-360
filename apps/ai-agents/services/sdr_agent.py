@@ -4,6 +4,7 @@ from datetime import datetime
 from jinja2 import Template
 from openai import OpenAI, OpenAIError
 from schemas.agent import EmailGenerationRequest, EmailGenerationResponse
+from services.guardrails import OutputValidator
 
 # Mock OpenAI for development if key not present
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "sk-mock-key")
@@ -54,6 +55,8 @@ class SDRAgent:
 
         # 2. Call LLM with Auto-Healing (Cycle 18)
         retries = 2
+        validator = OutputValidator() # Cycle 24 Guardrails
+
         for attempt in range(retries):
             try:
                 # If using a mock key, return dummy data
@@ -73,9 +76,13 @@ class SDRAgent:
                 content = response.choices[0].message.content
                 parsed = json.loads(content)
 
+                # Cycle 24: Validate Output
+                body = parsed.get("body_html", "")
+                validator.validate(body)
+
                 return EmailGenerationResponse(
                     subject=parsed.get("subject", "No Subject"),
-                    body_html=parsed.get("body_html", ""),
+                    body_html=body,
                     sentiment_analysis=parsed.get("sentiment", "N/A"),
                     generated_at=datetime.utcnow().isoformat()
                 )

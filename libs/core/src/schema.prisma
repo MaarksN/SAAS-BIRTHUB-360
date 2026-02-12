@@ -41,6 +41,7 @@ model User {
   deals          Deal[]
   apiKeys        ApiKey[]
   agentTemplates AgentTemplate[]
+  agentFeedbacks AgentFeedback[] // Cycle 26
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
@@ -326,4 +327,22 @@ model WebhookSubscription {
   updatedAt      DateTime     @updatedAt
 
   @@map("webhook_subscriptions")
+}
+
+// Cycle 26: Feedback Loop
+
+model AgentFeedback {
+  id             String   @id @default(cuid())
+  agentRunId     String   // ID of the run (from logs or request ID)
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+
+  rating         Int      // 1-5
+  correction     String?  @db.Text // What the user fixed
+  originalOutput String?  @db.Text
+  improvedOutput String?  @db.Text // The final version sent
+
+  createdAt      DateTime @default(now())
+
+  @@map("agent_feedbacks")
 }
