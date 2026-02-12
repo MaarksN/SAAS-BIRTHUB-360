@@ -56,6 +56,25 @@ export class RateLimitService {
     };
   }
 
+  /**
+   * Cycle 27: Check Tenant Budget (FinOps)
+   */
+  async checkBudget(tenantId: string, estimatedCost: number): Promise<boolean> {
+    const key = `budget:${tenantId}`;
+
+    // Check current spend in Redis (L1)
+    const currentSpend = parseFloat(await this.redis.get(key) || '0');
+    const monthlyLimit = 50.0; // Mock limit, normally fetch from DB/Cache
+
+    if (currentSpend + estimatedCost > monthlyLimit) {
+      return false;
+    }
+
+    // Increment spend (Atomic)
+    await this.redis.incrbyfloat(key, estimatedCost);
+    return true;
+  }
+
   async close() {
     await this.redis.quit();
   }

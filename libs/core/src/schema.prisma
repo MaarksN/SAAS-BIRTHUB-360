@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["postgresqlExtensions"]
+  previewFeatures = ["postgresqlExtensions", "views"] // Enable views for Cycle 30
 }
 
 datasource db {
@@ -24,6 +24,8 @@ model Organization {
   leads     Lead[]
   apiKeys   ApiKey[]
   webhooks  WebhookSubscription[]
+  usageLogs UsageLog[]
+  budget    TenantBudget?
 
   @@map("organizations")
 }
@@ -41,7 +43,7 @@ model User {
   deals          Deal[]
   apiKeys        ApiKey[]
   agentTemplates AgentTemplate[]
-  agentFeedbacks AgentFeedback[] // Cycle 26
+  agentFeedbacks AgentFeedback[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
@@ -329,20 +331,48 @@ model WebhookSubscription {
   @@map("webhook_subscriptions")
 }
 
-// Cycle 26: Feedback Loop
-
 model AgentFeedback {
   id             String   @id @default(cuid())
-  agentRunId     String   // ID of the run (from logs or request ID)
+  agentRunId     String
   userId         String
   user           User     @relation(fields: [userId], references: [id])
-
-  rating         Int      // 1-5
-  correction     String?  @db.Text // What the user fixed
+  rating         Int
+  correction     String?  @db.Text
   originalOutput String?  @db.Text
-  improvedOutput String?  @db.Text // The final version sent
-
+  improvedOutput String?  @db.Text
   createdAt      DateTime @default(now())
 
   @@map("agent_feedbacks")
+}
+
+// Cycle 27: FinOps
+
+model UsageLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  feature        String       // "SDR_AGENT", "ENRICHMENT"
+  model          String?      // "gpt-4", "gpt-3.5"
+  tokensUsed     Int          @default(0)
+  cost           Float        @default(0) // Estimated cost in USD
+
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
+  @@map("usage_logs")
+}
+
+model TenantBudget {
+  id             String       @id @default(cuid())
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  monthlyLimit   Float        @default(50.0) // USD
+  currentSpend   Float        @default(0.0)
+  resetDate      DateTime     @default(now()) // Next reset
+
+  updatedAt      DateTime     @updatedAt
+
+  @@map("tenant_budgets")
 }

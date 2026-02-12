@@ -10,6 +10,11 @@ from services.guardrails import OutputValidator
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "sk-mock-key")
 client = OpenAI(api_key=OPENAI_API_KEY)
 
+# Cycle 27: Usage Tracking
+import redis
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
+redis_client = redis.Redis.from_url(REDIS_URL, decode_responses=True)
+
 # --- Templates (Cycle 18: Few-Shot & CoT) ---
 SYSTEM_PROMPT = """
 You are a world-class SDR (Sales Development Representative) specializing in personalized cold outreach.
@@ -76,6 +81,10 @@ class SDRAgent:
                 content = response.choices[0].message.content
                 parsed = json.loads(content)
 
+                # Cycle 27: Report Usage
+                tokens = response.usage.total_tokens if response.usage else 0
+                self._report_usage("mock-tenant", tokens) # Tenant ID from context
+
                 # Cycle 24: Validate Output
                 body = parsed.get("body_html", "")
                 validator.validate(body)
@@ -96,6 +105,15 @@ class SDRAgent:
                 raise e
 
         raise Exception("Failed to generate valid JSON after retries.")
+
+    def _report_usage(self, tenant_id: str, tokens: int):
+        try:
+            # Estimate cost (GPT-4 Turbo ~$0.03/1k tokens mixed)
+            cost = (tokens / 1000) * 0.03
+            key = f"usage:{tenant_id}:{datetime.now().strftime('%Y-%m')}"
+            redis_client.incrbyfloat(key, cost)
+        except Exception as e:
+            print(f"Failed to report usage: {e}")
 
     def _mock_response(self, request: EmailGenerationRequest) -> EmailGenerationResponse:
         return EmailGenerationResponse(
