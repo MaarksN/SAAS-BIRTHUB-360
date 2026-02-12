@@ -22,6 +22,7 @@ model Organization {
   updatedAt DateTime @updatedAt
   users     User[]
   leads     Lead[]
+  apiKeys   ApiKey[]
 
   @@map("organizations")
 }
@@ -37,6 +38,7 @@ model User {
   @@index([organizationId])
   @@index([email])
   deals          Deal[]
+  apiKeys        ApiKey[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
@@ -262,4 +264,30 @@ model RagEmbedding {
   createdAt DateTime               @default(now()) @map("created_at")
 
   @@map("rag_embeddings")
+}
+
+// Phase 4 Extensions - API Gateway
+
+model ApiKey {
+  id             String       @id @default(cuid())
+  name           String
+  keyPrefix      String       // First 8 chars for display
+  hash           String       @unique // Hashed key for verification
+  scopes         Json         // Array of allowed scopes (e.g. ["read:leads", "write:enrichment"])
+  rateLimit      Int          @default(100) // Requests per minute
+  expiresAt      DateTime?
+  lastUsedAt     DateTime?
+  isActive       Boolean      @default(true)
+
+  userId         String
+  user           User         @relation(fields: [userId], references: [id])
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([hash])
+  @@index([organizationId])
+  @@map("api_keys")
 }
