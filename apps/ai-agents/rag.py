@@ -5,12 +5,14 @@ import os
 import json
 from typing import List, Dict, Any
 
-DB_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost:5432/salesos")
+DB_URL = os.getenv("DATABASE_URL")
 
 class RAGService:
     def __init__(self):
         # In production, use a connection pool or asyncpg
         try:
+            if not DB_URL:
+                raise ValueError("DATABASE_URL environment variable not set")
             self.conn = psycopg2.connect(DB_URL)
             # Register vector type for numpy usage
             # register_vector(self.conn) # Requires pgvector extension installed
