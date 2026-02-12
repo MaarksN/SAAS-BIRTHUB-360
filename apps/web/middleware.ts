@@ -40,6 +40,22 @@ export function middleware(request: NextRequest) {
   return response;
 }
 
+// NOTE: Context injection for RLS (Cycle 31)
+// Ideally, we would wrap the response or use a custom Server Component wrapper to set the AsyncLocalStorage context.
+// However, Next.js Middleware runs in the Edge runtime, while AsyncLocalStorage is Node.js specific and request-scoped per lambda.
+// In Next.js App Router, the recommended way to handle context is via a wrapper in `layout.tsx` or Higher-Order Component/Function for Server Actions.
+// BUT, since `libs/core` uses `AsyncLocalStorage`, we need to initialize it at the entry point of the Node.js request handling.
+// For App Router, this is tricky. A common pattern is to trust the `middleware` to set headers (x-org-id, x-user-id)
+// and then have a utility function `authenticatedPrisma()` that reads these headers/cookies inside the Server Component
+// and calls `runWithContext` before executing the query.
+
+// Given the "Zero Trust" requirement, we cannot rely on developers remembering to call a wrapper.
+// The Prisma Extension in `libs/core` reads from `AsyncLocalStorage`.
+// We need to ensure `AsyncLocalStorage` is populated.
+// In Next.js, we can't easily wrap the entire request in `context.run()` from middleware.
+// We will modify `libs/core/src/prisma.ts` to ALSO look for headers if context is empty (Mocking context propagation for now)
+// OR we enforce usage of a `getSessionContext()` helper in the App.
+
 export const config = {
   matcher: [
     /*

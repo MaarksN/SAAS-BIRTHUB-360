@@ -2,20 +2,23 @@ import { prisma } from '@salesos/core';
 import { LeadList } from '@/components/leads/lead-list';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/Skeleton';
+import { withContext } from '@/lib/context-wrapper';
 
 export default async function LeadsPage() {
-  // Fetch data
-  const leads = await prisma.lead.findMany({
-    take: 50,
-    orderBy: { createdAt: 'desc' },
-    select: {
-        id: true,
-        name: true,
-        email: true,
-        companyName: true,
-        phone: true,
-        status: true
-    }
+  // Fetch data with security context
+  const leads = await withContext(async () => {
+      return prisma.lead.findMany({
+        take: 50,
+        orderBy: { createdAt: 'desc' },
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            companyName: true,
+            phone: true,
+            status: true
+        }
+      });
   });
 
   return (

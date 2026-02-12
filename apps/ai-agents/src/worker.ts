@@ -7,6 +7,9 @@ const scraperEngine = new ScraperEngine();
 const senderEngine = new SenderEngine();
 const emailQueue = createQueue('email-queue');
 
+// Import sub-workers to register them
+import './workers/hubspot-sync';
+
 // Scraping Worker
 createWorker('scraping-queue', async (job) => {
   logger.info({ jobId: job.id, url: job.data.url }, 'Processing scraping job');
