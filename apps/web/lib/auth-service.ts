@@ -1,4 +1,5 @@
-import { Role } from '@salesos/core/rbac';
+import { env } from '../env.mjs';
+import type { Role } from '@salesos/core/rbac';
 
 export interface UserSession {
   userId: string;
@@ -11,7 +12,10 @@ export const authService = {
   // Mock login function
   login: async (email: string, password: string): Promise<UserSession | null> => {
     // In reality, verify with Auth0/Clerk
-    if (email === 'admin@salesos.io' && password === 'admin') {
+    const adminEmail = env.ADMIN_EMAIL;
+    const adminPassword = env.ADMIN_PASSWORD;
+
+    if (adminEmail && adminPassword && email === adminEmail && password === adminPassword) {
       return {
         userId: 'user_admin_123',
         email,
