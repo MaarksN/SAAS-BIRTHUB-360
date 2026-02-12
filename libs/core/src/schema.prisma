@@ -23,6 +23,7 @@ model Organization {
   users     User[]
   leads     Lead[]
   apiKeys   ApiKey[]
+  webhooks  WebhookSubscription[]
 
   @@map("organizations")
 }
@@ -39,6 +40,7 @@ model User {
   @@index([email])
   deals          Deal[]
   apiKeys        ApiKey[]
+  agentTemplates AgentTemplate[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
@@ -266,7 +268,7 @@ model RagEmbedding {
   @@map("rag_embeddings")
 }
 
-// Phase 4 Extensions - API Gateway
+// Phase 4 Extensions - API Gateway & Ecosystem
 
 model ApiKey {
   id             String       @id @default(cuid())
@@ -290,4 +292,38 @@ model ApiKey {
   @@index([hash])
   @@index([organizationId])
   @@map("api_keys")
+}
+
+model AgentTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  prompt      String   @db.Text
+  price       Float    @default(0) // 0 = free
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+  isPublic    Boolean  @default(false)
+  downloads   Int      @default(0)
+  rating      Float    @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("agent_templates")
+}
+
+model WebhookSubscription {
+  id             String       @id @default(cuid())
+  url            String
+  events         Json         // ["lead.created", "deal.won"]
+  secret         String       // For HMAC signing
+  isActive       Boolean      @default(true)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@map("webhook_subscriptions")
 }
