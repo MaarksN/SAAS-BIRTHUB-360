@@ -1,4 +1,4 @@
-import { ICNPJEnrichmentResult } from '../types/ldr';
+import { ICNPJEnrichmentResult } from '@salesos/core';
 
 export class ProspectorActions {
   /**

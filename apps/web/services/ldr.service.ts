@@ -1,11 +1,11 @@
 import { env } from '@salesos/config';
+import { RedisCacheService } from '@salesos/cache';
 import {
+  logger,
   ICNPJEnrichmentResult,
   IDataReliabilityScore,
   IInactiveCompanyDetection,
-} from '../types/ldr';
-import { RedisCacheService } from '@salesos/cache';
-import { logger } from '@salesos/core';
+} from '@salesos/core';
 import { CNPJEnrichmentResultSchema } from '../schemas';
 
 // Serviço LDR Profissionalizado (Expansão Pacote 2)

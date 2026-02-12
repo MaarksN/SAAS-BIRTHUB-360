@@ -1,4 +1,4 @@
-import { Deal } from "../types/pipeline";
+import { Deal } from "@salesos/core";
 
 export class PipelineService {
 
