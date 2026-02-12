@@ -16,7 +16,8 @@ export default async function LeadsPage() {
             email: true,
             companyName: true,
             phone: true,
-            status: true
+        status: true,
+        icebreaker: true
         }
       });
   });

@@ -14,6 +14,7 @@ interface LeadDTO {
   companyName: string | null;
   phone: string | null;
   status: string;
+  icebreaker?: string | null;
 }
 
 interface LeadListItemProps {

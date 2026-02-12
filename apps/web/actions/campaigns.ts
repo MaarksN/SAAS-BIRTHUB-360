@@ -12,37 +12,39 @@ const campaignSchema = z.object({
   scheduleAt: z.string().optional(), // ISO String
 });
 
+import { withContext } from '@/lib/context-wrapper';
+
 export async function createCampaign(formData: FormData) {
-  const name = formData.get('name') as string;
-  const subject = formData.get('subject') as string;
-  const content = formData.get('content') as string;
-  const scheduleAt = formData.get('scheduleAt') as string;
+  return withContext(async () => {
+    const name = formData.get('name') as string;
+    const subject = formData.get('subject') as string;
+    const content = formData.get('content') as string;
+    const scheduleAt = formData.get('scheduleAt') as string;
 
-  const result = campaignSchema.safeParse({ name, subject, content, scheduleAt });
+    const result = campaignSchema.safeParse({ name, subject, content, scheduleAt });
 
-  if (!result.success) {
-    return { error: 'Validation failed' };
-  }
+    if (!result.success) {
+      return { error: 'Validation failed' };
+    }
 
-  try {
-    const campaign = await prisma.campaign.create({
-      data: {
-        name: result.data.name,
-        status: 'DRAFT',
-        // In real app, we would parse content to find variables and maybe save them separately
-        // For now, just save basic fields.
-        // Also need to link to audience.
-      }
-    });
+    try {
+      const campaign = await prisma.campaign.create({
+        data: {
+          name: result.data.name,
+          status: 'DRAFT',
+          // RLS middleware will inject organizationId here automatically via withContext
+        }
+      });
 
-    // Create initial Scheduled Emails (Simulation)
-    // In reality, this would be a separate step "Add Audience" -> "Generate Emails"
-    // For this MVP, we just create the campaign container.
+      // Create initial Scheduled Emails (Simulation)
+      // In reality, this would be a separate step "Add Audience" -> "Generate Emails"
+      // For this MVP, we just create the campaign container.
 
-    revalidatePath('/campaigns');
-    redirect(`/campaigns/${campaign.id}`);
-  } catch (error) {
-    console.error('Failed to create campaign:', error);
-    return { error: 'Failed to create campaign' };
-  }
+      revalidatePath('/campaigns');
+      redirect(`/campaigns/${campaign.id}`);
+    } catch (error) {
+      console.error('Failed to create campaign:', error);
+      return { error: 'Failed to create campaign' };
+    }
+  });
 }

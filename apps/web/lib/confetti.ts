@@ -1,5 +1,6 @@
-export const triggerConfetti = async () => {
-  const { default: confetti } = await import('canvas-confetti');
+import confetti from 'canvas-confetti';
+
+export const triggerConfetti = () => {
   const duration = 3 * 1000;
   const animationEnd = Date.now() + duration;
   const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 }; // High zIndex

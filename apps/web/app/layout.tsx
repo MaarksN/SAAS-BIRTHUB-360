@@ -1,10 +1,9 @@
 import { Inter } from 'next/font/google';
-import '../styles/globals.css';
-import { Providers } from '../components/providers';
-import { Toaster } from '../components/sonner';
-import { GlobalErrorBoundary } from '../components/GlobalErrorBoundary';
+import './globals.css';
+import { Providers } from './providers';
+import { Toaster, GlobalErrorBoundary } from '@salesos/ui';
 
-const inter = Inter({ subsets: ['latin'], display: 'swap' });
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
   title: 'SalesOS Ultimate',

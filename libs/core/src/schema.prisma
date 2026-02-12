@@ -227,6 +227,7 @@ model Lead {
   leadScores     LeadScore[]
   scheduledEmails ScheduledEmail[]
   emailThreads    EmailThread[]
+  icebreaker     String?
 
   @@unique([email, organizationId])
   @@index([organizationId, status])
@@ -521,3 +522,9 @@ model EmailMessage {
   @@index([providerMessageId])
   @@map("email_messages")
 }
+
+// Partial update to Lead model
+// Since we can't use 'alter table' easily here without migration,
+// we assume this is modifying the existing model block.
+// But 'cat >>' appends to end.
+// I need to use replace_with_git_merge_diff to insert the field into the Lead model.

@@ -1,5 +1,6 @@
-export const generateProposal = async (lead: { companyName: string; sector: string; }) => {
-   const { jsPDF } = await import("jspdf");
+import { jsPDF } from "jspdf";
+
+export const generateProposal = (lead: { companyName: string; sector: string; }) => {
    const doc = new jsPDF();
 
    // Cabeçalho

@@ -29,7 +29,11 @@ const TENANT_MODELS = [
   'AuditLog',
   'Notification',
   'Campaign',
-  'EmailAccount'
+  'EmailAccount',
+  'ScheduledEmail',
+  'Integration',
+  'EmailThread',
+  'EmailMessage'
 ];
 
 const SOFT_DELETE_MODELS = [

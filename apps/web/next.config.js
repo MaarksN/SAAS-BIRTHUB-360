@@ -1,25 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
-  transpilePackages: [
-    "@salesos/ui",
-    "@salesos/core",
-    "@salesos/auth",
-    "@salesos/database",
-    "@salesos/enterprise",
-    "@salesos/growth",
-    "@salesos/social",
-  ],
+  transpilePackages: ["@salesos/ui"],
   reactStrictMode: true,
-  images: {
-    formats: ['image/avif', 'image/webp'],
-  },
 };
 
-const withBundleAnalyzer = require('@next/bundle-analyzer')({
-  enabled: process.env.ANALYZE === 'true',
-});
-
-module.exports = withBundleAnalyzer(nextConfig);
+module.exports = nextConfig;

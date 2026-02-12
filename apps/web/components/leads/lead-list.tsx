@@ -2,7 +2,7 @@
 
 import { useOptimistic, startTransition } from 'react';
 import { LeadListItem } from './lead-list-item';
-import { updateLeadStatus, deleteLead } from '../../actions/leads';
+import { updateLeadStatus, deleteLead, generateIcebreaker } from '../../actions/leads';
 import { toast } from '@/components/sonner';
 
 // Define the shape of our Lead (matching what we passed to LeadListItem earlier or close to it)
@@ -14,6 +14,7 @@ interface Lead {
   companyName: string | null;
   phone: string | null;
   status: string;
+  icebreaker?: string | null;
 }
 
 interface LeadListProps {
@@ -78,7 +79,22 @@ export function LeadList({ initialLeads }: LeadListProps) {
                         Disqualify
                     </button>
                 </form>
+                <form action={async () => {
+                    const formData = new FormData();
+                    formData.append('leadId', lead.id);
+                    await generateIcebreaker(formData);
+                    toast.success('Generating icebreaker...');
+                }}>
+                    <button type="submit" className="text-xs text-indigo-400 hover:text-indigo-300 px-2 py-1">
+                        ✨ AI Icebreaker
+                    </button>
+                </form>
             </div>
+            {lead.icebreaker && (
+                <div className="absolute bottom-2 right-4 bg-indigo-900/80 p-2 rounded text-xs text-indigo-100 max-w-xs shadow-lg backdrop-blur-sm border border-indigo-700/50">
+                    💡 {lead.icebreaker}
+                </div>
+            )}
         </div>
       ))}
       {optimisticLeads.length === 0 && (
