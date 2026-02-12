@@ -35,6 +35,8 @@ model Organization {
   emailAccounts      EmailAccount[]
   campaigns          Campaign[]
   scheduledEmails    ScheduledEmail[]
+  integrations       Integration[]
+  emailThreads       EmailThread[]
 
   @@map("organizations")
 }
@@ -224,6 +226,7 @@ model Lead {
   deletedAt      DateTime?
   leadScores     LeadScore[]
   scheduledEmails ScheduledEmail[]
+  emailThreads    EmailThread[]
 
   @@unique([email, organizationId])
   @@index([organizationId, status])
@@ -449,4 +452,72 @@ model ScheduledEmail {
   @@index([status, sendAt])
   @@index([leadId])
   @@map("scheduled_emails")
+}
+
+model Integration {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  provider       String   // HUBSPOT, SALESFORCE, PIPEDRIVE
+  accessToken    String
+  refreshToken   String?
+  expiresAt      DateTime?
+  settings       Json?    // Field mappings, sync preferences
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  @@index([organizationId])
+  @@map("integrations")
+}
+
+model EmailThread {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  providerThreadId String // Gmail Thread ID
+  subject        String
+  snippet        String?
+  lastMessageAt  DateTime
+  participants   Json     // Array of email addresses
+  isUnread       Boolean  @default(true)
+  messages       EmailMessage[]
+
+  leadId         String?
+  lead           Lead?    @relation(fields: [leadId], references: [id])
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  @@index([organizationId])
+  @@index([providerThreadId])
+  @@map("email_threads")
+}
+
+model EmailMessage {
+  id             String   @id @default(cuid())
+  threadId       String
+  thread         EmailThread @relation(fields: [threadId], references: [id])
+  providerMessageId String // Gmail Message ID
+  from           Json     // { name, email }
+  to             Json     // [{ name, email }]
+  cc             Json?
+  bcc            Json?
+  subject        String
+  body           String   // HTML content
+  snippet        String?
+  receivedAt     DateTime
+
+  isRead         Boolean  @default(false)
+  isSent         Boolean  @default(false) // True if sent by us
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  @@index([threadId])
+  @@index([providerMessageId])
+  @@map("email_messages")
 }
