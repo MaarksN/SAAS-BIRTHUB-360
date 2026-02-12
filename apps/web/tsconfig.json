@@ -17,77 +17,28 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@salesos/core": [
-        "../../libs/core/src"
-      ],
-      "@salesos/core/*": [
-        "../../libs/core/src/*"
-      ],
-      "@salesos/auth": [
-        "../../libs/auth/src"
-      ],
-      "@salesos/auth/*": [
-        "../../libs/auth/src/*"
-      ],
-      "@salesos/ui": [
-        "../../libs/ui/src"
-      ],
-      "@salesos/ui/*": [
-        "../../libs/ui/src/*"
-      ],
-      "@salesos/database": [
-        "../../libs/database/src"
-      ],
-      "@salesos/database/*": [
-        "../../libs/database/src/*"
-      ],
-      "@salesos/enterprise": [
-        "../../libs/enterprise/src"
-      ],
-      "@salesos/enterprise/*": [
-        "../../libs/enterprise/src/*"
-      ],
-      "@salesos/growth": [
-        "../../libs/growth/src"
-      ],
-      "@salesos/growth/*": [
-        "../../libs/growth/src/*"
-      ],
-      "@salesos/social": [
-        "../../libs/social/src"
-      ],
-      "@salesos/social/*": [
-        "../../libs/social/src/*"
-      ],
-      "@salesos/onboarding": [
-        "../../libs/onboarding/src"
-      ],
-      "@salesos/onboarding/*": [
-        "../../libs/onboarding/src/*"
-      ],
-      "@salesos/customer-success": [
-        "../../libs/customer-success/src"
-      ],
-      "@salesos/customer-success/*": [
-        "../../libs/customer-success/src/*"
-      ],
-      "@salesos/support": [
-        "../../libs/support/src"
-      ],
-      "@salesos/support/*": [
-        "../../libs/support/src/*"
-      ]
-    },
-    "allowJs": true,
-    "noEmit": true,
-    "incremental": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ]
+      "@/*": ["./*"],
+      "@salesos/core": ["../../libs/core/src"],
+      "@salesos/core/*": ["../../libs/core/src/*"],
+      "@salesos/auth": ["../../libs/auth/src"],
+      "@salesos/auth/*": ["../../libs/auth/src/*"],
+      "@salesos/ui": ["../../libs/ui/src"],
+      "@salesos/ui/*": ["../../libs/ui/src/*"],
+      "@salesos/database": ["../../libs/database/src"],
+      "@salesos/database/*": ["../../libs/database/src/*"],
+      "@salesos/enterprise": ["../../libs/enterprise/src"],
+      "@salesos/enterprise/*": ["../../libs/enterprise/src/*"],
+      "@salesos/growth": ["../../libs/growth/src"],
+      "@salesos/growth/*": ["../../libs/growth/src/*"],
+      "@salesos/social": ["../../libs/social/src"],
+      "@salesos/social/*": ["../../libs/social/src/*"],
+      "@salesos/onboarding": ["../../libs/onboarding/src"],
+      "@salesos/onboarding/*": ["../../libs/onboarding/src/*"],
+      "@salesos/customer-success": ["../../libs/customer-success/src"],
+      "@salesos/customer-success/*": ["../../libs/customer-success/src/*"],
+      "@salesos/support": ["../../libs/support/src"],
+      "@salesos/support/*": ["../../libs/support/src/*"]
+    }
   },
   "include": [
     "next-env.d.ts",

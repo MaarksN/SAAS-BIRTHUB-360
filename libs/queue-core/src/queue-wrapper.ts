@@ -8,7 +8,7 @@ const createConnection = () => {
   });
 };
 
-export const createQueue = <T>(name: string, options?: QueueOptions) => {
+export const createQueue = <T>(name: string, options?: Partial<QueueOptions>) => {
   return new Queue<T>(name, {
     connection: createConnection(),
     defaultJobOptions: {
@@ -25,26 +25,7 @@ export const createQueue = <T>(name: string, options?: QueueOptions) => {
   });
 };
 
-// Registry to track active workers for graceful shutdown
-const workers = new Set<Worker>();
-let shutdownHandlerAttached = false;
-
-const shutdownHandler = async (signal: string) => {
-  logger.info({ signal }, 'Shutting down workers...');
-  const closePromises = Array.from(workers).map((worker) => worker.close());
-  await Promise.all(closePromises);
-  logger.info({ signal }, 'All workers closed');
-};
-
-const attachSignalListeners = () => {
-  if (shutdownHandlerAttached) return;
-  shutdownHandlerAttached = true;
-
-  process.once('SIGTERM', () => shutdownHandler('SIGTERM'));
-  process.once('SIGINT', () => shutdownHandler('SIGINT'));
-};
-
-export const createWorker = <T = any>(name: string, processor: Processor<T>, options?: Omit<WorkerOptions, 'connection'>) => {
+export const createWorker = <T = any>(name: string, processor: Processor<T>, options?: Partial<WorkerOptions>) => {
   const worker = new Worker<T>(name, async (job) => {
     const start = Date.now();
     logger.info({ jobId: job.id, queue: name, data: job.data }, 'Job processing started');

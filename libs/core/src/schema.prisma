@@ -8,9 +8,11 @@ datasource db {
 }
 
 enum Role {
+  OWNER
   ADMIN
   MANAGER
   MEMBER
+  VIEWER
 }
 
 model Organization {
@@ -28,8 +30,35 @@ model Organization {
   leads              Lead[]
   usageLogs          UsageLog[]
   creditTransactions CreditTransaction[]
+  auditLogs          AuditLog[]
+  notifications      Notification[]
+  emailAccounts      EmailAccount[]
+  campaigns          Campaign[]
+  scheduledEmails    ScheduledEmail[]
+  integrations       Integration[]
+  emailThreads       EmailThread[]
 
   @@map("organizations")
+}
+
+model AuditLog {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  actorId        String?      // User ID or System
+  action         String
+  entity         String
+  entityId       String
+  metadata       Json?
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime     @default(now())
+  // No updatedAt or deletedAt - Immutable
+
+  @@index([organizationId])
+  @@index([entity, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
 }
 
 model User {
@@ -45,11 +74,30 @@ model User {
   deals          Deal[]
   usageLogs      UsageLog[]
   aiFeedback     AiFeedback[]
+  notifications  Notification[]
+  campaigns      Campaign[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
 
   @@map("users")
+}
+
+model Notification {
+  id             String       @id @default(cuid())
+  userId         String
+  user           User         @relation(fields: [userId], references: [id])
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  type           String       // INFO, SUCCESS, WARNING, ERROR
+  content        Json         // Rich content structure
+  link           String?
+  readAt         DateTime?
+  createdAt      DateTime     @default(now())
+  deletedAt      DateTime?
+
+  @@index([userId, readAt])
+  @@map("notifications")
 }
 
 model Permission {
@@ -177,6 +225,8 @@ model Lead {
   updatedAt      DateTime @updatedAt
   deletedAt      DateTime?
   leadScores     LeadScore[]
+  scheduledEmails ScheduledEmail[]
+  emailThreads    EmailThread[]
 
   @@unique([email, organizationId])
   @@index([organizationId, status])
@@ -330,4 +380,144 @@ model AiFeedback {
   createdAt DateTime @default(now())
 
   @@map("ai_feedback")
+}
+
+model Campaign {
+  id             String   @id @default(cuid())
+  name           String
+  status         String   // DRAFT, SCHEDULED, RUNNING, PAUSED, COMPLETED, ARCHIVED
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  creatorId      String
+  creator        User     @relation(fields: [creatorId], references: [id])
+  audiences      Json?    // Target audience definition
+  schedule       Json?    // Schedule definition
+  stats          Json?    // Aggregated stats (sent, opened, clicked, replied, bounced)
+  scheduledEmails ScheduledEmail[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  @@index([organizationId])
+  @@map("campaigns")
+}
+
+model EmailAccount {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  provider       String   // GMAIL, OUTLOOK, SMTP, RESEND
+  email          String
+  credentials    Json     // Encrypted tokens or password
+  dailyLimit     Int      @default(50)
+  usedToday      Int      @default(0)
+  stats          Json?    // Reputation stats
+  isActive       Boolean  @default(true)
+  scheduledEmails ScheduledEmail[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  @@index([organizationId])
+  @@map("email_accounts")
+}
+
+model ScheduledEmail {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  campaignId     String?
+  campaign       Campaign? @relation(fields: [campaignId], references: [id])
+  leadId         String?
+  lead           Lead?    @relation(fields: [leadId], references: [id])
+  senderId       String?
+  sender         EmailAccount? @relation(fields: [senderId], references: [id])
+
+  to             String
+  subject        String
+  body           String
+
+  status         String   // PENDING, QUEUED, SENT, FAILED, CANCELLED
+  sendAt         DateTime
+  sentAt         DateTime?
+  error          String?
+
+  trackingId     String?  // For pixel tracking
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  @@index([organizationId])
+  @@index([status, sendAt])
+  @@index([leadId])
+  @@map("scheduled_emails")
+}
+
+model Integration {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  provider       String   // HUBSPOT, SALESFORCE, PIPEDRIVE
+  accessToken    String
+  refreshToken   String?
+  expiresAt      DateTime?
+  settings       Json?    // Field mappings, sync preferences
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  @@index([organizationId])
+  @@map("integrations")
+}
+
+model EmailThread {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  providerThreadId String // Gmail Thread ID
+  subject        String
+  snippet        String?
+  lastMessageAt  DateTime
+  participants   Json     // Array of email addresses
+  isUnread       Boolean  @default(true)
+  messages       EmailMessage[]
+
+  leadId         String?
+  lead           Lead?    @relation(fields: [leadId], references: [id])
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  @@index([organizationId])
+  @@index([providerThreadId])
+  @@map("email_threads")
+}
+
+model EmailMessage {
+  id             String   @id @default(cuid())
+  threadId       String
+  thread         EmailThread @relation(fields: [threadId], references: [id])
+  providerMessageId String // Gmail Message ID
+  from           Json     // { name, email }
+  to             Json     // [{ name, email }]
+  cc             Json?
+  bcc            Json?
+  subject        String
+  body           String   // HTML content
+  snippet        String?
+  receivedAt     DateTime
+
+  isRead         Boolean  @default(false)
+  isSent         Boolean  @default(false) // True if sent by us
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  @@index([threadId])
+  @@index([providerMessageId])
+  @@map("email_messages")
 }
