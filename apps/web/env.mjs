@@ -29,7 +29,9 @@ const processEnv = {
 const merged = server.merge(client);
 
 /** @type {import('zod').SafeParseReturnType<z.infer<typeof merged>, z.infer<typeof merged>>} */
-const parsed = merged.safeParse(processEnv);
+const parsed = !!process.env.SKIP_ENV_VALIDATION
+  ? { success: true, data: processEnv }
+  : merged.safeParse(processEnv);
 
 if (!parsed.success) {
   console.error(

@@ -6,7 +6,8 @@
     "start": "node dist/worker.js",
     "dev": "tsx watch src/worker.ts",
     "build": "tsc",
-    "lint": "eslint .",
+    "type-check": "tsc --noEmit",
+    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint .",
     "test": "vitest"
   },
   "dependencies": {
