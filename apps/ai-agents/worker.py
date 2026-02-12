@@ -11,6 +11,7 @@ from schemas.agent import CrawlJobPayload, JobEnvelope
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
 QUEUE_NAME = "ai:agents:crawl_queue"
 DLQ_NAME = "ai:agents:dlq"
+EVENT_CHANNEL = "ai:agents:events"
 
 class Worker:
     def __init__(self):
@@ -96,6 +97,17 @@ class Worker:
             # Save result to DB or Redis
             result_key = f"crawl:result:{url}"
             await self.redis.set(result_key, json.dumps(result), ex=86400)
+
+            # Emit Completion Event (Cycle 21)
+            event = {
+                "type": "job_complete",
+                "job_type": "crawl",
+                "input": url,
+                "result_key": result_key,
+                "timestamp": time.time()
+            }
+            await self.redis.publish(EVENT_CHANNEL, json.dumps(event))
+
         except Exception as e:
             print(f"Crawl failed: {e}")
             await self.record_failure(domain)
