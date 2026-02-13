@@ -3,28 +3,33 @@ import { IGeoProvider, LocalBusiness } from '../types/geo';
 import { IDBProvider, GeoServiceConfig } from '../types/db';
 import { GooglePlacesNewAdapter } from '../adapters/google-places';
 import { SerpApiAdapter } from '../adapters/serp-api';
+import { MockGeoAdapter } from '../adapters/mock-geo';
 
 export class GeoService {
   private redis: Redis;
   private googleAdapter: GooglePlacesNewAdapter;
   private serpAdapter: SerpApiAdapter;
+  private mockAdapter: MockGeoAdapter;
   private db: IDBProvider;
 
   constructor(config: GeoServiceConfig) {
     this.redis = new Redis(config.redisUrl);
     this.googleAdapter = new GooglePlacesNewAdapter(config.googleMapsKey);
     this.serpAdapter = new SerpApiAdapter(config.serpApiKey);
+    this.mockAdapter = new MockGeoAdapter();
     this.db = config.db;
   }
 
-  async searchPlaces(query: string, lat: number, long: number, radius: number, provider: 'google' | 'serp' = 'google'): Promise<LocalBusiness[]> {
+  async searchPlaces(query: string, lat: number, long: number, radius: number, provider: 'google' | 'serp' | 'mock' = 'google'): Promise<LocalBusiness[]> {
     const cacheKey = `geo:search:${query}:${lat}:${long}:${radius}`;
 
     // L1 Cache: Redis
-    const cached = await this.redis.get(cacheKey);
-    if (cached) {
-      console.log('L1 Cache Hit');
-      return JSON.parse(cached);
+    if (provider !== 'mock') {
+      const cached = await this.redis.get(cacheKey);
+      if (cached) {
+        console.log('L1 Cache Hit');
+        return JSON.parse(cached);
+      }
     }
 
     // L2 Cache: PostGIS
@@ -49,11 +54,13 @@ export class GeoService {
 
     if (provider === 'google') {
       results = await this.googleAdapter.searchPlaces(query, lat, long, radius);
-    } else {
+    } else if (provider === 'serp') {
       results = await this.serpAdapter.searchPlaces(query, lat, long, radius);
+    } else {
+      results = await this.mockAdapter.searchPlaces(query, lat, long, radius);
     }
 
-    if (results.length > 0) {
+    if (results.length > 0 && provider !== 'mock') {
       // Set L1 Cache (24h)
       await this.redis.set(cacheKey, JSON.stringify(results), 'EX', 86400);
 

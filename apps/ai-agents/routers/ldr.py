@@ -5,6 +5,8 @@ from typing import List, Optional
 import random
 from datetime import datetime
 from utils.logger import logger
+from schemas.agent import ICPClassificationRequest
+from services.icp_agent import ICPAgent
 
 router = APIRouter()
 icp_agent = ICPAgent()

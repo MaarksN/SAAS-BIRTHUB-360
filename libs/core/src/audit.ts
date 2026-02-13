@@ -1,15 +1,11 @@
 import { Queue } from 'bullmq';
-import { env } from './env';
+import { redis } from './redis';
 
 const AUDIT_QUEUE_NAME = 'audit-queue';
 
-// Create a dedicated queue for audit logs
+// Create a dedicated queue for audit logs using shared Redis connection
 const auditQueue = new Queue(AUDIT_QUEUE_NAME, {
-  connection: {
-    host: 'localhost', // Default fallback
-    port: 6379,
-    ...(env.REDIS_URL ? parseRedisUrl(env.REDIS_URL) : {})
-  },
+  connection: redis,
   defaultJobOptions: {
     removeOnComplete: true,
     removeOnFail: 100, // Keep last 100 failed jobs
@@ -20,21 +16,6 @@ const auditQueue = new Queue(AUDIT_QUEUE_NAME, {
     }
   }
 });
-
-function parseRedisUrl(url: string) {
-  try {
-    const parsed = new URL(url);
-    return {
-      host: parsed.hostname,
-      port: parseInt(parsed.port || '6379'),
-      password: parsed.password,
-      username: parsed.username,
-      tls: parsed.protocol === 'rediss:' ? {} : undefined
-    };
-  } catch (e) {
-    return {};
-  }
-}
 
 export interface AuditLogData {
   organizationId: string;
