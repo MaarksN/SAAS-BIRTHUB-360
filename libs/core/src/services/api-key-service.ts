@@ -7,15 +7,17 @@ export interface GeneratedKey {
 }
 
 export class ApiKeyService {
-  private readonly PREFIX = 'sk_live_';
+  private readonly LIVE_PREFIX = 'sk_live_';
+  private readonly TEST_PREFIX = 'sk_test_';
 
   /**
    * Generates a new API Key securely.
-   * Format: sk_live_<32_random_bytes_hex>
+   * Format: sk_live_<32_random_bytes_hex> or sk_test_<...>
    */
-  generateKey(): GeneratedKey {
+  generateKey(isTest: boolean = false): GeneratedKey {
     const buffer = randomBytes(32);
-    const rawKey = `${this.PREFIX}${buffer.toString('hex')}`;
+    const prefix = isTest ? this.TEST_PREFIX : this.LIVE_PREFIX;
+    const rawKey = `${prefix}${buffer.toString('hex')}`;
 
     return {
       key: rawKey,

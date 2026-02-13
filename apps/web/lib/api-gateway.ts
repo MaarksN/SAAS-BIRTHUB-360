@@ -13,11 +13,14 @@ export async function validateRequest(req: Request) {
     return { authorized: false, error: 'Missing API Key', status: 401 };
   }
 
+  // Cycle 35: Sandbox Logic
+  const isSandbox = req.headers.get('x-salesos-sandbox') === 'true' || apiKey.startsWith('sk_test_');
+
   // 1. Verify Key (Hash)
   // Mock DB Lookup: "Is this hash in the DB?"
   // const storedHash = await db.apiKey.findFirst(...)
-  // For demo, we assume any key starting with 'sk_live_' is "valid" structurally
-  if (!apiKey.startsWith('sk_live_')) {
+  // For demo, we assume any key starting with 'sk_live_' or 'sk_test_' is "valid" structurally
+  if (!apiKey.startsWith('sk_live_') && !apiKey.startsWith('sk_test_')) {
     return { authorized: false, error: 'Invalid API Key format', status: 401 };
   }
 
@@ -45,7 +48,8 @@ export async function validateRequest(req: Request) {
     headers: {
       'X-RateLimit-Limit': limit.toString(),
       'X-RateLimit-Remaining': rateCheck.remaining.toString(),
-      'X-RateLimit-Reset': rateCheck.resetAt.toString()
+      'X-RateLimit-Reset': rateCheck.resetAt.toString(),
+      'X-SalesOS-Sandbox': isSandbox ? 'true' : 'false'
     }
   };
 }

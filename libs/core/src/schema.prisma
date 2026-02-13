@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["postgresqlExtensions", "views"] // Enable views for Cycle 30
+  previewFeatures = ["postgresqlExtensions", "views"]
 }
 
 datasource db {
@@ -26,6 +26,7 @@ model Organization {
   webhooks  WebhookSubscription[]
   usageLogs UsageLog[]
   budget    TenantBudget?
+  auditLogs AuditLog[]
 
   @@map("organizations")
 }
@@ -44,6 +45,7 @@ model User {
   apiKeys        ApiKey[]
   agentTemplates AgentTemplate[]
   agentFeedbacks AgentFeedback[]
+  auditLogs      AuditLog[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
@@ -375,4 +377,26 @@ model TenantBudget {
   updatedAt      DateTime     @updatedAt
 
   @@map("tenant_budgets")
+}
+
+// Cycle 37: Audit Logs
+
+model AuditLog {
+  id             String       @id @default(cuid())
+  action         String       // "EXPORT_LEADS", "CREATE_API_KEY"
+  resource       String       // "Lead:123", "ApiKey:456"
+  actorId        String
+  actor          User         @relation(fields: [actorId], references: [id])
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  metadata       Json?        // Details about the action
+  ipAddress      String?
+  userAgent      String?
+
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
+  @@index([action])
+  @@map("audit_logs")
 }
