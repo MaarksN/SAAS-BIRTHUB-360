@@ -457,10 +457,12 @@ model ScheduledEmail {
   subject        String
   body           String
 
-  status         String   // PENDING, QUEUED, SENT, FAILED, CANCELLED
+  status         String   // PENDING, QUEUED, SENT, FAILED, CANCELLED, PROCESSING
   sendAt         DateTime
   sentAt         DateTime?
   processedAt    DateTime?
+  errorMessage   String?
+  providerMessageId String?
   error          String?
   providerMessageId String?
 

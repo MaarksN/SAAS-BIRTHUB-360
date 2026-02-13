@@ -8,6 +8,8 @@
     "lint": "echo 'Linting skipped due to env issues'"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.74.0",
+    "@salesos/auth": "*",
     "@salesos/core": "*",
     "@salesos/ui": "*",
     "@tanstack/react-query": "^5.90.20",
@@ -18,9 +20,9 @@
     "next": "^16.1.6",
     "next-intl": "^4.8.2",
     "next-themes": "^0.4.6",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "react-error-boundary": "^6.1.0",
+    "react": "latest",
+    "react-dom": "latest",
+    "resend": "^6.9.2",
     "sonner": "^2.0.7",
     "zod": "^4.3.6"
   },

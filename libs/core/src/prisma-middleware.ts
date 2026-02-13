@@ -1,134 +1,53 @@
 import { Prisma } from '@prisma/client';
 
-/**
- * Middleware de Soft Delete
- * Intercepta operações de delete e transforma em update com deletedAt
- */
-export function softDeleteMiddleware(params: Prisma.MiddlewareParams, next: (params: Prisma.MiddlewareParams) => Promise<any>) {
-  // Lista de models que suportam soft delete
-  // Inclui models do sistema legado e novos models
-  const softDeleteModels = [
-    'Lead',
-    'Campaign',
-    'Deal',
-    'Organization',
-    'User',
-    'CompanyProfile',
-    'Contact',
-    'EmailAccount',
-    'ScheduledEmail',
-    'Integration',
-    'Notification',
-    'Meeting',
-    'Quote',
-    'Permission',
-    'EnrichmentLog',
-    'DataReliabilityScore',
-    'BuyingCommittee',
-    'OutboundSequence',
-    'LeadScore',
-    'Cadence',
-    'SubscriptionPlan',
-    'UsageLog',
-    'CreditTransaction',
-    'AiFeedback'
-  ];
+const SOFT_DELETE_MODELS = [
+  'Organization', 'User', 'Permission', 'CompanyProfile', 'EnrichmentLog',
+  'DataReliabilityScore', 'BuyingCommittee', 'Contact', 'OutboundSequence',
+  'Lead', 'LeadScore', 'Cadence', 'Deal', 'Quote', 'Meeting',
+  'SubscriptionPlan', 'UsageLog', 'CreditTransaction', 'AiFeedback',
+  'Notification', 'Campaign', 'EmailAccount', 'ScheduledEmail'
+];
 
-  // Intercepta DELETE
-  if (params.action === 'delete' && softDeleteModels.includes(params.model || '')) {
-    params.action = 'update';
-    params.args = {
-      ...params.args,
-      data: {
-        deletedAt: new Date()
+export async function softDeleteMiddleware(
+  params: Prisma.MiddlewareParams,
+  next: (params: Prisma.MiddlewareParams) => Promise<any>
+) {
+  const { model, action, args } = params;
+
+  if (model && SOFT_DELETE_MODELS.includes(model)) {
+    if (action === 'delete') {
+      // Change to update
+      params.action = 'update';
+      if (!params.args.data) {
+        params.args.data = {};
       }
-    };
-  }
-
-  // Intercepta DELETE MANY
-  if (params.action === 'deleteMany' && softDeleteModels.includes(params.model || '')) {
-    params.action = 'updateMany';
-    if (!params.args) {
-      params.args = {};
-    }
-    params.args.data = {
-      deletedAt: new Date()
-    };
-  }
-
-  // Injeta filtro automático em queries de leitura
-  if (
-    (params.action === 'findUnique' ||
-      params.action === 'findFirst' ||
-      params.action === 'findMany' ||
-      params.action === 'count' ||
-      params.action === 'aggregate') &&
-    softDeleteModels.includes(params.model || '')
-  ) {
-    if (!params.args) {
-      params.args = {};
+      params.args.data.deletedAt = new Date();
     }
 
-    let injected = false;
-
-    // Adiciona where: { deletedAt: null }
-    if (params.args.where) {
-      // Verifica se deletedAt foi explicitamente definido (incluindo undefined via withDeleted)
-      // Se a chave não existe, injeta o filtro
-      if (!('deletedAt' in params.args.where)) {
-        params.args.where = {
-          ...params.args.where,
-          deletedAt: null
-        };
-        injected = true;
+    if (action === 'deleteMany') {
+      // Change to updateMany
+      params.action = 'updateMany';
+      if (params.args.data !== undefined) {
+        params.args.data.deletedAt = new Date();
+      } else {
+        params.args.data = { deletedAt: new Date() };
       }
-    } else {
-      params.args.where = {
-        deletedAt: null
-      };
-      injected = true;
     }
 
-    // Se injetamos o filtro e era um findUnique, precisamos converter para findFirst
-    // pois findUnique não suporta filtros arbitrários (apenas unique constraints)
-    if (injected && params.action === 'findUnique') {
-      params.action = 'findFirst';
+    if (['findUnique', 'findFirst', 'findMany', 'count', 'aggregate', 'groupBy'].includes(action)) {
+       // For findUnique, we change to findFirst to allow filtering
+       if (action === 'findUnique') {
+         params.action = 'findFirst';
+       }
+
+       if (!params.args) params.args = {};
+       if (!params.args.where) params.args.where = {};
+
+       if (params.args.where.deletedAt === undefined) {
+         params.args.where.deletedAt = null;
+       }
     }
   }
 
   return next(params);
-}
-
-/**
- * Helper para incluir registros deletados em uma query específica
- *
- * @example
- * const allLeads = await prisma.lead.findMany(withDeleted());
- */
-export function withDeleted<T extends Record<string, any>>(args?: T): T {
-  return {
-    ...args,
-    where: {
-      ...(args?.where || {}),
-      deletedAt: undefined // Remove o filtro deletedAt (ou previne a injeção)
-    }
-  } as T;
-}
-
-/**
- * Helper para buscar APENAS registros deletados
- *
- * @example
- * const deletedLeads = await prisma.lead.findMany(onlyDeleted());
- */
-export function onlyDeleted<T extends Record<string, any>>(args?: T): T {
-  return {
-    ...args,
-    where: {
-      ...(args?.where || {}),
-      deletedAt: {
-        not: null
-      }
-    }
-  } as T;
 }
