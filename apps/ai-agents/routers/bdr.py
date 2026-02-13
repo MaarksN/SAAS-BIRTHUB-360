@@ -1,13 +1,15 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 from typing import List, Optional, Literal
 import os
-from anthropic import AsyncAnthropic
+from utils.ai_gateway import AIGateway, get_gateway_instance
 
 router = APIRouter()
 
-# Inicializar cliente Anthropic
-anthropic_client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+# Dependency
+async def get_ai_gateway():
+    gateway = get_gateway_instance()
+    yield gateway
 
 # ============================================================================
 # SCHEMAS
@@ -80,9 +82,9 @@ class ICPResponse(BaseModel):
 # ============================================================================
 
 @router.post("/bdr/generate-cold-email", response_model=ColdEmailResponse)
-async def generate_cold_email(request: ColdEmailRequest):
+async def generate_cold_email(request: ColdEmailRequest, gateway: AIGateway = Depends(get_ai_gateway)):
     """
-    Gera um cold email personalizado usando Claude
+    Gera um cold email personalizado usando Claude (com fallback para GPT-4)
     """
     try:
         # Construir prompt contextual
@@ -94,9 +96,9 @@ async def generate_cold_email(request: ColdEmailRequest):
             "friendly": "Tom amigável e conversacional, como se fosse de um colega"
         }
 
-        prompt = f"""Você é um especialista em cold email para vendas B2B.
+        system_prompt = "Você é um especialista em cold email para vendas B2B. Retorne apenas JSON válido."
 
-CONTEXTO:
+        user_prompt = f"""CONTEXTO:
 - Lead: {request.lead_name}
 - Empresa: {request.company_name}
 - Indústria: {request.industry}
@@ -128,23 +130,21 @@ Retorne em JSON:
   "reasoning": "breve explicação de 1 linha da estratégia usada"
 }}"""
 
-        # Chamar Claude (Async)
-        message = await anthropic_client.messages.create(
+        # Chamar AI Gateway com Fallback automático
+        result = await gateway.generate_text(
             model="claude-3-5-sonnet-20241022",
             max_tokens=1000,
             temperature=0.7,
-            messages=[{
-                "role": "user",
-                "content": prompt
-            }]
+            system=system_prompt,
+            messages=[{"role": "user", "content": user_prompt}],
+            context_type="BDR_Cold_Email"
         )
 
         # Extrair resposta
-        response_text = message.content[0].text
+        response_text = result["content"]
 
-        # Parse JSON (Claude geralmente retorna JSON bem formatado)
+        # Parse JSON
         import json
-        # Tentar extrair JSON do texto
         json_start = response_text.find('{')
         json_end = response_text.rfind('}') + 1
         if json_start >= 0 and json_end > json_start:

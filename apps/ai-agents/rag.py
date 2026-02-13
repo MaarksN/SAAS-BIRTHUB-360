@@ -4,15 +4,13 @@ import numpy as np
 import os
 import json
 from typing import List, Dict, Any
-from anthropic import AsyncAnthropic
-from openai import AsyncOpenAI
+from utils.ai_gateway import get_gateway_instance
 
 DB_URL = os.getenv("DATABASE_URL")
 
 class RAGService:
     def __init__(self):
-        self.anthropic_client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-        self.openai_client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        self.gateway = get_gateway_instance()
         # In production, use a connection pool or asyncpg
         try:
             if not DB_URL:
@@ -123,14 +121,15 @@ Return ONLY a JSON list of strings. No other text.
 
 Original Query: "{query}"
 """
-            message = await self.anthropic_client.messages.create(
+            result = await self.gateway.generate_text(
                 model="claude-3-5-sonnet-20241022",
                 max_tokens=300,
                 temperature=0.7,
-                messages=[{"role": "user", "content": prompt}]
+                messages=[{"role": "user", "content": prompt}],
+                context_type="RAG_Query_Expansion"
             )
 
-            response_text = message.content[0].text
+            response_text = result["content"]
             # Extract JSON list
             start = response_text.find('[')
             end = response_text.rfind(']') + 1
@@ -170,14 +169,15 @@ Query: "{query}"
 Candidates:
 {candidates_text}
 """
-            message = await self.anthropic_client.messages.create(
+            result = await self.gateway.generate_text(
                 model="claude-3-5-sonnet-20241022",
                 max_tokens=500,
                 temperature=0.0,
-                messages=[{"role": "user", "content": prompt}]
+                messages=[{"role": "user", "content": prompt}],
+                context_type="RAG_Reranking"
             )
 
-            response_text = message.content[0].text
+            response_text = result["content"]
             start = response_text.find('{')
             end = response_text.rfind('}') + 1
             if start >= 0 and end > start:
@@ -210,14 +210,7 @@ Candidates:
 
     async def generate_embedding(self, text: str) -> List[float]:
         try:
-            if not self.openai_client.api_key:
-                 # Fallback mock or empty
-                 return []
-            response = await self.openai_client.embeddings.create(
-                input=text,
-                model="text-embedding-3-small"
-            )
-            return response.data[0].embedding
+            return await self.gateway.generate_embedding(text)
         except Exception as e:
             print(f"Error generating embedding: {e}")
             return []
