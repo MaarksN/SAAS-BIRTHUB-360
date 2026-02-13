@@ -4,6 +4,7 @@ import React from 'react';
 import { Card, Button } from '@salesos/ui';
 import { MarketTool } from '@/lib/market-intelligence-tools';
 import { ArrowRight, Lock } from 'lucide-react';
+import Link from 'next/link';
 import { toast } from 'sonner';
 
 interface ToolCardProps {
@@ -13,13 +14,8 @@ interface ToolCardProps {
 export function ToolCard({ tool }: ToolCardProps) {
   const Icon = tool.icon;
 
-  const handleLaunch = () => {
-    if (tool.status === 'planned') {
-      toast.info('This tool is coming soon!');
-      return;
-    }
-    toast.success(`Launching ${tool.name}...`);
-    // In a real app, this would navigate or open a modal
+  const handlePlanned = () => {
+     toast.info('This tool is coming soon!');
   };
 
   return (
@@ -62,15 +58,27 @@ export function ToolCard({ tool }: ToolCardProps) {
         </div>
 
         <div className="p-6 pt-2 mt-auto">
-            <Button
-                variant={tool.status === 'planned' ? 'secondary' : 'primary'}
-                className="w-full justify-between group-hover:bg-blue-700 transition-colors"
-                onClick={handleLaunch}
-                disabled={tool.status === 'planned'}
-            >
-                <span>{tool.status === 'planned' ? 'Notify Me' : 'Launch Tool'}</span>
-                {tool.status === 'planned' ? <Lock size={16} /> : <ArrowRight size={16} />}
-            </Button>
+            {tool.status === 'planned' ? (
+                 <Button
+                    variant="secondary"
+                    className="w-full justify-between group-hover:bg-slate-200 transition-colors"
+                    onClick={handlePlanned}
+                    disabled
+                >
+                    <span>Notify Me</span>
+                    <Lock size={16} />
+                </Button>
+            ) : (
+                <Link href={`/market-intelligence/tool/${tool.id}`} className="w-full block">
+                    <Button
+                        variant="primary"
+                        className="w-full justify-between group-hover:bg-blue-700 transition-colors"
+                    >
+                        <span>Launch Tool</span>
+                        <ArrowRight size={16} />
+                    </Button>
+                </Link>
+            )}
         </div>
       </div>
     </Card>
