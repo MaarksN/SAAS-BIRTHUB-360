@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "start": "node dist/worker.js",
+    "start:py": "uvicorn main:app --host 0.0.0.0 --port 8000",
     "dev": "tsx watch src/worker.ts",
+    "dev:py": "uvicorn main:app --reload",
     "build": "tsc",
     "type-check": "tsc --noEmit",
     "lint": "ESLINT_USE_FLAT_CONFIG=false eslint .",

@@ -1,10 +1,13 @@
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import List, Optional
 import random
 from datetime import datetime
+from utils.logger import logger
 
 router = APIRouter()
+icp_agent = ICPAgent()
 
 # --- Models Robustos ---
 class CNPJEnrichmentRequest(BaseModel):
@@ -28,10 +31,14 @@ class EnrichmentResponse(BaseModel):
 # --- Lógica de Negócio Simulada (Nível Prod) ---
 @router.post("/ldr/enrich-cnpj", response_model=EnrichmentResponse)
 async def enrich_cnpj(request: CNPJEnrichmentRequest):
+    # Log da requisição com contexto
+    logger.info(f"Enrichment requested for CNPJ: {request.cnpj}")
+
     # Simulação de latência de API real
     clean_cnpj = "".join(filter(str.isdigit, request.cnpj))
 
     if len(clean_cnpj) != 14:
+        logger.warning(f"Invalid CNPJ format: {request.cnpj}")
         raise HTTPException(status_code=400, detail="CNPJ inválido. Deve conter 14 dígitos.")
 
     # Lógica determinística baseada no CNPJ para testes consistentes
@@ -39,6 +46,8 @@ async def enrich_cnpj(request: CNPJEnrichmentRequest):
     rng = random.Random(seed)
 
     reliability = rng.uniform(0.7, 0.99)
+
+    logger.info(f"Enrichment successful for CNPJ: {clean_cnpj}, Reliability: {reliability:.2f}")
 
     return {
         "cnpj": request.cnpj,
@@ -57,6 +66,7 @@ async def enrich_cnpj(request: CNPJEnrichmentRequest):
 
 @router.get("/ldr/validate-sources")
 async def validate_sources():
+    logger.info("Validating external data sources")
     return {
         "status": "connected",
         "sources": [
@@ -65,3 +75,14 @@ async def validate_sources():
             {"name": "Serasa", "latency_ms": 90, "status": "up"}
         ]
     }
+
+# --- Cycle 19: ICP Analysis ---
+@router.post("/ldr/classify-icp")
+async def classify_icp(request: ICPClassificationRequest):
+    """
+    Streams the classification analysis token by token (SSE-like).
+    """
+    return StreamingResponse(
+        icp_agent.classify_company(request.model_dump()),
+        media_type="text/event-stream"
+    )
