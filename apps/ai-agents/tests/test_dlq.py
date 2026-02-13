@@ -1,31 +1,61 @@
-import asyncio
+import pytest
 import json
-import redis.asyncio as redis
-import os
-import time
+import asyncio
+from unittest.mock import AsyncMock, patch, MagicMock
 
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
-QUEUE_NAME = "ai:agents:crawl_queue"
-DLQ_NAME = "ai:agents:dlq"
+# Ensure we can import worker from project root
+# worker.py is at apps/ai-agents/worker.py
+from worker import Worker
 
-async def test_dlq():
-    print("Testing DLQ Logic...")
-    client = redis.from_url(REDIS_URL, decode_responses=True)
+@pytest.fixture
+def mock_redis_connection():
+    # Mock the return value of redis.from_url (which is the client)
+    mock_client = AsyncMock()
 
-    # 1. Push Bad Job
-    bad_job = json.dumps({"type": "crawl", "payload": {"url": "http://google.com"}, "timestamp": "NOT_A_FLOAT"}) # Invalid timestamp type
-    await client.rpush(QUEUE_NAME, bad_job)
-    print("Pushed bad job.")
+    # Configure common methods
+    mock_client.rpush.return_value = 1 # Return length of list
+    mock_client.blpop.return_value = None
+    mock_client.get.return_value = None
+    mock_client.incr.return_value = 1
+    mock_client.expire.return_value = True
 
-    # 2. Wait for worker to process (Manual trigger or assume worker is running in bg?)
-    # Since we can't easily spawn the worker process in this script without blocking,
-    # we will rely on static verification of the code logic we just wrote.
-    # But let's mock the Worker's DLQ method to verify the logic flow if we were unit testing.
+    return mock_client
 
-    print("Verification: The worker code now contains 'JobEnvelope(**data)' which will raise ValidationError for 'timestamp' string.")
-    print("Verification: The 'except ValidationError' block calls 'send_to_dlq'.")
+@pytest.mark.asyncio
+async def test_dlq_entry_creation(mock_redis_connection):
+    """
+    Test that send_to_dlq correctly formats the error message and pushes to Redis.
+    """
+    with patch("redis.asyncio.from_url", return_value=mock_redis_connection):
+        # Initialize worker (will use mocked redis)
+        worker = Worker()
 
-    await client.aclose()
+        # Test Input
+        raw_data = json.dumps({"invalid": "json"})
+        reason = "Validation Error: Missing required field"
 
-if __name__ == "__main__":
-    asyncio.run(test_dlq())
+        # Execute
+        await worker.send_to_dlq(raw_data, reason)
+
+        # Verify
+        mock_redis_connection.rpush.assert_called_once()
+        args = mock_redis_connection.rpush.call_args[0]
+
+        queue_name = args[0]
+        pushed_value = json.loads(args[1])
+
+        assert queue_name == "ai:agents:dlq"
+        assert pushed_value["original_message"] == raw_data
+        assert pushed_value["error"] == reason
+        assert "timestamp" in pushed_value
+        assert isinstance(pushed_value["timestamp"], float)
+
+@pytest.mark.asyncio
+async def test_worker_initialization(mock_redis_connection):
+    """
+    Test that worker initializes correctly with mocked redis.
+    """
+    with patch("redis.asyncio.from_url", return_value=mock_redis_connection):
+        worker = Worker()
+        assert worker.redis == mock_redis_connection
+        assert worker.running is True

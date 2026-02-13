@@ -54,6 +54,21 @@ export function middleware(request: NextRequest) {
 
   response.headers.set('Content-Security-Policy', csp);
 
+  // Content Security Policy Report-Only (Stricter: no unsafe-eval)
+  const reportOnlyCsp = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' https://js.stripe.com", // Removed 'unsafe-eval'
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: https:",
+    "font-src 'self'",
+    "connect-src 'self' https://api.stripe.com",
+    "frame-src 'self' https://js.stripe.com",
+    "object-src 'none'",
+    "base-uri 'self'",
+  ].join('; ');
+
+  response.headers.set('Content-Security-Policy-Report-Only', reportOnlyCsp);
+
   // Logs estruturados (opcional)
   if (process.env.LOG_REQUESTS === 'true') {
     console.log(JSON.stringify({
