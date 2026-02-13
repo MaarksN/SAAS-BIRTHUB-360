@@ -3,11 +3,12 @@ from pydantic import BaseModel, Field
 from typing import List, Optional, Literal
 import os
 from anthropic import Anthropic
+from schemas.agent import AgentRunRequest, AgentResponse
+from services.bdr_agent import BDRAgent
 
 router = APIRouter()
-
-# Inicializar cliente Anthropic
 anthropic_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+bdr_agent = BDRAgent()
 
 # ============================================================================
 # SCHEMAS
@@ -348,3 +349,11 @@ async def analyze_icp(request: ICPRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao analisar ICP: {str(e)}")
+
+@router.post("/bdr/agent-run", response_model=AgentResponse)
+async def run_agent(request: AgentRunRequest):
+    try:
+        response = await bdr_agent.run(request)
+        return response
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

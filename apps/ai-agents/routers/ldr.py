@@ -1,10 +1,14 @@
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import List, Optional
 import random
 from datetime import datetime
+from services.icp_agent import ICPAgent
+from schemas.agent import ICPClassificationRequest
 
 router = APIRouter()
+icp_agent = ICPAgent()
 
 # --- Models Robustos ---
 class CNPJEnrichmentRequest(BaseModel):
@@ -65,3 +69,14 @@ async def validate_sources():
             {"name": "Serasa", "latency_ms": 90, "status": "up"}
         ]
     }
+
+# --- Cycle 19: ICP Analysis ---
+@router.post("/ldr/classify-icp")
+async def classify_icp(request: ICPClassificationRequest):
+    """
+    Streams the classification analysis token by token (SSE-like).
+    """
+    return StreamingResponse(
+        icp_agent.classify_company(request.model_dump()),
+        media_type="text/event-stream"
+    )

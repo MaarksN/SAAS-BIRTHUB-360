@@ -3,9 +3,12 @@ from pydantic import BaseModel, Field
 from typing import List, Optional, Literal, Dict
 import os
 from anthropic import Anthropic
+from schemas.agent import EmailGenerationRequest, EmailGenerationResponse
+from services.sdr_agent import SDRAgent
 
 router = APIRouter()
 anthropic_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+sdr_agent = SDRAgent()
 
 # ============================================================================
 # SCHEMAS
@@ -297,3 +300,11 @@ async def detect_intent(request: IntentDetectionRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao detectar intenção: {str(e)}")
+
+@router.post("/sdr/generate-email", response_model=EmailGenerationResponse)
+async def generate_email(request: EmailGenerationRequest):
+    try:
+        response = await sdr_agent.generate_email(request)
+        return response
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

@@ -8,12 +8,7 @@
     "lint": "echo 'Linting skipped due to env issues'"
   },
   "dependencies": {
-    "@salesos/auth": "*",
     "@salesos/core": "*",
-    "@salesos/database": "*",
-    "@salesos/enterprise": "*",
-    "@salesos/growth": "*",
-    "@salesos/social": "*",
     "@salesos/ui": "*",
     "@tanstack/react-query": "^5.90.20",
     "@tanstack/react-query-devtools": "^5.91.3",

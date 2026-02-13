@@ -68,6 +68,10 @@ class RiskScoreResponse(BaseModel):
 # ENDPOINTS
 # ============================================================================
 
+@router.get("/ae")
+async def ae_root():
+    return {"message": "AE Router"}
+
 @router.post("/ae/analyze-call", response_model=CallAnalysisResponse)
 async def analyze_call(request: CallAnalysisRequest):
     """
