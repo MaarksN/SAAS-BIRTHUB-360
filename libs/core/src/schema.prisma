@@ -1,10 +1,12 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions", "views"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  extensions = [pgvector(map: "vector")]
 }
 
 enum Role {
@@ -38,6 +40,12 @@ model Organization {
   integrations       Integration[]
   emailThreads       EmailThread[]
 
+  // Phase 2/4 Extensions
+  apiKeys            ApiKey[]
+  webhooks           WebhookSubscription[]
+  budget             TenantBudget?
+  cleanRooms         CleanRoom[]
+
   @@map("organizations")
 }
 
@@ -47,7 +55,7 @@ model AuditLog {
   organization   Organization @relation(fields: [organizationId], references: [id])
   actorId        String?      // User ID or System
   action         String
-  entity         String
+  entity         String       // "Lead", "ApiKey" (Resource)
   entityId       String
   metadata       Json?
   ipAddress      String?
@@ -58,6 +66,7 @@ model AuditLog {
   @@index([organizationId])
   @@index([entity, entityId])
   @@index([createdAt])
+  @@index([action])
   @@map("audit_logs")
 }
 
@@ -79,6 +88,11 @@ model User {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
+
+  // Phase 2/4 Extensions
+  apiKeys        ApiKey[]
+  agentTemplates AgentTemplate[]
+  agentFeedbacks AgentFeedback[]
 
   @@map("users")
 }
@@ -347,6 +361,12 @@ model UsageLog {
   contextType    String
   createdAt      DateTime     @default(now())
 
+  // Compatible with Incoming
+  feature        String?      // Optional for HEAD compatibility
+  // model is modelUsed
+  // tokensUsed can be sum
+  // cost is estimatedCost
+
   @@index([organizationId])
   @@index([createdAt])
   @@map("usage_logs")
@@ -444,6 +464,7 @@ model ScheduledEmail {
   errorMessage   String?
   providerMessageId String?
   error          String?
+  providerMessageId String?
 
   trackingId     String?  // For pixel tracking
 
@@ -523,4 +544,135 @@ model EmailMessage {
   @@index([threadId])
   @@index([providerMessageId])
   @@map("email_messages")
+}
+
+// Phase 2 Extensions (Incoming)
+
+model LocalBusiness {
+  externalId       String   @id @map("external_id")
+  name             String
+  address          String
+  location         Unsupported("geography(Point, 4326)")
+  types            Json     // Stored as JSON array
+  rating           Float?
+  userRatingsTotal Int?     @map("user_ratings_total")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@map("local_business")
+}
+
+model RagEmbedding {
+  id        String                 @id @default(uuid())
+  content   String
+  embedding Unsupported("vector(1536)") // OpenAI embeddings dimension
+  metadata  Json
+  createdAt DateTime               @default(now()) @map("created_at")
+
+  @@map("rag_embeddings")
+}
+
+model ApiKey {
+  id             String       @id @default(cuid())
+  name           String
+  keyPrefix      String       // First 8 chars for display
+  hash           String       @unique // Hashed key for verification
+  scopes         Json         // Array of allowed scopes (e.g. ["read:leads", "write:enrichment"])
+  rateLimit      Int          @default(100) // Requests per minute
+  expiresAt      DateTime?
+  lastUsedAt     DateTime?
+  isActive       Boolean      @default(true)
+
+  userId         String
+  user           User         @relation(fields: [userId], references: [id])
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([hash])
+  @@index([organizationId])
+  @@map("api_keys")
+}
+
+model AgentTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  prompt      String   @db.Text
+  price       Float    @default(0) // 0 = free
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+  isPublic    Boolean  @default(false)
+  downloads   Int      @default(0)
+  rating      Float    @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("agent_templates")
+}
+
+model WebhookSubscription {
+  id             String       @id @default(cuid())
+  url            String
+  events         Json         // ["lead.created", "deal.won"]
+  secret         String       // For HMAC signing
+  isActive       Boolean      @default(true)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@map("webhook_subscriptions")
+}
+
+model AgentFeedback {
+  id             String   @id @default(cuid())
+  agentRunId     String
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  rating         Int
+  correction     String?  @db.Text
+  originalOutput String?  @db.Text
+  improvedOutput String?  @db.Text
+  createdAt      DateTime @default(now())
+
+  @@map("agent_feedbacks")
+}
+
+model TenantBudget {
+  id             String       @id @default(cuid())
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  monthlyLimit   Float        @default(50.0) // USD
+  currentSpend   Float        @default(0.0)
+  resetDate      DateTime     @default(now()) // Next reset
+
+  updatedAt      DateTime     @updatedAt
+
+  @@map("tenant_budgets")
+}
+
+model CleanRoom {
+  id             String   @id @default(cuid())
+  name           String
+  initiatorId    String
+  initiatorOrg   Organization @relation(fields: [initiatorId], references: [id])
+
+  participants   Json     // Array of Organization IDs
+  status         String   // "PENDING", "ACTIVE", "COMPLETED"
+
+  datasetAHash   String?  // S3 path or Hash summary
+  datasetBHash   String?
+
+  results        Json?    // Intersection results (hashed IDs)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("clean_rooms")
 }

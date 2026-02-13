@@ -11,3 +11,12 @@ pgvector
 openai
 httpx
 pytest
+anthropic
+python-dotenv
+tiktoken
+psutil
+jinja2
+numpy
+opentelemetry-api
+opentelemetry-sdk
+opentelemetry-instrumentation

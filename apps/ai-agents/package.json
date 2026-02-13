@@ -4,9 +4,12 @@
   "private": true,
   "scripts": {
     "start": "node dist/worker.js",
+    "start:py": "uvicorn main:app --host 0.0.0.0 --port 8000",
     "dev": "tsx watch src/worker.ts",
+    "dev:py": "uvicorn main:app --reload",
     "build": "tsc",
     "lint": "eslint .",
+    "lint:py": "echo 'Linting Python app...'",
     "test": "vitest"
   },
   "dependencies": {
