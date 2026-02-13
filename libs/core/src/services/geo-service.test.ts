@@ -6,7 +6,8 @@ describe('GeoService', () => {
     const service = new GeoService({
       redisUrl: 'redis://localhost:6379',
       googleMapsKey: 'test',
-      serpApiKey: 'test'
+      serpApiKey: 'test',
+      db: { query: vi.fn().mockResolvedValue([]) }
     });
     expect(service).toBeDefined();
   });

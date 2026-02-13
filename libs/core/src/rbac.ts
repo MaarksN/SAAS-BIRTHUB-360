@@ -1,5 +1,7 @@
 import { Role, User } from '@prisma/client';
 
+export { Role, User };
+
 export type Permission =
   | 'organization:update'
   | 'organization:delete'
@@ -105,4 +107,10 @@ export const ROLE_HIERARCHY: Record<Role, number> = {
 export function hasRole(user: User, requiredRole: Role): boolean {
   if (!user || !user.role) return false;
   return ROLE_HIERARCHY[user.role] >= ROLE_HIERARCHY[requiredRole];
+}
+
+export function assertRole(user: User, requiredRole: Role): void {
+  if (!hasRole(user, requiredRole)) {
+    throw new Error(`Access denied. Required role: ${requiredRole}`);
+  }
 }

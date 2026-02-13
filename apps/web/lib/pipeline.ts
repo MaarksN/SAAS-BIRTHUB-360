@@ -3,8 +3,8 @@ import { Deal } from '@salesos/core';
 export const pipelineService = {
   getDeals: async (): Promise<Deal[]> => {
     return [
-      { id: 'd1', title: 'Enterprise License - Corp Inc', value: 50000, stage: 'Negotiation', probability: 0.5 },
-      { id: 'd2', title: 'Starter Plan - StartUp', value: 5000, stage: 'Discovery', probability: 0.5 },
+      { id: 'd1', title: 'Enterprise License - Corp Inc', value: 50000, stage: 'Negotiation', probability: 0.5 } as Deal,
+      { id: 'd2', title: 'Starter Plan - StartUp', value: 5000, stage: 'Discovery', probability: 0.5 } as Deal,
     ];
   }
 };

@@ -1,14 +1,21 @@
 import { createWorker, createQueue } from '@salesos/queue-core';
 import { ScraperEngine } from './scraper/scraper-engine';
-import { logger, prisma, AuditLogData, SenderEngine } from '@salesos/core';
+import { logger, prisma, AuditLogData, EmailService } from '@salesos/core';
+import IORedis from 'ioredis';
+import { Job } from 'bullmq';
 
 // Initialize Engines
 const scraperEngine = new ScraperEngine();
-const senderEngine = new SenderEngine();
-const emailQueue = createQueue('email-queue');
+const emailQueue = createQueue('email-sending');
+const redisLock = new IORedis(process.env.REDIS_URL || 'redis://localhost:6379');
 
 // Import sub-workers to register them
 import './workers/hubspot-sync';
+
+interface EmailJobData {
+  scheduledEmailId: string;
+  organizationId: string;
+}
 
 // Scraping Worker
 createWorker('scraping-queue', async (job) => {
@@ -43,72 +50,161 @@ createWorker('ai-analysis-queue', async (job) => {
   concurrency: 2, // CPU bound
 });
 
-// Email Queue Worker (Consumer)
-createWorker<{ scheduledEmailId: string }>('email-queue', async (job) => {
-  const { scheduledEmailId } = job.data;
-  logger.info({ jobId: job.id, scheduledEmailId }, 'Processing email send task');
+/**
+ * Worker processador de emails.
+ * Padrão: At Least Once Delivery (com Idempotência para simular Exactly Once)
+ */
+export const emailWorker = createWorker<EmailJobData>(
+  'email-sending',
+  async (job: Job<EmailJobData>) => {
+    const { scheduledEmailId, organizationId } = job.data;
+    const lockKey = `lock:email:${scheduledEmailId}`;
 
-  await senderEngine.sendEmail(scheduledEmailId);
+    // 1. Verificação de Idempotência (Redis SETNX)
+    // Tenta setar a chave. Se já existe (retorna 0), significa que outro worker está processando
+    // ou processou recentemente. TTL de 5 minutos.
+    const acquiredLock = await redisLock.set(lockKey, 'processing', 'EX', 300, 'NX');
 
-  return { sent: true };
-}, {
-  concurrency: 10, // IO bound
-});
+    if (!acquiredLock) {
+      logger.warn({ scheduledEmailId, jobId: job.id }, 'Idempotency lock active. Skipping duplicate job.');
+      return; // Aborta silenciosamente, assumindo que já foi processado
+    }
 
-// Dispatcher (Cron - Runs every 60s)
-// In a real production setup, this should be a separate service or use a distributed lock (e.g. Redlock)
-// to prevent multiple workers from dispatching the same emails if scaled horizontally.
-// For now, we assume a single worker instance or that `updateMany` handles concurrency via row locking (skip locked).
-async function runDispatcher() {
+    try {
+      // 2. Busca e Validação de Estado (Concorrência Otimista)
+      const emailRecord = await prisma.scheduledEmail.findUnique({
+        where: { id: scheduledEmailId },
+        include: { sender: true } // Pegar config do sender se existir
+      });
+
+      if (!emailRecord) {
+        logger.error({ scheduledEmailId }, 'Email record not found in DB');
+        return; // Job inútil, não retentar
+      }
+
+      if (emailRecord.status === 'SENT' || emailRecord.status === 'FAILED') {
+        logger.info({ scheduledEmailId, status: emailRecord.status }, 'Email already processed. Skipping.');
+        return;
+      }
+
+      // 3. Atualizar para PROCESSING (Visibilidade para UI)
+      await prisma.scheduledEmail.update({
+        where: { id: scheduledEmailId },
+        data: { status: 'PROCESSING' }
+      });
+
+      // 4. Executar Envio
+      logger.info({ scheduledEmailId }, 'Sending email via provider...');
+
+      const { messageId } = await EmailService.sendNow({
+        scheduledEmailId,
+        organizationId,
+        to: emailRecord.to,
+        subject: emailRecord.subject,
+        html: emailRecord.body,
+        senderEmail: emailRecord.sender?.email
+      });
+
+      // 5. Sucesso: Atualizar DB
+      await EmailService.markAsSent(scheduledEmailId, messageId);
+      logger.info({ scheduledEmailId, messageId }, 'Email sent successfully');
+
+    } catch (error: any) {
+      // 6. Falha: Análise de Erro
+      logger.error({ error, scheduledEmailId }, 'Email sending failed');
+
+      // Se for erro 4xx (Client Error), provavelmente é permanente (email inválido, rejeitado)
+      // Se for 5xx ou Network, o BullMQ fará retry automático (throw error)
+
+      const isPermanentError = error.message?.includes('validation') || error.message?.includes('400');
+
+      if (isPermanentError) {
+        await EmailService.markAsFailed(scheduledEmailId, error.message);
+        // Não lançar erro para não gerar retry no BullMQ
+      } else {
+        // Erro transiente: Lançar erro para o BullMQ retentar (Backoff exponencial configurado na queue)
+        throw error;
+      }
+    } finally {
+      // Opcional: Liberar lock imediatamente ou deixar expirar (mais seguro deixar expirar em caso de crash)
+      // await redisLock.del(lockKey);
+    }
+  },
+  {
+    concurrency: 20, // Alta concorrência I/O bound
+    limiter: {
+      max: 10,      // Max 10 emails
+      duration: 1000 // por 1 segundo (Resend Global Rate Limit preventivo)
+    }
+  }
+);
+
+/**
+ * Função executada via Cron/Interval
+ * Busca emails 'PENDING' que já passaram da hora de envio e enfileira
+ */
+export async function scheduleEmails() {
+  const BATCH_SIZE = 500; // Processar em blocos para não estourar memória
+
   try {
     const now = new Date();
 
-    // 1. Find Pending Emails due now
-    // We use a transaction or simple update to mark them as QUEUED to avoid double processing
-    // But Prisma doesn't support "UPDATE ... RETURNING" cleanly with "limit" easily in one go for varying IDs without raw query.
-    // We'll fetch first, then loop.
-
+    // 1. Buscar candidatos
     const pendingEmails = await prisma.scheduledEmail.findMany({
       where: {
         status: 'PENDING',
-        sendAt: { lte: now }
+        sendAt: {
+          lte: now // Agendado para agora ou passado
+        },
+        deletedAt: null // Respeitando Soft Delete
       },
-      take: 100 // Batch size
+      take: BATCH_SIZE,
+      orderBy: { sendAt: 'asc' } // FIFO: Mais antigos primeiro
     });
 
     if (pendingEmails.length === 0) return;
 
-    logger.info({ count: pendingEmails.length }, 'Dispatcher found pending emails');
+    logger.info({ count: pendingEmails.length }, 'Found pending emails to schedule');
 
-    for (const email of pendingEmails) {
-      try {
-        // Optimistic locking or just update status first
-        // Prisma update only accepts unique where. To use composite check (id + status), we must use updateMany.
-        const result = await prisma.scheduledEmail.updateMany({
-          where: { id: email.id, status: 'PENDING' },
-          data: { status: 'QUEUED' }
-        });
-
-        if (result.count === 0) continue; // Already processed or not pending
-
-        // Add to Queue
-        await emailQueue.add('send-email', { scheduledEmailId: email.id }, {
-           jobId: `email-${email.id}`, // Deduplication
-           removeOnComplete: true
-        });
-      } catch (e) {
-        // Race condition or update failed (already processed), ignore
+    // 2. Processamento em Batch
+    const jobs = pendingEmails.map(email => ({
+      name: 'send-email',
+      data: {
+        scheduledEmailId: email.id,
+        organizationId: email.organizationId
+      },
+      opts: {
+        jobId: `email:${email.id}`, // Deduplicação nível BullMQ
+        attempts: 5,
+        backoff: {
+          type: 'exponential',
+          delay: 5000 // 5s, 10s, 20s, 40s, 80s
+        }
       }
-    }
+    }));
+
+    // 3. Adicionar à fila em Bulk (Atomicidade de rede)
+    await emailQueue.addBulk(jobs);
+
+    // 4. Marcar como QUEUED na DB (Para não pegar na próxima query do scheduler)
+    // Isso reduz a chance de race condition entre schedulers redundantes
+    const ids = pendingEmails.map(e => e.id);
+    await prisma.scheduledEmail.updateMany({
+      where: { id: { in: ids } },
+      data: { status: 'QUEUED' }
+    });
+
+    logger.info({ count: ids.length }, 'Emails queued successfully');
+
   } catch (error) {
-    logger.error({ error }, 'Dispatcher failed');
+    logger.error({ error }, 'Error in email scheduler');
   }
 }
 
 // Start Dispatcher Loop
-setInterval(runDispatcher, 60000);
+setInterval(scheduleEmails, 60000);
 // Run immediately on startup
-runDispatcher();
+scheduleEmails();
 
 // Audit Log Worker
 createWorker<AuditLogData>('audit-queue', async (job) => {

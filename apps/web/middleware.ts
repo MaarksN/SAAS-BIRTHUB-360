@@ -1,15 +1,34 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { randomUUID } from 'crypto';
 
 export function middleware(request: NextRequest) {
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set('x-salesos-request-id', crypto.randomUUID());
+  // Gerar ou extrair Request ID
+  const requestId = request.headers.get('x-request-id') || randomUUID();
 
+  // Extrair informações do request
+  const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown';
+  const userAgent = request.headers.get('user-agent') || 'unknown';
+
+  // Create Headers for the next request
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-request-id', requestId);
+  requestHeaders.set('x-client-ip', ip);
+  requestHeaders.set('x-user-agent', userAgent);
+
+  // Criar response passando os headers modificados
   const response = NextResponse.next({
     request: {
       headers: requestHeaders,
     },
   });
+
+  // Injetar Request ID no header de resposta
+  response.headers.set('x-request-id', requestId);
+
+  // Adicionar headers de contexto para serem lidos pelo cliente (opcional)
+  response.headers.set('x-client-ip', ip);
+  response.headers.set('x-user-agent', userAgent);
 
   // Security Headers (Cycle 35)
   response.headers.set('X-Content-Type-Options', 'nosniff');
@@ -21,8 +40,6 @@ export function middleware(request: NextRequest) {
   );
 
   // Content Security Policy (CSP)
-  // Allow 'unsafe-inline' and 'unsafe-eval' for Next.js (Script optimization/HMR)
-  // In production, this should be stricter (nonces).
   const csp = [
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com",
@@ -37,33 +54,32 @@ export function middleware(request: NextRequest) {
 
   response.headers.set('Content-Security-Policy', csp);
 
+  // Logs estruturados (opcional)
+  if (process.env.LOG_REQUESTS === 'true') {
+    console.log(JSON.stringify({
+      event: 'http_request',
+      requestId,
+      method: request.method,
+      url: request.url,
+      ip,
+      userAgent,
+      timestamp: new Date().toISOString()
+    }));
+  }
+
   return response;
 }
 
-// NOTE: Context injection for RLS (Cycle 31)
-// Ideally, we would wrap the response or use a custom Server Component wrapper to set the AsyncLocalStorage context.
-// However, Next.js Middleware runs in the Edge runtime, while AsyncLocalStorage is Node.js specific and request-scoped per lambda.
-// In Next.js App Router, the recommended way to handle context is via a wrapper in `layout.tsx` or Higher-Order Component/Function for Server Actions.
-// BUT, since `libs/core` uses `AsyncLocalStorage`, we need to initialize it at the entry point of the Node.js request handling.
-// For App Router, this is tricky. A common pattern is to trust the `middleware` to set headers (x-org-id, x-user-id)
-// and then have a utility function `authenticatedPrisma()` that reads these headers/cookies inside the Server Component
-// and calls `runWithContext` before executing the query.
-
-// Given the "Zero Trust" requirement, we cannot rely on developers remembering to call a wrapper.
-// The Prisma Extension in `libs/core` reads from `AsyncLocalStorage`.
-// We need to ensure `AsyncLocalStorage` is populated.
-// In Next.js, we can't easily wrap the entire request in `context.run()` from middleware.
-// We will modify `libs/core/src/prisma.ts` to ALSO look for headers if context is empty (Mocking context propagation for now)
-// OR we enforce usage of a `getSessionContext()` helper in the App.
-
+// Configurar quais rotas o middleware deve processar
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
+     * Match all request paths except:
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - public folder
      */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
-  ],
+    '/((?!_next/static|_next/image|favicon.ico|public).*)'
+  ]
 };

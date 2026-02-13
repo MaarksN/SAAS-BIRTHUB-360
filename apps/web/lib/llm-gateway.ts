@@ -1,4 +1,9 @@
-import { guard, features, logger } from '@salesos/core';
+import { guard, logger } from '@salesos/core';
+
+// Mock feature flag
+const features = {
+  isEnabled: (flag: string) => true
+};
 
 export type LLMProvider = 'openai' | 'anthropic';
 
