@@ -49,6 +49,14 @@ jobs:
       - name: Security Audit
         run: npm audit --audit-level=high --production
 
+      - name: Database Migration Check
+        run: |
+          npx prisma generate --schema=libs/core/src/schema.prisma
+          npx prisma migrate deploy --schema=libs/core/src/schema.prisma
+        env:
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/test_db"
+          SKIP_ENV_VALIDATION: 1
+
       - name: Lint
         run: npx turbo run lint
         env:

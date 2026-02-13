@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node dist/worker.js",
     "start:py": "uvicorn main:app --host 0.0.0.0 --port 8000",
-    "dev": "tsx watch src/worker.ts",
+    "dev": "concurrently -n \"worker,api\" -c \"blue,green\" \"tsx watch src/worker.ts\" \"uvicorn main:app --reload\"",
     "dev:py": "uvicorn main:app --reload",
     "build": "tsc",
     "type-check": "tsc --noEmit",
