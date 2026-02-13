@@ -2,13 +2,10 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from typing import List, Optional, Literal, Dict
 import os
-from anthropic import Anthropic
-from schemas.agent import EmailGenerationRequest, EmailGenerationResponse
-from services.sdr_agent import SDRAgent
+from anthropic import AsyncAnthropic
 
 router = APIRouter()
-anthropic_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-sdr_agent = SDRAgent()
+anthropic_client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 # ============================================================================
 # SCHEMAS
@@ -116,7 +113,7 @@ Com base nas informações disponíveis, retorne em JSON:
 
 IMPORTANTE: Base a qualificação apenas nos dados fornecidos. Se faltam informações, assuma scores conservadores."""
 
-        message = anthropic_client.messages.create(
+        message = await anthropic_client.messages.create(
             model="claude-3-5-sonnet-20241022",
             max_tokens=800,
             temperature=0.3,
@@ -232,7 +229,7 @@ Retorne em JSON:
   "urgency": "high/medium/low"
 }}"""
 
-        message = anthropic_client.messages.create(
+        message = await anthropic_client.messages.create(
             model="claude-3-5-sonnet-20241022",
             max_tokens=800,
             temperature=0.7,
@@ -300,11 +297,3 @@ async def detect_intent(request: IntentDetectionRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao detectar intenção: {str(e)}")
-
-@router.post("/sdr/generate-email", response_model=EmailGenerationResponse)
-async def generate_email(request: EmailGenerationRequest):
-    try:
-        response = await sdr_agent.generate_email(request)
-        return response
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
