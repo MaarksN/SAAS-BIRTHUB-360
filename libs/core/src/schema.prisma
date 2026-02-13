@@ -469,7 +469,6 @@ model ScheduledEmail {
   errorMessage   String?
   providerMessageId String?
   error          String?
-  providerMessageId String?
 
   trackingId     String?  // For pixel tracking
 

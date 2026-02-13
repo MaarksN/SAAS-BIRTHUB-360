@@ -21,6 +21,8 @@
   },
   "scripts": {
     "worker:email": "tsx src/workers/email-sender.worker.ts",
-    "scheduler:email": "tsx src/schedulers/email-scheduler.ts"
+    "scheduler:email": "tsx src/schedulers/email-scheduler.ts",
+    "worker:audit": "echo 'Audit worker not implemented'",
+    "workers:all": "npm run worker:email & npm run scheduler:email & npm run worker:audit & wait"
   }
 }

@@ -18,5 +18,12 @@ services:
       - "8000:8000"
     volumes:
       - ./apps/ai-agents:/app
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
 volumes:
   postgres_data:
+  redis_data:
