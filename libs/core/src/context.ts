@@ -24,3 +24,7 @@ export function getOrganizationId(): string | undefined {
 export function getUserId(): string | undefined {
   return context.getStore()?.userId;
 }
+
+export function getRequestId(): string | undefined {
+  return context.getStore()?.requestId;
+}
