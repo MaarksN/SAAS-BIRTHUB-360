@@ -15,6 +15,10 @@ enum Role {
   VIEWER
 }
 
+enum JobFunction {
+  MARKET_INTELLIGENCE_ANALYST
+}
+
 model Organization {
   id                 String            @id @default(uuid())
   name               String
@@ -66,6 +70,7 @@ model User {
   email          String       @unique
   name           String
   role           Role         @default(MEMBER)
+  jobFunction    JobFunction?
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
 
