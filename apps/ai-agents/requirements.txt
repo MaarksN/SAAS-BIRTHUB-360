@@ -13,3 +13,5 @@ httpx
 pytest
 google-generativeai
 anthropic
+python-jose[cryptography]
+sentry-sdk
