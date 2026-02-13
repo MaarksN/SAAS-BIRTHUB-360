@@ -3,6 +3,7 @@ import '../styles/globals.css';
 import { Providers } from '../components/providers';
 import { Toaster } from '../components/sonner';
 import { GlobalErrorBoundary } from '../components/GlobalErrorBoundary';
+import { ServiceWorkerRegister } from '../components/ServiceWorkerRegister';
 
 const inter = Inter({ subsets: ['latin'], display: 'swap' });
 
@@ -19,6 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
+        <ServiceWorkerRegister />
         <Providers>
           <GlobalErrorBoundary>
             {children}
