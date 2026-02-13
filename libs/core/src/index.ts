@@ -24,3 +24,4 @@ export * from './finops/ledger';
 export * from './finops/tokenizer';
 export * from './redis';
 export * from './identity-service';
+export { softDeleteMiddleware, withDeleted, onlyDeleted } from './prisma-middleware';
