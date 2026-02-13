@@ -11,3 +11,6 @@ pgvector
 openai
 httpx
 pytest
+anthropic
+python-dotenv
+tiktoken
