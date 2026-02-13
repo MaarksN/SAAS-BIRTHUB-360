@@ -1,5 +1,4 @@
-import { AppError } from '../errors/AppError';
-import { ErrorCategory,ErrorCode } from '../errors/error-codes';
+import { AppError, ErrorCategory, ErrorCode } from '@salesos/core';
 
 enum CircuitState {
   CLOSED,
