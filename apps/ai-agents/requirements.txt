@@ -15,3 +15,5 @@ google-generativeai
 anthropic
 python-jose[cryptography]
 sentry-sdk
+jinja2
+pytest-asyncio
