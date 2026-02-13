@@ -8,8 +8,8 @@
     "dev": "tsx watch src/worker.ts",
     "dev:py": "uvicorn main:app --reload",
     "build": "tsc",
-    "lint": "eslint .",
-    "lint:py": "echo 'Linting Python app...'",
+    "type-check": "tsc --noEmit",
+    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint .",
     "test": "vitest"
   },
   "dependencies": {

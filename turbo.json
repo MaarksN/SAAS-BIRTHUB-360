@@ -7,6 +7,7 @@
       "dependsOn": ["^build"]
     },
     "lint": {},
+    "type-check": {},
     "test": {},
     "dev": {
       "cache": false,
