@@ -1,6 +1,13 @@
 {
-  "name": "SalesOS",
+  "name": "SalesOS Ultimate",
   "short_name": "SalesOS",
+  "description": "Unified Sales Platform",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#0f172a",
+  "background_color": "#0f172a",
   "icons": [
     {
       "src": "/icon-192x192.png",
@@ -12,8 +19,5 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ],
-  "theme_color": "#0f172a",
-  "background_color": "#0f172a",
-  "display": "standalone"
+  ]
 }
