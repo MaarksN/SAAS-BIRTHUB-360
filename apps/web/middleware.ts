@@ -1,35 +1,34 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { validateRequest } from './lib/api-gateway';
+import { randomUUID } from 'crypto';
 
-export async function middleware(request: NextRequest) {
+export function middleware(request: NextRequest) {
+  // Gerar ou extrair Request ID
+  const requestId = request.headers.get('x-request-id') || randomUUID();
+
+  // Extrair informações do request
+  const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown';
+  const userAgent = request.headers.get('user-agent') || 'unknown';
+
+  // Create Headers for the next request
   const requestHeaders = new Headers(request.headers);
-  requestHeaders.set('x-salesos-request-id', crypto.randomUUID());
+  requestHeaders.set('x-request-id', requestId);
+  requestHeaders.set('x-client-ip', ip);
+  requestHeaders.set('x-user-agent', userAgent);
 
-  // API Gateway Logic for External Routes
-  if (request.nextUrl.pathname.startsWith('/api/external')) {
-    const result = await validateRequest(request);
-
-    if (!result.authorized) {
-      return NextResponse.json(
-        { error: result.error },
-        { status: result.status, headers: result.headers as any }
-      );
-    }
-
-    // Append Rate Limit Headers to response
-    if (result.headers) {
-      Object.entries(result.headers).forEach(([key, value]) => {
-        requestHeaders.set(key, value);
-      });
-    }
-  }
-
+  // Criar response passando os headers modificados
   const response = NextResponse.next({
     request: {
       headers: requestHeaders,
     },
   });
+
+  // Injetar Request ID no header de resposta
+  response.headers.set('x-request-id', requestId);
+
+  // Adicionar headers de contexto para serem lidos pelo cliente (opcional)
+  response.headers.set('x-client-ip', ip);
+  response.headers.set('x-user-agent', userAgent);
 
   // Security Headers (Cycle 35)
   response.headers.set('X-Content-Type-Options', 'nosniff');
@@ -55,17 +54,32 @@ export async function middleware(request: NextRequest) {
 
   response.headers.set('Content-Security-Policy', csp);
 
+  // Logs estruturados (opcional)
+  if (process.env.LOG_REQUESTS === 'true') {
+    console.log(JSON.stringify({
+      event: 'http_request',
+      requestId,
+      method: request.method,
+      url: request.url,
+      ip,
+      userAgent,
+      timestamp: new Date().toISOString()
+    }));
+  }
+
   return response;
 }
 
+// Configurar quais rotas o middleware deve processar
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
+     * Match all request paths except:
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - public folder
      */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
-  ],
+    '/((?!_next/static|_next/image|favicon.ico|public).*)'
+  ]
 };

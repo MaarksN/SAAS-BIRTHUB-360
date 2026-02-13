@@ -1,9 +1,10 @@
 import { PrismaClient } from '@prisma/client';
 import { env } from './env';
 import { getOrganizationId } from './context';
+import { softDeleteMiddleware } from './prisma-middleware';
 
 const prismaClientSingleton = () => {
-  return new PrismaClient({
+  const client = new PrismaClient({
     datasources: {
       db: {
         url: env.DATABASE_URL,
@@ -11,6 +12,11 @@ const prismaClientSingleton = () => {
     },
     log: env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
   });
+
+  // Apply Soft Delete Middleware (Cycle 03)
+  client.$use(softDeleteMiddleware);
+
+  return client;
 };
 
 declare global {
@@ -32,14 +38,6 @@ const TENANT_MODELS = [
   'EmailAccount'
 ];
 
-const SOFT_DELETE_MODELS = [
-  'Organization', 'User', 'Permission', 'CompanyProfile', 'EnrichmentLog',
-  'DataReliabilityScore', 'BuyingCommittee', 'Contact', 'OutboundSequence',
-  'Lead', 'LeadScore', 'Cadence', 'Deal', 'Quote', 'Meeting',
-  'SubscriptionPlan', 'UsageLog', 'CreditTransaction', 'AiFeedback',
-  'Notification', 'Campaign', 'EmailAccount'
-];
-
 export const prisma = basePrisma.$extends({
   query: {
     $allModels: {
@@ -50,59 +48,15 @@ export const prisma = basePrisma.$extends({
         // In a real production environment, this fallback should be replaced by a robust Context Wrapper
         // that is guaranteed to run before any DB call.
         // For now, if orgId is undefined, we DO NOT inject filters, which allows "God Mode" (System Context).
-        // This is dangerous if the Web App doesn't set context.
-        // To prevent leakage, we should THROW if strictly required, but Workers need System access.
-        // We assume "System" access (no context) is intentional.
 
         // 1. Audit Log Immutability
         if (model === 'AuditLog' && ['update', 'updateMany', 'delete', 'deleteMany', 'upsert'].includes(operation)) {
           throw new Error('Audit Logs are immutable.');
         }
 
-        // 2. Soft Delete - Transform delete to update
-        if (operation === 'delete') {
-           // We must check if model supports soft delete
-           if (SOFT_DELETE_MODELS.includes(model)) {
-               const where = { ...(args.where || {}) } as any;
-               where['deletedAt'] = null;
-               if (orgId && TENANT_MODELS.includes(model)) {
-                  where['organizationId'] = orgId;
-               }
+        // 2. RLS Injection
+        // Note: Soft Delete is handled by middleware on base client.
 
-               // Find first to get ID and ensure existence/ownership
-               const record = await (basePrisma as any)[model].findFirst({ where });
-
-               if (!record) {
-                  // Mimic Prisma error
-                  throw new Error('Record to delete does not exist.');
-               }
-
-               return (basePrisma as any)[model].update({
-                 where: { id: record.id },
-                 data: { deletedAt: new Date() }
-               });
-           }
-           // If model doesn't support soft delete (e.g. AuditLog, but that is immutable anyway), proceed with normal delete?
-           // AuditLog throws on delete.
-           // Other models? If any other model exists without soft delete, we let it pass.
-        }
-
-        if (operation === 'deleteMany') {
-           if (SOFT_DELETE_MODELS.includes(model)) {
-               const where = { ...(args.where || {}) } as any;
-               if (orgId && TENANT_MODELS.includes(model)) {
-                  where['organizationId'] = orgId;
-               }
-               where['deletedAt'] = null;
-
-               return (basePrisma as any)[model].updateMany({
-                 where,
-                 data: { deletedAt: new Date() }
-               });
-           }
-        }
-
-        // 3. RLS Injection & Soft Delete Filtering (Read/Update)
         const anyArgs = args as any;
 
         // Ensure args.where exists for relevant operations
@@ -112,18 +66,6 @@ export const prisma = basePrisma.$extends({
            }
         }
 
-        // Soft Delete Filter
-        let softDeleteInjected = false;
-        if (SOFT_DELETE_MODELS.includes(model)) {
-            if (['findUnique', 'findFirst', 'findMany', 'count', 'aggregate', 'groupBy'].includes(operation)) {
-               if (anyArgs.where.deletedAt === undefined) {
-                  anyArgs.where.deletedAt = null;
-                  softDeleteInjected = true;
-               }
-            }
-        }
-
-        // RLS Injection
         let rlsInjected = false;
         if (orgId && TENANT_MODELS.includes(model)) {
             if (['findUnique', 'findFirst', 'findMany', 'count', 'aggregate', 'groupBy', 'update', 'updateMany'].includes(operation)) {
@@ -138,7 +80,6 @@ export const prisma = basePrisma.$extends({
                 }
             }
 
-             // createMany
             if (operation === 'createMany') {
                  if (Array.isArray(anyArgs.data)) {
                       anyArgs.data = anyArgs.data.map((item: any) => ({ ...item, organizationId: orgId }));
@@ -148,8 +89,8 @@ export const prisma = basePrisma.$extends({
             }
         }
 
-        // Handle findUnique -> findFirst conversion if we injected filters
-        if (operation === 'findUnique' && (softDeleteInjected || rlsInjected)) {
+        // Handle findUnique -> findFirst conversion if we injected filters (RLS)
+        if (operation === 'findUnique' && rlsInjected) {
              return (basePrisma as any)[model].findFirst({
                  ...anyArgs
              });
@@ -160,3 +101,5 @@ export const prisma = basePrisma.$extends({
     }
   }
 });
+
+export default prisma;
