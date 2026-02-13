@@ -1,43 +1,54 @@
-// Mock implementation of logic usually found in a DB lookup
-// In a real app, this would use Prisma to find the ApiKey by hash
 import { ApiKeyService } from '@salesos/core/services/api-key-service';
-// import { RateLimitService } from '@salesos/core/services/rate-limit-service'; // Removed for Edge Compatibility
 
-const apiKeyService = new ApiKeyService();
-// const rateLimitService = new RateLimitService(process.env.REDIS_URL || 'redis://localhost:6379');
-
-export async function validateRequest(req: Request) {
+// Mock Implementation for Edge Runtime
+const mockValidation = (req: Request) => {
   const apiKey = req.headers.get('x-api-key');
+  if (!apiKey) return { authorized: false, error: 'Missing API Key', status: 401 };
 
-  if (!apiKey) {
-    return { authorized: false, error: 'Missing API Key', status: 401 };
-  }
-
-  // Cycle 35: Sandbox Logic
   const isSandbox = req.headers.get('x-salesos-sandbox') === 'true' || apiKey.startsWith('sk_test_');
-
-  // 1. Verify Key (Hash)
-  // Mock DB Lookup: "Is this hash in the DB?"
-  // const storedHash = await db.apiKey.findFirst(...)
-  // For demo, we assume any key starting with 'sk_live_' or 'sk_test_' is "valid" structurally
   if (!apiKey.startsWith('sk_live_') && !apiKey.startsWith('sk_test_')) {
     return { authorized: false, error: 'Invalid API Key format', status: 401 };
   }
 
-  const hashedKey = apiKeyService.hashKey(apiKey);
-
-  // 2. Rate Limit (SKIPPED IN EDGE MIDDLEWARE)
-  // To enable this, use @upstash/redis or move to Node.js Route Handler
-  // We mock it here to prevent Edge Runtime crash due to ioredis
-  const limit = 100;
-
   return {
     authorized: true,
     headers: {
-      'X-RateLimit-Limit': limit.toString(),
-      'X-RateLimit-Remaining': '99', // Mock
-      'X-RateLimit-Reset': Date.now().toString(), // Mock
+      'X-RateLimit-Limit': '100',
+      'X-RateLimit-Remaining': '99',
+      'X-RateLimit-Reset': Date.now().toString(),
       'X-SalesOS-Sandbox': isSandbox ? 'true' : 'false'
     }
   };
+};
+
+export async function validateRequest(req: Request) {
+  // Check Runtime
+  // Next.js Edge Runtime defines `EdgeRuntime` global or process.env.NEXT_RUNTIME
+  const isEdge = process.env.NEXT_RUNTIME === 'edge' || (typeof EdgeRuntime !== 'string');
+
+  if (isEdge) {
+    return mockValidation(req);
+  }
+
+  // Node.js Runtime - Use Real Service
+  try {
+    const { validateApiKey } = await import('./api-auth'); // Dynamic import to avoid bundling Node modules in Edge
+    const result = await validateApiKey(req);
+
+    if (!result.valid) {
+        return { authorized: false, error: result.error, status: 401 }; // Or 429
+    }
+
+    return {
+        authorized: true,
+        headers: {
+            'X-RateLimit-Limit': result.limit?.toString() || '100',
+            'X-RateLimit-Remaining': result.remaining?.toString() || '0',
+            'X-RateLimit-Reset': result.reset?.toString() || Date.now().toString(),
+        }
+    };
+  } catch (e) {
+      console.error('Validation failed', e);
+      return { authorized: false, error: 'Internal Error', status: 500 };
+  }
 }

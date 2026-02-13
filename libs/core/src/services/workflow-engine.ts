@@ -1,6 +1,7 @@
 import { Worker, Job, FlowProducer } from 'bullmq';
 import Redis from 'ioredis';
 import { EventEmitter } from 'events';
+import { EmailService } from './email-service'; // Import EmailService
 
 const WORKFLOW_QUEUE_NAME = 'workflows';
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
@@ -12,10 +13,10 @@ export class WorkflowEngine extends EventEmitter {
   private worker: Worker;
   private redisSubscriber: Redis;
   private redisPublisher: Redis;
+  private redis: Redis;
 
   constructor() {
     super();
-    // Fix: Use new Redis() instance for BullMQ connection
     const connection = new Redis(REDIS_URL, {
         maxRetriesPerRequest: null // Required by BullMQ
     });
@@ -23,6 +24,7 @@ export class WorkflowEngine extends EventEmitter {
     this.flowProducer = new FlowProducer({ connection });
     this.redisSubscriber = new Redis(REDIS_URL);
     this.redisPublisher = new Redis(REDIS_URL);
+    this.redis = new Redis(REDIS_URL); // General purpose redis
 
     // Python Event Listener
     this.redisSubscriber.subscribe(EVENT_CHANNEL);
@@ -53,16 +55,11 @@ export class WorkflowEngine extends EventEmitter {
     }, { connection });
   }
 
-  async startOnboardingFlow(leadId: string, url: string) {
-    // BullMQ Flow: Parent waits for Children.
-    // So: Email (Parent) -> Children: [Crawl]
-    // The parent (Email) will be delayed by 2000ms.
-    // This effectively simulates: Crawl -> Wait -> Email.
-
+  async startOnboardingFlow(leadId: string, url: string, email: string, orgId: string) {
     await this.flowProducer.add({
       name: 'email-step',
       queueName: WORKFLOW_QUEUE_NAME,
-      data: { leadId, step: 'email' },
+      data: { leadId, email, orgId, step: 'email' }, // Pass email and orgId
       opts: { delay: 2000 },
       children: [
         {
@@ -101,7 +98,7 @@ export class WorkflowEngine extends EventEmitter {
         if (event.type === 'job_complete' && event.input === url) {
           console.log(`[WorkflowEngine] Received completion for ${url}`);
           cleanup();
-          resolve(event);
+          resolve(event); // Return event data to parent job
         }
       };
 
@@ -115,8 +112,50 @@ export class WorkflowEngine extends EventEmitter {
   }
 
   private async handleEmailStep(job: Job) {
-    console.log(`[WorkflowEngine] Sending email to lead... (After crawl)`);
-    // Logic to fetch crawl result from Redis and generate email
+    const { leadId, email, orgId } = job.data;
+
+    // Get children values (crawl result)
+    const childrenValues = await job.getChildrenValues();
+    let crawlResult = { phones: [], emails: [] };
+    let url = 'unknown';
+
+    // Find the crawl step result
+    // BullMQ returns dictionary { "jobKey": returnedValue }
+    for (const key in childrenValues) {
+        if (childrenValues[key] && childrenValues[key].result_key) {
+             const resultKey = childrenValues[key].result_key;
+             url = childrenValues[key].input;
+             const rawData = await this.redis.get(resultKey);
+             if (rawData) {
+                 crawlResult = JSON.parse(rawData);
+             }
+        }
+    }
+
+    console.log(`[WorkflowEngine] Sending email to ${email} with crawl results from ${url}`);
+
+    // Generate Email Body
+    const html = `
+      <h1>Onboarding Complete</h1>
+      <p>We analyzed your website: ${url}</p>
+      <h3>Found Contacts:</h3>
+      <ul>
+        <li>Emails: ${crawlResult.emails.join(', ') || 'None'}</li>
+        <li>Phones: ${crawlResult.phones.join(', ') || 'None'}</li>
+      </ul>
+      <p>Welcome to SalesOS!</p>
+    `;
+
+    // Send Email
+    // Note: We use a dummy ID for scheduledEmailId since this is an ad-hoc workflow email
+    await EmailService.sendNow({
+        scheduledEmailId: `workflow-${job.id}`,
+        to: email,
+        subject: 'Your Site Analysis is Ready',
+        html: html,
+        organizationId: orgId
+    });
+
     return { sent: true };
   }
 
@@ -125,5 +164,6 @@ export class WorkflowEngine extends EventEmitter {
     await this.flowProducer.close();
     await this.redisSubscriber.quit();
     await this.redisPublisher.quit();
+    await this.redis.quit();
   }
 }
