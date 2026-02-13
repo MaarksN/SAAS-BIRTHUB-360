@@ -79,7 +79,3 @@ export function updateContext(updates: Partial<RequestContext>): void {
     Object.assign(current, updates);
   }
 }
-
-export function getRequestId(): string | undefined {
-  return context.getStore()?.requestId;
-}
