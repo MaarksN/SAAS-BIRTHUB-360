@@ -440,7 +440,9 @@ model ScheduledEmail {
   status         String   // PENDING, QUEUED, SENT, FAILED, CANCELLED
   sendAt         DateTime
   sentAt         DateTime?
+  processedAt    DateTime?
   error          String?
+  providerMessageId String?
 
   trackingId     String?  // For pixel tracking
 

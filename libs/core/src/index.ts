@@ -24,3 +24,4 @@ export * from './finops/ledger';
 export * from './finops/tokenizer';
 export * from './redis';
 export * from './identity-service';
+export * from './services/email-service';
