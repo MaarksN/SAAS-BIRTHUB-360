@@ -1,7 +1,8 @@
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
-import { Toaster, GlobalErrorBoundary } from '@salesos/ui';
+import { GlobalErrorBoundary } from '@salesos/ui';
+import { Toaster } from '@/components/sonner';
 
 const inter = Inter({ subsets: ['latin'] });
 

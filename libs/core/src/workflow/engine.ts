@@ -42,8 +42,22 @@ export class WorkflowEngine {
   }
 
   async evaluate(trigger: string, context: any) {
-    // In prod: await prisma.workflowRule.findMany({ where: { trigger, isActive: true } });
-    const rules = ACTIVE_RULES.filter(r => r.trigger === trigger);
+    // Load from DB (filtering by Organization ideally if context has it, but WorkflowEngine is often global worker)
+    // If running in context-aware environment, we should filter by context.organizationId.
+    // Assuming context has organizationId.
+
+    let rules: WorkflowRule[] = [];
+
+    if (context.organizationId) {
+        const dbRules = await prisma.workflowRule.findMany({
+            where: { trigger, isActive: true, organizationId: context.organizationId }
+        });
+        // Map Prisma JSON to any
+        rules = dbRules.map(r => ({ ...r, condition: r.condition as any, actionPayload: r.actionPayload as any }));
+    } else {
+        // Fallback to memory for system events or if no org context
+        rules = ACTIVE_RULES.filter(r => r.trigger === trigger);
+    }
 
     for (const rule of rules) {
       try {

@@ -7,9 +7,17 @@ import { runWithContext } from '@salesos/core';
  */
 export async function withContext<T>(callback: () => Promise<T>): Promise<T> {
   const headersList = headers();
-  const organizationId = headersList.get('x-org-id') || undefined;
-  const userId = headersList.get('x-user-id') || undefined;
-  const role = headersList.get('x-user-role') || undefined;
+  let organizationId = headersList.get('x-org-id') || undefined;
+  let userId = headersList.get('x-user-id') || undefined;
+  let role = headersList.get('x-user-role') || undefined;
+
+  // Check for Impersonation (if passed via headers in middleware)
+  // Or assuming middleware handles token decoding and sets these headers correctly.
+  // The 'generateImpersonationToken' produces a JWT.
+  // Middleware should decode it.
+
+  // If we are in 'IMPERSONATOR' mode, we might want to log it or set a flag.
+  // For now, we trust the headers set by middleware (which needs to be updated to decode JWT).
 
   const context = {
     organizationId,

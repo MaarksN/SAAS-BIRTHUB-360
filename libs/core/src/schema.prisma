@@ -38,6 +38,7 @@ model Organization {
   integrations       Integration[]
   emailThreads       EmailThread[]
   apiKeys            ApiKey[]
+  workflowRules      WorkflowRule[]
 
   @@map("organizations")
 }
@@ -549,4 +550,22 @@ model ApiKey {
 
   @@index([organizationId])
   @@map("api_keys")
+}
+
+model WorkflowRule {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  name           String
+  trigger        String   // lead.created
+  condition      Json     // json-logic
+  action         String   // send_email
+  actionPayload  Json
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  @@index([organizationId])
+  @@map("workflow_rules")
 }
