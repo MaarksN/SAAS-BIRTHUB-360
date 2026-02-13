@@ -5,7 +5,7 @@ const SOFT_DELETE_MODELS = [
   'DataReliabilityScore', 'BuyingCommittee', 'Contact', 'OutboundSequence',
   'Lead', 'LeadScore', 'Cadence', 'Deal', 'Quote', 'Meeting',
   'SubscriptionPlan', 'UsageLog', 'CreditTransaction', 'AiFeedback',
-  'Notification', 'Campaign', 'EmailAccount', 'ScheduledEmail'
+  'Notification', 'Campaign', 'EmailAccount', 'ScheduledEmail', 'Integration'
 ];
 
 export async function softDeleteMiddleware(
@@ -43,11 +43,43 @@ export async function softDeleteMiddleware(
        if (!params.args) params.args = {};
        if (!params.args.where) params.args.where = {};
 
-       if (params.args.where.deletedAt === undefined) {
+       // Only inject if deletedAt is NOT present in where clause
+       // This allows 'withDeleted()' (deletedAt: undefined) to bypass this injection
+       if (!('deletedAt' in params.args.where)) {
          params.args.where.deletedAt = null;
        }
     }
   }
 
   return next(params);
+}
+
+/**
+ * Helper to include deleted records in a query
+ * Usage: prisma.model.findMany(withDeleted({ where: { ... } }))
+ */
+export function withDeleted<T extends Record<string, any>>(args?: T): T {
+  return {
+    ...args,
+    where: {
+      ...(args?.where || {}),
+      deletedAt: undefined
+    }
+  } as T;
+}
+
+/**
+ * Helper to include ONLY deleted records in a query
+ * Usage: prisma.model.findMany(onlyDeleted({ where: { ... } }))
+ */
+export function onlyDeleted<T extends Record<string, any>>(args?: T): T {
+  return {
+    ...args,
+    where: {
+      ...(args?.where || {}),
+      deletedAt: {
+        not: null
+      }
+    }
+  } as T;
 }

@@ -12,3 +12,4 @@ openai
 httpx
 pytest
 google-generativeai
+anthropic
