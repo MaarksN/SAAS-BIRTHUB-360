@@ -1,7 +1,7 @@
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 import uuid
-from utils.context import request_id_ctx, user_id_ctx, org_id_ctx
+from ..utils.context import request_id_ctx, user_id_ctx, org_id_ctx
 
 class ContextMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):

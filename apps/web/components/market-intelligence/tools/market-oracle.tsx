@@ -6,12 +6,21 @@ import { Button } from '@salesos/ui';
 import { MarketTool } from '@/lib/market-intelligence-tools';
 import { Input } from '@/components/Input';
 import { toast } from 'sonner';
+import { ToolErrorBoundary } from '../ToolErrorBoundary';
 
 interface MarketOracleProps {
   tool: MarketTool;
 }
 
 export function MarketOracle({ tool }: MarketOracleProps) {
+  return (
+    <ToolErrorBoundary>
+      <MarketOracleContent tool={tool} />
+    </ToolErrorBoundary>
+  );
+}
+
+function MarketOracleContent({ tool }: MarketOracleProps) {
   const [market, setMarket] = useState('SaaS in Brazil');
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
