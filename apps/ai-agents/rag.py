@@ -4,11 +4,15 @@ import numpy as np
 import os
 import json
 from typing import List, Dict, Any
+from anthropic import AsyncAnthropic
+from openai import AsyncOpenAI
 
 DB_URL = os.getenv("DATABASE_URL")
 
 class RAGService:
     def __init__(self):
+        self.anthropic_client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+        self.openai_client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         # In production, use a connection pool or asyncpg
         try:
             if not DB_URL:
@@ -106,6 +110,157 @@ class RAGService:
         # Sort by RRF score
         sorted_results = sorted(scores.values(), key=lambda x: x["score"], reverse=True)
         return [item["data"] for item in sorted_results[:limit]]
+
+    async def expand_query(self, query: str) -> List[str]:
+        """
+        Uses LLM to generate related queries for better recall.
+        """
+        try:
+            prompt = f"""You are an AI assistant helping with information retrieval.
+Generate 3-5 different search queries that are semantically related to the user's original query.
+These should cover different aspects, synonyms, or related concepts to improve search recall.
+Return ONLY a JSON list of strings. No other text.
+
+Original Query: "{query}"
+"""
+            message = await self.anthropic_client.messages.create(
+                model="claude-3-5-sonnet-20241022",
+                max_tokens=300,
+                temperature=0.7,
+                messages=[{"role": "user", "content": prompt}]
+            )
+
+            response_text = message.content[0].text
+            # Extract JSON list
+            start = response_text.find('[')
+            end = response_text.rfind(']') + 1
+            if start >= 0 and end > start:
+                try:
+                    return json.loads(response_text[start:end])
+                except json.JSONDecodeError:
+                    return [query]
+            return [query]
+        except Exception as e:
+            print(f"Error expanding query: {e}")
+            return [query]
+
+    async def rerank_results(self, query: str, results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Uses LLM to rerank results based on relevance to the query.
+        """
+        if not results:
+            return []
+
+        try:
+            # Prepare context for reranking
+            candidates_text = ""
+            for i, res in enumerate(results):
+                # Truncate content to save tokens if needed
+                content = res.get('content', '')
+                content_preview = content[:500] + "..." if len(content) > 500 else content
+                candidates_text += f"Document {i}:\n{content_preview}\n\n"
+
+            prompt = f"""You are an expert Re-ranker.
+Your task is to score the relevance of the following candidate documents to the user's query.
+Score each document from 0 to 10, where 10 is perfectly relevant and 0 is irrelevant.
+Return ONLY a JSON object where keys are "Document 0", "Document 1", etc., and values are the scores.
+
+Query: "{query}"
+
+Candidates:
+{candidates_text}
+"""
+            message = await self.anthropic_client.messages.create(
+                model="claude-3-5-sonnet-20241022",
+                max_tokens=500,
+                temperature=0.0,
+                messages=[{"role": "user", "content": prompt}]
+            )
+
+            response_text = message.content[0].text
+            start = response_text.find('{')
+            end = response_text.rfind('}') + 1
+            if start >= 0 and end > start:
+                try:
+                    scores_map = json.loads(response_text[start:end])
+
+                    # Assign scores back to results
+                    reranked = []
+                    for i, res in enumerate(results):
+                        key = f"Document {i}"
+                        score = scores_map.get(key, 0)
+                        # Ensure score is int/float
+                        if isinstance(score, (int, float)):
+                            res['rerank_score'] = score
+                        else:
+                            res['rerank_score'] = 0
+                        reranked.append(res)
+
+                    # Sort by new score
+                    reranked.sort(key=lambda x: x.get('rerank_score', 0), reverse=True)
+                    return reranked
+                except json.JSONDecodeError:
+                    return results
+
+            return results # Fallback
+
+        except Exception as e:
+            print(f"Error reranking results: {e}")
+            return results
+
+    async def generate_embedding(self, text: str) -> List[float]:
+        try:
+            if not self.openai_client.api_key:
+                 # Fallback mock or empty
+                 return []
+            response = await self.openai_client.embeddings.create(
+                input=text,
+                model="text-embedding-3-small"
+            )
+            return response.data[0].embedding
+        except Exception as e:
+            print(f"Error generating embedding: {e}")
+            return []
+
+    async def search_advanced(self, query: str, limit: int = 5) -> List[Dict[str, Any]]:
+        """
+        Orchestrates Advanced RAG:
+        1. Query Expansion
+        2. Hybrid Search (Vector + Text) for all queries
+        3. Deduplication
+        4. Reranking
+        """
+        # 1. Expand Query
+        queries = await self.expand_query(query)
+        if query not in queries:
+            queries.insert(0, query)
+
+        all_results = []
+        seen_contents = set()
+
+        for q in queries:
+            # 2. Embedding
+            embedding = await self.generate_embedding(q)
+            if not embedding:
+                # If embedding fails, try text-only search using search_fulltext
+                # But search_hybrid needs embedding. So use search_fulltext directly.
+                results = self.search_fulltext(q, limit=limit)
+            else:
+                # 3. Hybrid Search
+                # limit=3 for expansions to avoid too many results
+                search_limit = 5 if q == query else 3
+                results = self.search_hybrid(q, embedding, limit=search_limit)
+
+            for res in results:
+                content = res.get('content')
+                if content and content not in seen_contents:
+                    seen_contents.add(content)
+                    all_results.append(res)
+
+        # 4. Rerank
+        reranked = await self.rerank_results(query, all_results)
+
+        return reranked[:limit]
 
     def close(self):
         if self.conn:
