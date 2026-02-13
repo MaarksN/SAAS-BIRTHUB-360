@@ -27,6 +27,7 @@ model Organization {
   usageLogs UsageLog[]
   budget    TenantBudget?
   auditLogs AuditLog[]
+  cleanRooms CleanRoom[]
 
   @@map("organizations")
 }
@@ -399,4 +400,26 @@ model AuditLog {
   @@index([organizationId])
   @@index([action])
   @@map("audit_logs")
+}
+
+// Cycle 38: Data Clean Room
+
+model CleanRoom {
+  id             String   @id @default(cuid())
+  name           String
+  initiatorId    String
+  initiatorOrg   Organization @relation(fields: [initiatorId], references: [id])
+
+  participants   Json     // Array of Organization IDs
+  status         String   // "PENDING", "ACTIVE", "COMPLETED"
+
+  datasetAHash   String?  // S3 path or Hash summary
+  datasetBHash   String?
+
+  results        Json?    // Intersection results (hashed IDs)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("clean_rooms")
 }
