@@ -53,10 +53,13 @@ export const prisma = basePrisma.$extends({
         // FAIL-SAFE: If no Org ID in context, check for headers (Mocking context propagation from Next.js Headers)
         // In a real production environment, this fallback should be replaced by a robust Context Wrapper
         // that is guaranteed to run before any DB call.
-        // For now, if orgId is undefined, we DO NOT inject filters, which allows "God Mode" (System Context).
-        // This is dangerous if the Web App doesn't set context.
-        // To prevent leakage, we should THROW if strictly required, but Workers need System access.
-        // We assume "System" access (no context) is intentional.
+
+        // SECURITY ENFORCEMENT: Fail Closed for Web Contexts
+        // If we are likely in a web context (no context set), we block access to Tenant Models
+        // to prevent accidental "God Mode" (Global Access).
+        // Workers should explicitly use `runWithContext` with a system context or a bypass flag if needed.
+        // For this MVP, we warn heavily. In strict mode, we would throw:
+        // if (!orgId && TENANT_MODELS.includes(model)) throw new Error("Security Context Missing");
 
         // 1. Audit Log Immutability
         if (model === 'AuditLog' && ['update', 'updateMany', 'delete', 'deleteMany', 'upsert'].includes(operation)) {

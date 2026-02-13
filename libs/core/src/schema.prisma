@@ -37,6 +37,7 @@ model Organization {
   scheduledEmails    ScheduledEmail[]
   integrations       Integration[]
   emailThreads       EmailThread[]
+  apiKeys            ApiKey[]
 
   @@map("organizations")
 }
@@ -76,6 +77,7 @@ model User {
   aiFeedback     AiFeedback[]
   notifications  Notification[]
   campaigns      Campaign[]
+  assignedLeads  Lead[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
@@ -228,6 +230,8 @@ model Lead {
   scheduledEmails ScheduledEmail[]
   emailThreads    EmailThread[]
   icebreaker     String?
+  ownerId        String?
+  owner          User?    @relation(fields: [ownerId], references: [id])
 
   @@unique([email, organizationId])
   @@index([organizationId, status])
@@ -528,3 +532,21 @@ model EmailMessage {
 // we assume this is modifying the existing model block.
 // But 'cat >>' appends to end.
 // I need to use replace_with_git_merge_diff to insert the field into the Lead model.
+
+model ApiKey {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  key            String   @unique // Hashed
+  preview        String   // First 4 chars
+  name           String
+  permissions    Json     // Scopes ['leads:read', 'leads:write']
+  lastUsedAt     DateTime?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  @@index([organizationId])
+  @@map("api_keys")
+}
