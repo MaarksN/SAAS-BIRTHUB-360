@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ZodSchema, ZodError } from 'zod';
-import { AppError, ErrorCode, ErrorCategory, logger, checkRateLimit } from '@salesos/core';
+import { AppError, ErrorCode, ErrorCategory, logger } from '@salesos/core';
 import { withRequestContext } from './api-context';
 
 type NextContext = { params: Record<string, string | string[]> };
@@ -14,10 +14,6 @@ type ApiHandler<T> = (
 interface ApiHandlerOptions<T> {
   schema?: ZodSchema<T>;
   roles?: string[]; // Future implementation for RBAC
-  rateLimit?: {
-    limit: number;
-    windowSeconds: number;
-  };
 }
 
 export function createApiHandler<T = any>(
@@ -27,32 +23,6 @@ export function createApiHandler<T = any>(
   return async (req: NextRequest, context: NextContext) => {
     return withRequestContext(req, async () => {
       try {
-        // Rate Limiting Strategy
-        if (options.rateLimit) {
-            const userId = req.headers.get('x-user-id');
-            const ip = req.headers.get('x-forwarded-for') || 'unknown';
-            const identifier = userId || ip;
-
-            const { success } = await checkRateLimit(
-                identifier,
-                options.rateLimit.limit,
-                options.rateLimit.windowSeconds
-            );
-
-            if (!success) {
-                return NextResponse.json(
-                    {
-                        success: false,
-                        error: {
-                            code: ErrorCode.RATE_LIMIT_EXCEEDED,
-                            message: 'Too many requests. Please try again later.'
-                        }
-                    },
-                    { status: 429 }
-                );
-            }
-        }
-
         let parsedBody: T | undefined;
 
         // Parse Body if schema is provided

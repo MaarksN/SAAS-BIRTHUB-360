@@ -2,7 +2,7 @@ import json
 import asyncio
 import os
 from typing import AsyncGenerator
-from openai import AsyncOpenAI
+from openai import OpenAI
 from schemas.agent import ICPClassificationRequest
 
 # Mock OpenAI for development if key not present
@@ -35,9 +35,9 @@ class ICPAgent:
             return
 
         # Real Logic
-        client = AsyncOpenAI(api_key=OPENAI_API_KEY)
+        client = OpenAI(api_key=OPENAI_API_KEY)
         try:
-            stream = await client.chat.completions.create(
+            stream = client.chat.completions.create(
                 model="gpt-4-turbo-preview",
                 messages=[
                     {"role": "system", "content": system_prompt},
@@ -46,7 +46,7 @@ class ICPAgent:
                 stream=True
             )
 
-            async for chunk in stream:
+            for chunk in stream:
                 if chunk.choices[0].delta.content:
                     yield chunk.choices[0].delta.content
 
