@@ -2,10 +2,26 @@ import { Queue, Worker, QueueOptions, WorkerOptions, Processor, JobsOptions } fr
 import { logger, env } from '@salesos/core';
 import IORedis from 'ioredis';
 
+const workers = new Set<Worker>();
+
 const createConnection = () => {
   return new IORedis(env.REDIS_URL, {
     maxRetriesPerRequest: null,
   });
+};
+
+const attachSignalListeners = () => {
+  const signalHandler = async (signal: string) => {
+    logger.info(`Received ${signal}, closing workers...`);
+    await Promise.all(
+      Array.from(workers).map((worker) => worker.close())
+    );
+    logger.info('All workers closed');
+    process.exit(0);
+  };
+
+  process.once('SIGTERM', () => signalHandler('SIGTERM'));
+  process.once('SIGINT', () => signalHandler('SIGINT'));
 };
 
 export const createQueue = <T>(name: string, options?: Partial<QueueOptions>) => {
@@ -52,7 +68,10 @@ export const createWorker = <T = any>(name: string, processor: Processor<T>, opt
 
   // Register worker for graceful shutdown
   workers.add(worker);
-  attachSignalListeners();
+
+  if (workers.size === 1) {
+    attachSignalListeners();
+  }
 
   worker.on('closed', () => {
     workers.delete(worker);

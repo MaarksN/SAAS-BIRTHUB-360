@@ -8,6 +8,8 @@ const envSchema = z.object({
   OPENAI_API_KEY: z.string().min(1).optional(),
   STRIPE_SECRET_KEY: z.string().min(1).optional(),
   STRIPE_WEBHOOK_SECRET: z.string().min(1).optional(),
+  RESEND_API_KEY: z.string().min(1).optional(),
+  DEFAULT_FROM_EMAIL: z.string().email().optional(),
   // Add other secrets here
 });
 

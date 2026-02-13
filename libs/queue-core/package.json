@@ -4,12 +4,19 @@
   "main": "src/index.ts",
   "types": "src/index.ts",
   "dependencies": {
+    "@salesos/core": "*",
     "bullmq": "^5.0.0",
     "ioredis": "^5.0.0",
-    "@salesos/core": "*"
+    "resend": "^6.9.2",
+    "tsx": "^4.21.0"
   },
   "devDependencies": {
-    "typescript": "^5.0.0",
-    "@types/node": "^20.0.0"
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.3.28",
+    "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "worker:email": "tsx src/workers/email-sender.worker.ts",
+    "scheduler:email": "tsx src/schedulers/email-scheduler.ts"
   }
 }
