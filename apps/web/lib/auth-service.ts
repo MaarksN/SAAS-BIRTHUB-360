@@ -1,5 +1,5 @@
 import { env } from '../env.mjs';
-import type { Role } from '@salesos/core/rbac';
+import { Role } from '@salesos/core';
 
 export interface UserSession {
   userId: string;
@@ -19,7 +19,7 @@ export const authService = {
       return {
         userId: 'user_admin_123',
         email,
-        role: 'ADMIN',
+        role: Role.ADMIN,
         organizationId: 'org_main_123'
       };
     }
@@ -31,7 +31,7 @@ export const authService = {
     return {
       userId: 'user_demo_123',
       email: 'demo@salesos.io',
-      role: 'MANAGER',
+      role: Role.MANAGER,
       organizationId: 'org_demo_123'
     };
   }

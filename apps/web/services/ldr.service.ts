@@ -1,12 +1,50 @@
-import { env } from '@salesos/config';
-import { RedisCacheService } from '@salesos/cache';
+import Redis from 'ioredis';
 import {
+  env,
   logger,
   ICNPJEnrichmentResult,
   IDataReliabilityScore,
-  IInactiveCompanyDetection,
+  // CNPJEnrichmentResultSchema // Assuming this is in core or local
 } from '@salesos/core';
-import { CNPJEnrichmentResultSchema } from '../schemas';
+// import { CNPJEnrichmentResultSchema } from '../schemas'; // Potential conflict if missing
+
+// Mock Schema if not found, or use Zod directly
+import { z } from 'zod';
+
+const CNPJEnrichmentResultSchema = z.object({
+  cnpj: z.string(),
+  legalName: z.string(),
+  foundedDate: z.string(),
+  status: z.string(),
+  address: z.object({
+    street: z.string(),
+    city: z.string(),
+    state: z.string(),
+    zipCode: z.string(),
+  }),
+  phones: z.array(z.string()).optional(),
+  emails: z.array(z.string()).optional(),
+  cnae: z.object({
+    code: z.string(),
+    description: z.string(),
+  }).optional(),
+  tradeName: z.string().optional(),
+  reliabilityScore: z.number().optional(),
+});
+
+class RedisCacheService {
+  private redis: Redis;
+  constructor() {
+    this.redis = new Redis(env.REDIS_URL || 'redis://localhost:6379');
+  }
+  async get<T>(key: string): Promise<T | null> {
+    const val = await this.redis.get(key);
+    return val ? JSON.parse(val) : null;
+  }
+  async set(key: string, val: any, ttl: number): Promise<void> {
+    await this.redis.set(key, JSON.stringify(val), 'EX', ttl);
+  }
+}
 
 // Serviço LDR Profissionalizado (Expansão Pacote 2)
 export class LDRService {

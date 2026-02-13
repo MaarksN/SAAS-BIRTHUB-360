@@ -40,8 +40,6 @@ export function middleware(request: NextRequest) {
   );
 
   // Content Security Policy (CSP)
-  // Allow 'unsafe-inline' and 'unsafe-eval' for Next.js (Script optimization/HMR)
-  // In production, this should be stricter (nonces).
   const csp = [
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com",
