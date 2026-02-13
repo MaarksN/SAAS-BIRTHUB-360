@@ -1,7 +1,6 @@
 import re
-import asyncio
 from playwright.async_api import async_playwright, Page
-from typing import Dict
+from typing import Dict, List, Set
 
 PHONE_REGEX = re.compile(r'(\+55\s?\d{2}\s?9?\d{4}[-\s]?\d{4})')
 EMAIL_REGEX = re.compile(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}')
