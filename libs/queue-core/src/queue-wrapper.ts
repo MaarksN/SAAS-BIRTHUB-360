@@ -3,10 +3,26 @@ import { logger, env, runWithContext, RequestContext } from '@salesos/core';
 import IORedis from 'ioredis';
 import * as crypto from 'crypto';
 
+const workers = new Set<Worker>();
+
 const createConnection = () => {
   return new IORedis(env.REDIS_URL, {
     maxRetriesPerRequest: null
   });
+};
+
+const attachSignalListeners = () => {
+  const signalHandler = async (signal: string) => {
+    logger.info(`Received ${signal}, closing workers...`);
+    await Promise.all(
+      Array.from(workers).map((worker) => worker.close())
+    );
+    logger.info('All workers closed');
+    process.exit(0);
+  };
+
+  process.once('SIGTERM', () => signalHandler('SIGTERM'));
+  process.once('SIGINT', () => signalHandler('SIGINT'));
 };
 
 export const createQueue = <T>(name: string, options?: Partial<QueueOptions>) => {
@@ -81,13 +97,9 @@ export const createWorker = <T = any>(
   const workers = new Set<Worker>();
   workers.add(worker);
 
-  const shutdown = async () => {
-    console.log(`Shutting down worker: ${name}`);
-    await worker.close();
-  };
-
-  process.once('SIGTERM', shutdown);
-  process.once('SIGINT', shutdown);
+  if (workers.size === 1) {
+    attachSignalListeners();
+  }
 
   worker.on('closed', () => {
     workers.delete(worker);
