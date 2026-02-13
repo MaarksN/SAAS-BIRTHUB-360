@@ -8,6 +8,8 @@ const server = z.object({
     (str) => process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : str,
     process.env.VERCEL ? z.string().min(1) : z.string().url()
   ),
+  ADMIN_EMAIL: z.string().email().optional(),
+  ADMIN_PASSWORD: z.string().min(8).optional(),
 });
 
 const client = z.object({
@@ -23,13 +25,17 @@ const processEnv = {
   NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
   NEXTAUTH_URL: process.env.NEXTAUTH_URL,
   NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+  ADMIN_EMAIL: process.env.ADMIN_EMAIL,
+  ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
 };
 
 // Merge for validation
 const merged = server.merge(client);
 
 /** @type {import('zod').SafeParseReturnType<z.infer<typeof merged>, z.infer<typeof merged>>} */
-const parsed = merged.safeParse(processEnv);
+const parsed = !!process.env.SKIP_ENV_VALIDATION
+  ? { success: true, data: processEnv }
+  : merged.safeParse(processEnv);
 
 if (!parsed.success) {
   console.error(
