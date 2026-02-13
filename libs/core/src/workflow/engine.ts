@@ -1,40 +1,59 @@
 import jsonLogic from 'json-logic-js';
 import { prisma } from '../prisma';
 import { logger } from '../logger';
+import { eventBus, EVENTS } from '../events/bus';
 
 export interface WorkflowRule {
   id: string;
   name: string;
-  trigger: string; // 'lead.created', 'lead.updated'
-  condition: any;  // json-logic object
-  action: string;  // 'send_email', 'add_tag'
+  trigger: string;
+  condition: any;
+  action: string;
   actionPayload: any;
 }
 
-// Mock Rules Store (In prod, this is a DB model)
-const MOCK_RULES: WorkflowRule[] = [
+// In-Memory Rule Cache (Refresh periodically in prod)
+// For MVP we hardcode, but structure is ready for DB load.
+const ACTIVE_RULES: WorkflowRule[] = [
   {
-    id: 'rule-1',
-    name: 'VIP Lead',
-    trigger: 'lead.updated',
+    id: 'rule-vip',
+    name: 'Mark VIP',
+    trigger: EVENTS.LEAD.UPDATED,
     condition: { "==": [{ "var": "status" }, "QUALIFIED"] },
     action: 'log_vip',
-    actionPayload: { message: 'New VIP Lead detected!' }
+    actionPayload: { message: 'High Value Lead Qualified' }
   }
 ];
 
 export class WorkflowEngine {
-  async evaluate(trigger: string, context: any) {
-    logger.info({ trigger, contextId: context.id }, 'Evaluating workflows');
+  constructor() {
+    this.initializeListeners();
+  }
 
-    const rules = MOCK_RULES.filter(r => r.trigger === trigger);
+  private initializeListeners() {
+    // Listen to all defined events
+    Object.values(EVENTS).forEach(group => {
+      Object.values(group).forEach(event => {
+        eventBus.on(event, (payload) => this.evaluate(event, payload));
+      });
+    });
+
+    logger.info('⚙️ Workflow Engine initialized and listening');
+  }
+
+  async evaluate(trigger: string, context: any) {
+    // In prod: await prisma.workflowRule.findMany({ where: { trigger, isActive: true } });
+    const rules = ACTIVE_RULES.filter(r => r.trigger === trigger);
 
     for (const rule of rules) {
-      const isMatch = jsonLogic.apply(rule.condition, context);
-
-      if (isMatch) {
-        logger.info({ ruleId: rule.id }, 'Rule matched, executing action');
-        await this.executeAction(rule.action, rule.actionPayload, context);
+      try {
+        const isMatch = jsonLogic.apply(rule.condition, context);
+        if (isMatch) {
+          logger.info({ ruleId: rule.id, trigger }, '✅ Rule Matched');
+          await this.executeAction(rule.action, rule.actionPayload, context);
+        }
+      } catch (e) {
+        logger.error({ ruleId: rule.id, error: e }, 'Rule evaluation failed');
       }
     }
   }
@@ -42,13 +61,14 @@ export class WorkflowEngine {
   private async executeAction(action: string, payload: any, context: any) {
     switch (action) {
       case 'log_vip':
-        console.log(`[WORKFLOW] 🌟 ${payload.message} - ${context.name}`);
+        console.log(`[WORKFLOW ACTION] 🌟 ${payload.message} - Lead: ${context.email}`);
         break;
-      case 'send_email':
-        // Call SenderEngine
-        break;
+      // Add 'send_email', 'add_tag', 'assign_owner' here
       default:
-        logger.warn({ action }, 'Unknown workflow action');
+        logger.warn({ action }, 'Unknown action');
     }
   }
 }
+
+// Singleton instance to start listeners
+export const workflowEngine = new WorkflowEngine();

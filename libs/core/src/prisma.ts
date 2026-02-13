@@ -41,7 +41,8 @@ const SOFT_DELETE_MODELS = [
   'DataReliabilityScore', 'BuyingCommittee', 'Contact', 'OutboundSequence',
   'Lead', 'LeadScore', 'Cadence', 'Deal', 'Quote', 'Meeting',
   'SubscriptionPlan', 'UsageLog', 'CreditTransaction', 'AiFeedback',
-  'Notification', 'Campaign', 'EmailAccount'
+  'Notification', 'Campaign', 'EmailAccount',
+  'ScheduledEmail', 'Integration', 'EmailThread', 'EmailMessage'
 ];
 
 export const prisma = basePrisma.$extends({

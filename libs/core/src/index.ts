@@ -15,6 +15,8 @@ export * from './workflow/engine';
 export * from './enrichment/service';
 export * from './routing/distributor';
 export * from './voice/token';
+export * from './events/bus';
+export * from './cache/query-cache';
 export * from './schemas';
 export * from './timestamp.dto';
 export * from './types';

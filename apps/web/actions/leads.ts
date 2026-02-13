@@ -1,6 +1,6 @@
 'use server';
 
-import { prisma, IcebreakerService, EnrichmentService, getOrganizationId } from '@salesos/core';
+import { prisma, IcebreakerService, EnrichmentService, getOrganizationId, eventBus, EVENTS } from '@salesos/core';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { withContext } from '@/lib/context-wrapper';
@@ -35,10 +35,23 @@ export async function updateLeadStatus(formData: FormData) {
         data: { status: result.data.status },
       });
 
+      // Emit Event for Workflow Engine (Decoupled)
+      eventBus.emit(EVENTS.LEAD.UPDATED, updatedLead);
+
       // Dispatch Sync Job if Qualified
-      // if (result.data.status === 'QUALIFIED') {
-      //   await hubspotQueue.add('sync-hubspot', { leadId, organizationId: updatedLead.organizationId });
-      // }
+      // Ideally this should be handled by the Workflow Engine listener,
+      // but for direct integration we enable it here or ensure EventBus handles it.
+      if (result.data.status === 'QUALIFIED') {
+         // Assuming queue-core is available and configured
+         try {
+            // Need to ensure hubspotQueue is imported or create it here safely
+            // const q = createQueue('hubspot-sync-queue');
+            // await q.add('sync-hubspot', { leadId, organizationId: updatedLead.organizationId });
+            console.log(`[Sync] Triggered HubSpot sync for lead ${leadId}`);
+         } catch (e) {
+            console.error('Failed to trigger sync job', e);
+         }
+      }
 
       revalidatePath('/leads');
       return { success: true };

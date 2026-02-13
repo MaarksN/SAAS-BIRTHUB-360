@@ -1,18 +1,21 @@
 'use server';
 
-import { prisma } from '@salesos/core';
+import { prisma, withCache, getOrganizationId } from '@salesos/core';
 import { withContext } from '@/lib/context-wrapper';
 
 export async function getCampaignStats() {
   return withContext(async () => {
-    // Aggregate email stats
-    // We can count ScheduledEmails by status
-    const stats = await prisma.scheduledEmail.groupBy({
-        by: ['status'],
-        _count: {
-            id: true
-        }
-    });
+    const orgId = getOrganizationId();
+    const cacheKey = `analytics:stats:${orgId}`;
+
+    return withCache(cacheKey, 60, async () => {
+        // Aggregate email stats
+        const stats = await prisma.scheduledEmail.groupBy({
+            by: ['status'],
+            _count: {
+                id: true
+            }
+        });
 
     const counts = {
         SENT: 0,
@@ -32,16 +35,22 @@ export async function getCampaignStats() {
     // For this MVP, let's assume status updates reflect lifecycle.
 
     return counts;
+    });
   });
 }
 
 export async function getLeadFunnel() {
     return withContext(async () => {
-        const funnel = await prisma.lead.groupBy({
-            by: ['status'],
-            _count: { id: true }
-        });
+        const orgId = getOrganizationId();
+        const cacheKey = `analytics:funnel:${orgId}`;
 
-        return funnel.map(f => ({ status: f.status, count: f._count.id }));
+        return withCache(cacheKey, 60, async () => {
+            const funnel = await prisma.lead.groupBy({
+                by: ['status'],
+                _count: { id: true }
+            });
+
+            return funnel.map(f => ({ status: f.status, count: f._count.id }));
+        });
     });
 }

@@ -38,10 +38,18 @@ export function LeadListItem({ lead, isLoading }: LeadListItemProps) {
   }
 
   return (
-    <div className="block">
+    <div className="block group animate-enter">
       {/* Desktop View (Table Row style using Grid) */}
-      <div className="hidden md:grid grid-cols-4 gap-4 p-4 border-b border-slate-700 hover:bg-slate-800/50 items-center transition-colors">
-        <div className="font-medium text-slate-100">{lead.name || 'Unknown'}</div>
+      <div className="hidden md:grid grid-cols-4 gap-4 p-4 border-b border-slate-800/50 hover:bg-slate-800/30 items-center transition-all duration-200 hover:pl-5 relative">
+        {/* Active Indicator Line */}
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+        <div className="font-medium text-slate-100 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-xs font-bold ring-1 ring-indigo-500/50">
+                {(lead.name || '?').charAt(0).toUpperCase()}
+            </div>
+            {lead.name || 'Unknown'}
+        </div>
         <div className="text-sm text-slate-400">{lead.email}</div>
         <div>
            <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
