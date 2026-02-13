@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 from typing import List, Optional, Literal
 import os
 from anthropic import AsyncAnthropic
+from services.semantic_cache import semantic_cache
 
 router = APIRouter()
 
@@ -85,6 +86,17 @@ async def generate_cold_email(request: ColdEmailRequest):
     Gera um cold email personalizado usando Claude
     """
     try:
+        # 1. Check Semantic Cache
+        request_data = request.dict()
+        text_representation = f"Draft a cold email for {request.lead_name} at {request.company_name} ({request.industry}). Pain points: {', '.join(request.pain_points)}. Value prop: {request.value_proposition}. Tone: {request.tone}."
+
+        cached_response = await semantic_cache.get_cached(request_data, text_representation)
+        if cached_response:
+            # Fallback for missing reasoning in old cache entries
+            if "reasoning" not in cached_response:
+                cached_response["reasoning"] = "Cached response"
+            return ColdEmailResponse(**cached_response)
+
         # Construir prompt contextual
         pain_points_text = "\n".join([f"- {p}" for p in request.pain_points]) if request.pain_points else "Não especificadas"
 
@@ -157,6 +169,9 @@ Retorne em JSON:
                 "personalization_score": 50,
                 "reasoning": "Erro no parsing da resposta"
             }
+
+        # 2. Store in Cache
+        await semantic_cache.store(request_data, text_representation, response_data)
 
         return ColdEmailResponse(**response_data)
 
