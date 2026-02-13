@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, Response, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from routers import ldr, bdr, sdr, ae
 import uvicorn
 from middleware.context import ContextMiddleware
@@ -54,6 +55,18 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Adiciona middleware de compressão (Gzip)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+# Adiciona middleware de contexto e observabilidade
+app.add_middleware(ContextMiddleware)
+
+# Inclusão dos roteadores de domínio
+app.include_router(ldr.router, prefix="/api/v1", tags=["LDR - Market Intelligence"])
+app.include_router(bdr.router, prefix="/api/v1", tags=["BDR - Outbound"])
+app.include_router(sdr.router, prefix="/api/v1", tags=["SDR - Inbound"])
+app.include_router(ae.router, prefix="/api/v1", tags=["AE - Closing"])
 
 @app.get("/health", status_code=200)
 def health_check():
