@@ -1,5 +1,4 @@
-import { AppError } from '../errors/AppError';
-import { ErrorCategory,ErrorCode } from '../errors/error-codes';
+import { AppError, ErrorCategory, ErrorCode } from '@salesos/core';
 
 // Simple in-memory store for demonstration. In production, use Redis.
 const store = new Map<string, number[]>();

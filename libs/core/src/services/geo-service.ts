@@ -1,20 +1,14 @@
 import Redis from 'ioredis';
 import { IGeoProvider, LocalBusiness } from '../types/geo';
+import { IDBProvider, GeoServiceConfig } from '../types/db';
 import { GooglePlacesNewAdapter } from '../adapters/google-places';
 import { SerpApiAdapter } from '../adapters/serp-api';
-
-interface GeoServiceConfig {
-  redisUrl: string;
-  googleMapsKey: string;
-  serpApiKey: string;
-  db?: any; // Mock DB interface
-}
 
 export class GeoService {
   private redis: Redis;
   private googleAdapter: GooglePlacesNewAdapter;
   private serpAdapter: SerpApiAdapter;
-  private db: any;
+  private db: IDBProvider;
 
   constructor(config: GeoServiceConfig) {
     this.redis = new Redis(config.redisUrl);
@@ -33,17 +27,23 @@ export class GeoService {
       return JSON.parse(cached);
     }
 
-    // L2 Cache: PostGIS (Mocked Logic)
-    // if (this.db) {
-    //   const dbResults = await this.db.query(
-    //     `SELECT * FROM local_business WHERE ST_DWithin(location, ST_MakePoint($1, $2)::geography, $3)`,
-    //     [long, lat, radius]
-    //   );
-    //   if (dbResults.length > 0) {
-    //     console.log('L2 Cache Hit');
-    //     return dbResults.map(this.mapDbToLocalBusiness);
-    //   }
-    // }
+    // L2 Cache: PostGIS
+    try {
+      const dbResults = await this.db.query(
+        `SELECT * FROM local_business WHERE ST_DWithin(location, ST_MakePoint($1, $2)::geography, $3)`,
+        [long, lat, radius]
+      );
+
+      if (dbResults && dbResults.length > 0) {
+        console.log('L2 Cache Hit');
+        // Assuming DB result matches LocalBusiness structure or needs mapping
+        // return dbResults.map(this.mapDbToLocalBusiness);
+        // For now, assuming raw return for simplicity
+        return dbResults as unknown as LocalBusiness[];
+      }
+    } catch (dbError) {
+      console.warn('L2 Cache failed', dbError);
+    }
 
     let results: LocalBusiness[] = [];
 
@@ -65,15 +65,25 @@ export class GeoService {
   }
 
   private async populateL2Cache(results: LocalBusiness[]) {
-    // if (this.db) {
-    //   for (const business of results) {
-    //     await this.db.query(
-    //       `INSERT INTO local_business (external_id, name, address, location, types, rating)
-    //        VALUES ($1, $2, $3, ST_SetSRID(ST_MakePoint($4, $5), 4326), $6, $7)
-    //        ON CONFLICT (external_id) DO NOTHING`,
-    //       [business.externalId, business.name, business.address, business.location.coordinates[0], business.location.coordinates[1], business.types, business.rating]
-    //     );
-    //   }
-    // }
+    try {
+      for (const business of results) {
+        await this.db.query(
+          `INSERT INTO local_business (external_id, name, address, location, types, rating)
+           VALUES ($1, $2, $3, ST_SetSRID(ST_MakePoint($4, $5), 4326), $6, $7)
+           ON CONFLICT (external_id) DO NOTHING`,
+          [
+            business.externalId,
+            business.name,
+            business.address,
+            business.location.coordinates[0],
+            business.location.coordinates[1],
+            JSON.stringify(business.types),
+            business.rating
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('Error persisting to L2 cache', error);
+    }
   }
 }

@@ -11,3 +11,4 @@ pgvector
 openai
 httpx
 pytest
+google-generativeai
