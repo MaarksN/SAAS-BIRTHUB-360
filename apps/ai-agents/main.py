@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from routers import ldr, bdr, sdr, ae
+from routers import ldr, bdr, sdr, ae, rag_router
 import uvicorn
 from middleware.context import ContextMiddleware
 from utils.logger import logger
@@ -28,6 +28,7 @@ app.include_router(ldr.router, prefix="/api/v1", tags=["LDR - Market Intelligenc
 app.include_router(bdr.router, prefix="/api/v1", tags=["BDR - Outbound"])
 app.include_router(sdr.router, prefix="/api/v1", tags=["SDR - Inbound"])
 app.include_router(ae.router, prefix="/api/v1", tags=["AE - Closing"])
+app.include_router(rag_router.router, prefix="/api/v1", tags=["RAG - Search"])
 
 @app.get("/health", status_code=200)
 def health_check():

@@ -1,14 +1,15 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 from typing import List, Optional, Literal
 import os
-from anthropic import AsyncAnthropic
-from utils.prompts import COLD_EMAIL_PROMPT
+from utils.ai_gateway import AIGateway, get_gateway_instance
 
 router = APIRouter()
 
-# Inicializar cliente Anthropic
-anthropic_client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+# Dependency
+async def get_ai_gateway():
+    gateway = get_gateway_instance()
+    yield gateway
 
 # ============================================================================
 # SCHEMAS
@@ -81,9 +82,9 @@ class ICPResponse(BaseModel):
 # ============================================================================
 
 @router.post("/bdr/generate-cold-email", response_model=ColdEmailResponse)
-async def generate_cold_email(request: ColdEmailRequest):
+async def generate_cold_email(request: ColdEmailRequest, gateway: AIGateway = Depends(get_ai_gateway)):
     """
-    Gera um cold email personalizado usando Claude
+    Gera um cold email personalizado usando Claude (com fallback para GPT-4)
     """
     try:
         # Construir prompt contextual
@@ -95,32 +96,55 @@ async def generate_cold_email(request: ColdEmailRequest):
             "friendly": "Tom amigável e conversacional, como se fosse de um colega"
         }
 
-        prompt = COLD_EMAIL_PROMPT.format(
-            lead_name=request.lead_name,
-            company_name=request.company_name,
-            industry=request.industry,
-            pain_points_text=pain_points_text,
-            value_proposition=request.value_proposition,
-            tone_instruction=tone_instructions[request.tone]
-        )
+        system_prompt = "Você é um especialista em cold email para vendas B2B. Retorne apenas JSON válido."
 
-        # Chamar Claude (Async)
-        message = await anthropic_client.messages.create(
+        user_prompt = f"""CONTEXTO:
+- Lead: {request.lead_name}
+- Empresa: {request.company_name}
+- Indústria: {request.industry}
+- Dores identificadas:
+{pain_points_text}
+- Proposta de valor: {request.value_proposition}
+- Tom desejado: {tone_instructions[request.tone]}
+
+TAREFA:
+Crie um cold email que:
+1. Tenha subject line curiosa (máximo 50 caracteres)
+2. Abra com algo relevante para o lead (NOT genérico)
+3. Mencione UMA dor específica
+4. Apresente a solução de forma concisa
+5. Tenha CTA claro e de baixo compromisso
+6. Seja curto (máximo 150 palavras no body)
+
+IMPORTANTE:
+- NÃO use clichês ("espero que este email te encontre bem", "gostaria de apresentar", etc)
+- NÃO faça vendas agressivas
+- Foque em VALOR, não em features
+- Use parágrafos curtos (2-3 linhas máximo)
+
+Retorne em JSON:
+{{
+  "subject": "subject line aqui",
+  "body": "corpo do email aqui (HTML simples, use <br> para quebras)",
+  "personalization_score": número de 0-100,
+  "reasoning": "breve explicação de 1 linha da estratégia usada"
+}}"""
+
+        # Chamar AI Gateway com Fallback automático
+        result = await gateway.generate_text(
             model="claude-3-5-sonnet-20241022",
             max_tokens=1000,
             temperature=0.7,
-            messages=[{
-                "role": "user",
-                "content": prompt
-            }]
+            system=system_prompt,
+            messages=[{"role": "user", "content": user_prompt}],
+            context_type="BDR_Cold_Email"
         )
 
         # Extrair resposta
-        response_text = message.content[0].text
+        response_text = result["content"]
 
-        # Parse JSON (Claude geralmente retorna JSON bem formatado)
+        # Parse JSON
         import json
-        # Tentar extrair JSON do texto
         json_start = response_text.find('{')
         json_end = response_text.rfind('}') + 1
         if json_start >= 0 and json_end > json_start:
