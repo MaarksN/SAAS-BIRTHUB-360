@@ -99,6 +99,10 @@ model User {
   agentTemplates AgentTemplate[]
   agentFeedbacks AgentFeedback[]
 
+  referralCode     String?    @unique
+  referralsSent    Referral[] @relation("ReferralsSent")
+  referralReceived Referral?  @relation("ReferralReceived")
+
   @@map("users")
 }
 
@@ -680,4 +684,25 @@ model CleanRoom {
   updatedAt      DateTime @updatedAt
 
   @@map("clean_rooms")
+}
+
+model Referral {
+  id           String   @id @default(cuid())
+  code         String
+  referrerId   String
+  referrer     User     @relation("ReferralsSent", fields: [referrerId], references: [id])
+
+  refereeEmail String?  // The email of the person invited (optional if link is generic)
+  refereeId    String?  @unique // The user who signed up
+  referee      User?    @relation("ReferralReceived", fields: [refereeId], references: [id])
+
+  status       String   @default("PENDING") // PENDING, CONVERTED
+  rewardAmount Int      @default(50) // Credits
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([code])
+  @@index([referrerId])
+  @@map("referrals")
 }

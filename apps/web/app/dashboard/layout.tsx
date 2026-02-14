@@ -1,6 +1,7 @@
 import React from 'react';
 import { SDRSidebar } from '../../components/sdr-sidebar';
 import { ApiKeyManager } from '../../components/api-key-manager';
+import { OnboardingTour } from '../../components/OnboardingTour';
 
 export default function DashboardLayout({
   children,
@@ -20,6 +21,7 @@ export default function DashboardLayout({
             {children}
         </div>
       </main>
+      <OnboardingTour />
     </div>
   );
 }

@@ -9,6 +9,7 @@ export * from './pagination.dto';
 export * from './rbac';
 export * from './auth/invite';
 export * from './integrations/hubspot';
+export * from './integrations/hubspot-service';
 export * from './schemas';
 export * from './timestamp.dto';
 export * from './types';
