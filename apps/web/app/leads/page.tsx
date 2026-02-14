@@ -1,7 +1,7 @@
 import { prisma } from '@salesos/core';
 import { LeadList } from '@/components/leads/lead-list';
 import { Suspense } from 'react';
-import { Skeleton } from '@/components/Skeleton';
+import { Skeleton } from '@/components/ui/skeleton';
 import { withContext } from '@/lib/context-wrapper';
 
 export default async function LeadsPage() {

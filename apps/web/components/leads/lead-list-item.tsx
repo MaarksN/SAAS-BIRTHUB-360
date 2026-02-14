@@ -3,7 +3,7 @@ import { Lead } from '@prisma/client'; // Use Prisma Client type directly in fro
 // Let's use any for now or try to import from core if possible.
 // Actually, apps/web/tsconfig.json maps @salesos/core.
 
-import { Skeleton } from '../Skeleton';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Define a minimal interface to avoid deep dependency on backend types if possible,
 // or import from shared lib if available.
