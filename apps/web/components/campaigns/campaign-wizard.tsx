@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { createCampaign } from '@/actions/campaigns';
 import { EmailEditor } from './email-editor';
-import { Button } from '@/components/Button';
+import { Button } from '@salesos/ui';
 import { Input } from '@/components/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Placeholder imports or use real ones if available
 

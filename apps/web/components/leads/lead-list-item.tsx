@@ -1,4 +1,4 @@
-import { Lead } from '@prisma/client'; // Use Prisma Client type directly in frontend? Usually via API response DTO.
+import { Lead } from '@birthhub/database'; // Use Prisma Client type directly in frontend? Usually via API response DTO.
 // But @salesos/core exports Prisma models usually?
 // Let's use any for now or try to import from core if possible.
 // Actually, apps/web/tsconfig.json maps @salesos/core.

@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma } from '@birthhub/database';
 
 const SOFT_DELETE_MODELS = [
   'Organization', 'User', 'Permission', 'CompanyProfile', 'EnrichmentLog',

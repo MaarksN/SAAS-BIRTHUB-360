@@ -1,5 +1,5 @@
 import { prisma } from '@salesos/core';
-import { Button } from '@/components/Button';
+import { Button } from '@salesos/ui';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Define Message Type

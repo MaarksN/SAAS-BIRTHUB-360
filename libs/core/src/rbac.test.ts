@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { hasRole, hasPermission, assertPermission, Permission } from './rbac';
-import { Role, User } from '@prisma/client';
+import { Role, User } from '@birthhub/database';
 
 // Helper to create a mock user with a specific role
 const mockUser = (role: Role): User => ({

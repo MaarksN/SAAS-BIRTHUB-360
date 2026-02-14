@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@birthhub/database';
 
 export class AnalyticsService {
   constructor(private db: PrismaClient) {}

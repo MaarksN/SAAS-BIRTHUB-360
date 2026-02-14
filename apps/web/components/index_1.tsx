@@ -4,9 +4,9 @@ export * from './tokens';
 // Components
 export * from './components/DashboardShell';
 export * from './components/Sidebar';
-export * from './components/Card';
+export { Card, CardHeader, CardTitle, CardContent } from '@salesos/ui';
 export * from './components/Input';
-export * from './components/Button';
+export { Button } from '@salesos/ui';
 export * from './components/CommandPalette';
 export { ZeroInbox } from './components/ZeroInbox';
 
@@ -19,7 +19,7 @@ export * from './components/ui/avatar-hash';
 
 // Complex Components
 export * from './components/kanban-board-simple';
-export * from './components/GlobalErrorBoundary';
+export { GlobalErrorBoundary } from '@salesos/ui';
 export * from './components/tag-input';
 export * from './components/bulk-actions-toolbar';
 export * from './components/theme-color-picker';
