@@ -2,13 +2,13 @@ import json
 import os
 from datetime import datetime
 from jinja2 import Template
-from openai import OpenAI, OpenAIError
+from openai import AsyncOpenAI, OpenAIError
 from schemas.agent import EmailGenerationRequest, EmailGenerationResponse
 from services.guardrails import OutputValidator
 
 # Mock OpenAI for development if key not present
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "sk-mock-key")
-client = OpenAI(api_key=OPENAI_API_KEY)
+client = AsyncOpenAI(api_key=OPENAI_API_KEY)
 
 # Cycle 27: Usage Tracking
 import redis
@@ -68,7 +68,7 @@ class SDRAgent:
                 if "mock" in OPENAI_API_KEY:
                     return self._mock_response(request)
 
-                response = client.chat.completions.create(
+                response = await client.chat.completions.create(
                     model="gpt-4-turbo-preview",
                     messages=[
                         {"role": "system", "content": SYSTEM_PROMPT},
