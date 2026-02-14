@@ -2,10 +2,10 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from typing import List, Optional, Literal, Dict
 import os
-from anthropic import Anthropic
+from anthropic import AsyncAnthropic
 
 router = APIRouter()
-anthropic_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+anthropic_client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 # ============================================================================
 # SCHEMAS
@@ -97,7 +97,7 @@ Retorne análise em JSON:
   "summary": "resumo executivo da call em 2-3 frases"
 }}"""
 
-        message = anthropic_client.messages.create(
+        message = await anthropic_client.messages.create(
             model="claude-3-5-sonnet-20241022",
             max_tokens=1200,
             temperature=0.3,
@@ -149,7 +149,7 @@ A proposta deve:
 4. Mostrar ROI estimado
 5. Ter CTA forte para próximo passo"""
 
-        message = anthropic_client.messages.create(
+        message = await anthropic_client.messages.create(
             model="claude-3-5-sonnet-20241022",
             max_tokens=2000,
             temperature=0.6,

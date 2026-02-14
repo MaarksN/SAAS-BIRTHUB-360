@@ -99,6 +99,10 @@ model User {
   agentTemplates AgentTemplate[]
   agentFeedbacks AgentFeedback[]
 
+  referralCode     String?    @unique
+  referralsSent    Referral[] @relation("ReferralsSent")
+  referralReceived Referral?  @relation("ReferralReceived")
+
   @@map("users")
 }
 

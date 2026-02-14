@@ -10,7 +10,11 @@ const emailQueue = createQueue('email-sending');
 const redisLock = new IORedis(process.env.REDIS_URL || 'redis://localhost:6379');
 
 // Import sub-workers to register them
-import './workers/hubspot-sync';
+// import './workers/hubspot-sync'; // Removed/Commented out to use the new one
+import { createCrmSyncWorker } from '@salesos/core';
+
+// Start CRM Sync Worker
+createCrmSyncWorker();
 
 interface EmailJobData {
   scheduledEmailId: string;

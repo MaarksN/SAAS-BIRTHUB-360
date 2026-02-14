@@ -1,59 +1,67 @@
-# SalesOS Ultimate (Monorepo)
+# SalesOS Ultimate
 
-This repository follows a monorepo structure using TurboRepo.
+Unified Sales Platform Monorepo. Built with Next.js, Prisma, FastAPI (AI Agents), and Redis.
 
-## Structure
+## Project Overview
+SalesOS Ultimate is an all-in-one sales acceleration platform combining CRM, Market Intelligence, and AI Agents.
+- **Frontend**: Next.js 14+ (App Router), TailwindCSS, Shadcn UI.
+- **Backend**: Next.js Server Actions/API Routes + Python FastAPI (AI Microservice).
+- **Database**: PostgreSQL (with `pgvector` for AI embeddings).
+- **Queue/Cache**: Redis (BullMQ for jobs, Cache-Aside for data).
 
-- **apps/**
-  - **web**: Next.js Application (Frontend & API Routes)
-  - **ai-agents**: Python AI Workers (FastAPI/Uvicorn)
-- **libs/**
-  - **core**: Shared utilities, types, Zod schemas, error handling.
-- **infra/**
-  - **docker**: Dockerfiles and Docker Compose configurations.
-- **scripts/**: Automation scripts.
-- **docs/**: Documentation and roadmaps.
+## Architecture
+The repository is a Turborepo monorepo:
+- `apps/web`: The main Next.js application (dashboard, marketing, api).
+- `apps/ai-agents`: Python FastAPI service for heavy AI tasks (Scraping, RAG).
+- `libs/core`: Shared TypeScript library (Prisma Client, Utilities, Types).
+- `infra`: Infrastructure configuration (Redis, Postgres).
 
 ## Getting Started
 
 ### Prerequisites
-
-- Node.js (v18+)
-- Python (v3.11+)
+- Node.js 20+
+- Python 3.11+
 - Docker & Docker Compose
 
-### Development
-
-To start the development environment:
-
-1. **Install Dependencies**:
+### Installation
+1. Install dependencies:
    ```bash
    npm install
    ```
-
-2. **Start Infrastructure (Postgres & AI Agents)**:
+2. Setup Environment:
+   ```bash
+   cp .env.example .env
+   # Update .env with your keys (OpenAI, Anthropic, Database)
+   ```
+3. Start Infrastructure (DB + Redis):
    ```bash
    docker-compose -f docker-compose.dev.yml up -d
    ```
-
-3. **Start Web App**:
+4. Database Setup:
    ```bash
-   cd apps/web
-   npm run dev
+   npx prisma migrate dev --schema=libs/core/src/schema.prisma
+   npx prisma db seed --schema=libs/core/src/schema.prisma
    ```
-   (Or from root if configured: `npm run dev --filter=web`)
 
-## Project Structure Details
+### Running Development Server
+To start all apps (Web + AI Agents):
+```bash
+npm run dev
+```
+- Web: http://localhost:3000
+- AI API: http://localhost:8000
 
-- **apps/web**: Contains the main SaaS application.
-  - `app/`: App Router pages/layouts.
-  - `pages/`: Pages Router pages (Legacy/Migration).
-  - `components/`: React components.
-  - `services/`: Business logic services.
-  - `lib/`: Shared utilities specific to web.
-  - `hooks/`: React hooks.
-  - `styles/`: Global styles.
+## Testing
+- **Unit Tests**: `npm run test` (Vitest)
+- **E2E Tests**: `npm run test:e2e` (Playwright in `apps/web`)
 
-- **apps/ai-agents**: Contains Python workers for heavy lifting.
+## Common Issues / FAQ
+- **Prisma Client not found?** Run `npx prisma generate --schema=libs/core/src/schema.prisma`.
+- **Redis Connection Error?** Ensure Docker container `salesos-redis` is running on port 6379.
+- **Python Missing Dependencies?** Check `apps/ai-agents/requirements.txt` and ensure `venv` is active if running manually.
 
-- **libs/core**: Shared TypeScript code used across apps (if applicable).
+## Contribution Guidelines
+1. Create a feature branch.
+2. Ensure linting passes: `npm run lint`.
+3. Write tests for new features.
+4. Open a PR.

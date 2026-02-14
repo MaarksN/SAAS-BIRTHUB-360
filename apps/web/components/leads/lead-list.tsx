@@ -1,12 +1,9 @@
 'use client';
 
-import { useOptimistic, startTransition } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { LeadListItem } from './lead-list-item';
-import { updateLeadStatus, deleteLead } from '../../actions/leads';
-import { toast } from '@/components/sonner';
+import { toast } from 'sonner';
 
-// Define the shape of our Lead (matching what we passed to LeadListItem earlier or close to it)
-// We define it here or import from shared types.
 interface Lead {
   id: string;
   name: string | null;
@@ -20,71 +17,99 @@ interface LeadListProps {
   initialLeads: Lead[];
 }
 
-export function LeadList({ initialLeads }: LeadListProps) {
-  // Optimistic State
-  const [optimisticLeads, addOptimisticLead] = useOptimistic(
-    initialLeads,
-    (state, updatedLead: Lead) => {
-        // If it's a delete (we signal via status='DELETED' or similar, or handle differently)
-        // For simplicity, let's assume 'updatedLead' replaces the old one.
-        return state.map((lead) => (lead.id === updatedLead.id ? updatedLead : lead));
-    }
-  );
+async function fetchLeads() {
+  const res = await fetch('/api/leads');
+  if (!res.ok) throw new Error('Failed to fetch leads');
+  const data = await res.json();
+  return data.data; // Assuming wrapper response
+}
 
-  // Handlers
-  const handleStatusChange = async (lead: Lead, newStatus: string) => {
-      // 1. Optimistic Update (Immediate Feedback)
-      startTransition(() => {
-          addOptimisticLead({ ...lead, status: newStatus });
+async function updateLeadStatusApi(leadId: string, status: string) {
+  const res = await fetch(`/api/leads/${leadId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status }),
+  });
+  if (!res.ok) throw new Error('Failed to update lead');
+  return res.json();
+}
+
+export function LeadList({ initialLeads }: LeadListProps) {
+  const queryClient = useQueryClient();
+
+  const { data: leads } = useQuery({
+    queryKey: ['leads'],
+    queryFn: fetchLeads,
+    initialData: initialLeads,
+  });
+
+  const mutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
+      updateLeadStatusApi(id, status),
+    // Optimistic Update
+    onMutate: async (newLead) => {
+      // Cancel any outgoing refetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: ['leads'] });
+
+      // Snapshot the previous value
+      const previousLeads = queryClient.getQueryData<Lead[]>(['leads']);
+
+      // Optimistically update to the new value
+      queryClient.setQueryData<Lead[]>(['leads'], (old) => {
+        if (!old) return [];
+        return old.map((lead) =>
+          lead.id === newLead.id ? { ...lead, status: newLead.status } : lead
+        );
       });
 
-      // 2. Server Action
-      const formData = new FormData();
-      formData.append('leadId', lead.id);
-      formData.append('status', newStatus);
-
-      const result = await updateLeadStatus(formData);
-
-      if (result.error) {
-          toast.error(result.error);
-          // Revert is handled automatically by Next.js revalidation/router refresh if we implemented rollback logic in useOptimistic properly or trigger refresh.
-          // But useOptimistic is temporary state until server responds.
-          // If server fails, we might want to manually revert or just show error.
-          // The router.refresh() from revalidatePath will fix the state eventually.
-      } else {
-          toast.success('Status updated');
+      // Return context with the snapshotted value
+      return { previousLeads };
+    },
+    onError: (err, newLead, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousLeads) {
+        queryClient.setQueryData<Lead[]>(['leads'], context.previousLeads);
       }
-  };
+      toast.error('Failed to update status');
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure data is in sync
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+    },
+    onSuccess: () => {
+      toast.success('Status updated');
+    },
+  });
 
   return (
     <div className="space-y-4">
-      {optimisticLeads.map((lead) => (
+      {leads.map((lead) => (
         <div key={lead.id} className="relative group">
-            <LeadListItem lead={lead} />
+          <LeadListItem lead={lead} />
 
-            {/* Action Buttons (Demo overlay for simplicity) */}
-            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800/90 rounded p-1 flex gap-2">
-                <form action={async (formData) => {
-                    handleStatusChange(lead, 'QUALIFIED');
-                }}>
-                    <button type="submit" className="text-xs text-emerald-400 hover:text-emerald-300 px-2 py-1">
-                        Qualify
-                    </button>
-                </form>
-                <form action={async (formData) => {
-                    handleStatusChange(lead, 'DISQUALIFIED');
-                }}>
-                    <button type="submit" className="text-xs text-red-400 hover:text-red-300 px-2 py-1">
-                        Disqualify
-                    </button>
-                </form>
-            </div>
+          {/* Quick Actions (Demo) */}
+          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800/90 rounded p-1 flex gap-2">
+            <button
+              onClick={() => mutation.mutate({ id: lead.id, status: 'QUALIFIED' })}
+              className="text-xs text-emerald-400 hover:text-emerald-300 px-2 py-1"
+              disabled={mutation.isPending}
+            >
+              Qualify
+            </button>
+            <button
+              onClick={() => mutation.mutate({ id: lead.id, status: 'DISQUALIFIED' })}
+              className="text-xs text-red-400 hover:text-red-300 px-2 py-1"
+              disabled={mutation.isPending}
+            >
+              Disqualify
+            </button>
+          </div>
         </div>
       ))}
-      {optimisticLeads.length === 0 && (
-          <div className="text-center py-10 text-slate-500">
-              No leads found.
-          </div>
+      {leads.length === 0 && (
+        <div className="text-center py-10 text-slate-500">
+          No leads found.
+        </div>
       )}
     </div>
   );
