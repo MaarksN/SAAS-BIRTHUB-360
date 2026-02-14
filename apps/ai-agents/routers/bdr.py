@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 from typing import List, Optional, Literal
 import os
 from anthropic import AsyncAnthropic
+from utils.prompts import COLD_EMAIL_PROMPT
 
 router = APIRouter()
 
@@ -94,39 +95,14 @@ async def generate_cold_email(request: ColdEmailRequest):
             "friendly": "Tom amigável e conversacional, como se fosse de um colega"
         }
 
-        prompt = f"""Você é um especialista em cold email para vendas B2B.
-
-CONTEXTO:
-- Lead: {request.lead_name}
-- Empresa: {request.company_name}
-- Indústria: {request.industry}
-- Dores identificadas:
-{pain_points_text}
-- Proposta de valor: {request.value_proposition}
-- Tom desejado: {tone_instructions[request.tone]}
-
-TAREFA:
-Crie um cold email que:
-1. Tenha subject line curiosa (máximo 50 caracteres)
-2. Abra com algo relevante para o lead (NOT genérico)
-3. Mencione UMA dor específica
-4. Apresente a solução de forma concisa
-5. Tenha CTA claro e de baixo compromisso
-6. Seja curto (máximo 150 palavras no body)
-
-IMPORTANTE:
-- NÃO use clichês ("espero que este email te encontre bem", "gostaria de apresentar", etc)
-- NÃO faça vendas agressivas
-- Foque em VALOR, não em features
-- Use parágrafos curtos (2-3 linhas máximo)
-
-Retorne em JSON:
-{{
-  "subject": "subject line aqui",
-  "body": "corpo do email aqui (HTML simples, use <br> para quebras)",
-  "personalization_score": número de 0-100,
-  "reasoning": "breve explicação de 1 linha da estratégia usada"
-}}"""
+        prompt = COLD_EMAIL_PROMPT.format(
+            lead_name=request.lead_name,
+            company_name=request.company_name,
+            industry=request.industry,
+            pain_points_text=pain_points_text,
+            value_proposition=request.value_proposition,
+            tone_instruction=tone_instructions[request.tone]
+        )
 
         # Chamar Claude (Async)
         message = await anthropic_client.messages.create(

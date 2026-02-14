@@ -6,12 +6,21 @@ import { Button } from '@salesos/ui';
 import { MarketTool } from '@/lib/market-intelligence-tools';
 import { Input } from '@/components/Input';
 import { toast } from 'sonner';
+import { ToolErrorBoundary } from '../ToolErrorBoundary';
 
 interface IcpDataUnifierProps {
   tool: MarketTool;
 }
 
 export function IcpDataUnifier({ tool }: IcpDataUnifierProps) {
+  return (
+    <ToolErrorBoundary>
+      <IcpDataUnifierContent tool={tool} />
+    </ToolErrorBoundary>
+  );
+}
+
+function IcpDataUnifierContent({ tool }: IcpDataUnifierProps) {
   const [formData, setFormData] = useState({
     industry: 'Technology',
     employeeCount: '50-200',

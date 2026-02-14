@@ -26,7 +26,3 @@ export * from './tokenizer';
 export * from './usage-logger';
 export * from './prisma-middleware';
 export * from './services/email.service';
-export * from './services/referral-service';
-export * from './services/data-management';
-export * from './services/event-bus';
-export * from './workers/crm-sync.worker';
