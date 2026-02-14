@@ -1,107 +1,102 @@
-import { headers } from 'next/headers';
-import { NextResponse } from 'next/server';
-import { stripe, prisma, env, redis } from '@salesos/core';
-import Stripe from 'stripe';
+import { NextRequest, NextResponse } from 'next/server';
+import { stripe } from '@salesos/core/billing/stripe';
+import { env } from '@salesos/core/env';
+import { prisma } from '@salesos/core/prisma';
+import { bypassRLS } from '@salesos/core/rls-middleware';
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   const body = await req.text();
-  const signature = req.headers.get('stripe-signature') || '';
+  const signature = req.headers.get('stripe-signature');
 
-  let event: Stripe.Event;
+  if (!signature) {
+    return NextResponse.json({ error: 'Missing signature' }, { status: 400 });
+  }
+
+  let event;
 
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      env.STRIPE_WEBHOOK_SECRET || ''
-    );
+    event = stripe.webhooks.constructEvent(body, signature, env.STRIPE_WEBHOOK_SECRET!);
   } catch (err: any) {
     console.error(`Webhook signature verification failed: ${err.message}`);
-    return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 });
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
-
-  // Idempotency check using Redis
-  const processedKey = `processed_webhook:${event.id}`;
-  const isProcessed = await redis.get(processedKey);
-
-  if (isProcessed) {
-    return NextResponse.json({ received: true });
-  }
-
-  // Mark as processed (expiry 24h)
-  await redis.setex(processedKey, 86400, 'true');
 
   try {
-    if (event.type === 'checkout.session.completed') {
-      const session = event.data.object as Stripe.Checkout.Session;
+    switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object as any;
+        const customerId = session.customer;
+        const subscriptionId = session.subscription;
+        const clientReferenceId = session.client_reference_id; // Assuming we pass orgId here
 
-      // If mode is subscription, update organization
-      if (session.mode === 'subscription') {
-        const organizationId = session.metadata?.organizationId;
-        const planKey = session.metadata?.planKey; // Expecting 'PRO', 'ENTERPRISE'
-
-        if (organizationId && planKey) {
-            // Fetch plan ID from DB
-            const plan = await prisma.subscriptionPlan.findUnique({
-                where: { name: planKey }
-            });
-
-            if (plan) {
-                const subscriptionId = session.subscription as string;
-                const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-
-                await prisma.organization.update({
-                    where: { id: organizationId },
-                    data: {
-                        stripeCustomerId: session.customer as string,
-                        subscriptionStatus: subscription.status,
-                        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-                        planId: plan.id
-                    }
-                });
+        if (clientReferenceId) {
+          await prisma.organization.update(bypassRLS({
+            where: { id: clientReferenceId },
+            data: {
+              stripeCustomerId: customerId,
+              subscriptionStatus: 'active',
+              planId: 'pro', // Default or derived from metadata
             }
+          }));
+          console.log('Organization subscription activated:', clientReferenceId);
+        } else if (customerId) {
+            // Try to find via customerId if we missed client_reference_id
+             const org = await prisma.organization.findFirst(bypassRLS({
+                 where: { stripeCustomerId: customerId }
+             }));
+             if(org) {
+                 await prisma.organization.update(bypassRLS({
+                     where: { id: org.id },
+                     data: { subscriptionStatus: 'active' }
+                 }));
+             }
         }
+        break;
       }
-    } else if (event.type === 'invoice.payment_succeeded') {
-      const invoice = event.data.object as Stripe.Invoice;
-      const subscriptionId = invoice.subscription as string;
+      case 'invoice.payment_succeeded': {
+        const invoice = event.data.object as any;
+        const customerId = invoice.customer;
 
-      // Update subscription status and period end
-      // Need to find org by stripeCustomerId
-      const org = await prisma.organization.findFirst({
-          where: { stripeCustomerId: invoice.customer as string }
-      });
+        const org = await prisma.organization.findFirst(bypassRLS({
+            where: { stripeCustomerId: customerId }
+        }));
 
-      if (org && subscriptionId) {
-          const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-          await prisma.organization.update({
-              where: { id: org.id },
-              data: {
-                  subscriptionStatus: subscription.status,
-                  currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-              }
-          });
+        if (org) {
+            await prisma.organization.update(bypassRLS({
+                where: { id: org.id },
+                data: {
+                    subscriptionStatus: 'active',
+                    currentPeriodEnd: new Date(invoice.lines.data[0].period.end * 1000)
+                }
+            }));
+            console.log('Subscription renewed for org:', org.id);
+        }
+        break;
       }
-    } else if (event.type === 'customer.subscription.deleted') {
-       const subscription = event.data.object as Stripe.Subscription;
-       const org = await prisma.organization.findFirst({
-           where: { stripeCustomerId: subscription.customer as string }
-       });
+      case 'customer.subscription.deleted': {
+        const subscription = event.data.object as any;
+        const customerId = subscription.customer;
 
-       if (org) {
-           await prisma.organization.update({
-               where: { id: org.id },
-               data: {
-                   subscriptionStatus: 'canceled',
-                   planId: null // Reset plan or handle grace period
-               }
-           });
-       }
+        const org = await prisma.organization.findFirst(bypassRLS({
+            where: { stripeCustomerId: customerId }
+        }));
+
+        if (org) {
+            await prisma.organization.update(bypassRLS({
+                where: { id: org.id },
+                data: { subscriptionStatus: 'canceled' }
+            }));
+            console.log('Subscription canceled for org:', org.id);
+        }
+        break;
+      }
+      default:
+        console.log(`Unhandled event type ${event.type}`);
     }
-
-    return NextResponse.json({ received: true });
-  } catch (error: any) {
-    console.error(`Webhook handler failed: ${error.message}`);
+  } catch (error) {
+    console.error('Error processing webhook:', error);
     return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 });
   }
+
+  return NextResponse.json({ received: true });
 }

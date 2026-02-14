@@ -185,7 +185,7 @@ export function calculateUsage(
  * Limpa encoders do cache (para liberar memória)
  */
 export function clearEncoderCache(): void {
-  for (const encoder of Array.from(encoderCache.values())) {
+  for (const encoder of encoderCache.values()) {
     encoder.free();
   }
   encoderCache.clear();
