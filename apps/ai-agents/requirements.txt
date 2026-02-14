@@ -13,3 +13,4 @@ httpx
 pytest
 google-generativeai
 anthropic
+numpy
