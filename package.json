@@ -11,7 +11,18 @@
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "prepare": "husky"
+    "prepare": "husky",
+    "setup": "bash scripts/setup.sh",
+    "migrate": "bash scripts/migrate.sh",
+    "deploy": "bash scripts/docker-deploy.sh",
+    "health": "bash scripts/health-check.sh",
+    "workers:restart": "bash scripts/restart-workers.sh",
+    "cleanup": "bash scripts/cleanup.sh",
+    "db:seed": "tsx scripts/seed.ts",
+    "db:studio": "npx prisma studio --schema=libs/core/src/schema.prisma",
+    "db:reset": "npx prisma migrate reset --schema=libs/core/src/schema.prisma",
+    "ai:dev": "cd apps/ai-agents && uvicorn main:app --reload",
+    "workers": "npm run workers:all --workspace=libs/queue-core"
   },
   "devDependencies": {
     "@faker-js/faker": "^10.3.0",
