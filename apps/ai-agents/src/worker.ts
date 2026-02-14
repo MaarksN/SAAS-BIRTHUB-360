@@ -1,6 +1,6 @@
 import { createWorker, createQueue } from '@salesos/queue-core';
 import { ScraperEngine } from './scraper/scraper-engine';
-import { logger, prisma, AuditLogData, EmailService } from '@salesos/core';
+import { logger, prisma, AuditLogData, EmailService, WebhookService } from '@salesos/core';
 import IORedis from 'ioredis';
 import { Job } from 'bullmq';
 
@@ -228,6 +228,22 @@ createWorker<AuditLogData>('audit-queue', async (job) => {
   return { logged: true };
 }, {
   concurrency: 5,
+});
+
+// Webhook Worker
+createWorker('webhook-queue', async (job) => {
+  const { event, organizationId } = job.data;
+  logger.info({ jobId: job.id, event, organizationId }, 'Processing webhook job');
+
+  await WebhookService.process(job.data);
+
+  return { processed: true };
+}, {
+  concurrency: 50, // High I/O concurrency
+  limiter: {
+    max: 100,      // Max 100 requests per second globally (prevent flooding clients)
+    duration: 1000
+  }
 });
 
 logger.info('Workers started');

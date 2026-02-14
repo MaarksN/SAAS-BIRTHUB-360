@@ -469,7 +469,6 @@ model ScheduledEmail {
   errorMessage   String?
   providerMessageId String?
   error          String?
-  providerMessageId String?
 
   trackingId     String?  // For pixel tracking
 
@@ -680,4 +679,16 @@ model CleanRoom {
   updatedAt      DateTime @updatedAt
 
   @@map("clean_rooms")
+}
+
+model FeatureFlag {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  description String?
+  isEnabled   Boolean  @default(false)
+  rules       Json?    // { "percentage": 10, "users": ["id1"], "orgs": ["id2"] }
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("feature_flags")
 }
