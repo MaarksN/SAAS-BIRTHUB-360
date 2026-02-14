@@ -1,6 +1,7 @@
 import { prisma } from '../prisma';
 import { stringify } from 'csv-stringify';
 import { parseCSV } from '../utils/csv-parser';
+import { EventBus } from './event-bus';
 
 export class DataManagementService {
   static async exportData(organizationId: string, entityType: 'leads' | 'deals', format: 'csv' | 'json'): Promise<string> {
@@ -93,7 +94,7 @@ export class DataManagementService {
               continue;
           }
 
-          await prisma.lead.upsert({
+          const lead = await prisma.lead.upsert({
             where: { email_organizationId: { email: normalized.email, organizationId } },
             create: {
               email: normalized.email,
@@ -110,6 +111,13 @@ export class DataManagementService {
               companyName: normalized.company || normalized.companyname
             }
           });
+
+          // Publish Event for CRM Sync
+          await EventBus.publish({
+            type: 'LEAD_CREATED', // Using CREATED for both create/update for simplicity, or we check result
+            payload: { leadId: lead.id, organizationId }
+          });
+
           imported++;
         } catch (e) {
           console.error('Import error for record:', record, e);
