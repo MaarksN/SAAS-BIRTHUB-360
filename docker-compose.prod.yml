@@ -24,7 +24,7 @@ services:
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     environment:
-      DATABASE_URL: postgres://postgres:${DB_PASSWORD}@db:5432/salesos
+      DATABASE_URL: postgres://postgres:${DB_PASSWORD}@pgbouncer:6432/salesos
       REDIS_URL: redis://redis:6379
       NODE_ENV: production
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
@@ -32,7 +32,7 @@ services:
     networks:
       - backend-network
     depends_on:
-      - db
+      - pgbouncer
       - redis
     restart: unless-stopped
     healthcheck:
@@ -47,17 +47,16 @@ services:
       context: .
       dockerfile: apps/ai-agents/Dockerfile
     environment:
-      DATABASE_URL: postgres://postgres:${DB_PASSWORD}@db:5432/salesos
+      DATABASE_URL: postgres://postgres:${DB_PASSWORD}@pgbouncer:6432/salesos
       REDIS_URL: redis://redis:6379
       NODE_ENV: production
       OPENAI_API_KEY: ${OPENAI_API_KEY}
     networks:
       - backend-network
     depends_on:
-      - db
+      - pgbouncer
       - redis
     restart: unless-stopped
-    # Worker is heavy, might need limits
     deploy:
       resources:
         limits:
@@ -82,6 +81,47 @@ services:
       timeout: 5s
       retries: 5
 
+  # Connection Pooler
+  pgbouncer:
+    image: edoburu/pgbouncer
+    environment:
+      DB_USER: postgres
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: db
+      DB_NAME: salesos
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 1000
+      DEFAULT_POOL_SIZE: 20
+    ports:
+      - "6432:6432"
+    networks:
+      - backend-network
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  # Backup Service Sidecar
+  backup:
+    image: postgres:15-alpine
+    environment:
+      DB_HOST: db
+      DB_USER: postgres
+      DB_NAME: salesos
+      PGPASSWORD: ${DB_PASSWORD}
+    volumes:
+      - backupdata:/backups
+      - ./scripts/backup.sh:/usr/local/bin/backup.sh:ro
+    networks:
+      - backend-network
+    depends_on:
+      - db
+    entrypoint: ["/bin/sh", "-c"]
+    # Run backup every day at 3am
+    command:
+      - |
+        echo "0 3 * * * /usr/local/bin/backup.sh >> /var/log/cron.log 2>&1" > /etc/crontabs/root
+        crond -f -l 8
+
   # Redis (Queue Broker)
   redis:
     image: redis:7-alpine
@@ -103,8 +143,9 @@ networks:
     driver: bridge
   backend-network:
     driver: bridge
-    internal: true # No external access
+    internal: true
 
 volumes:
   pgdata:
   redisdata:
+  backupdata:
