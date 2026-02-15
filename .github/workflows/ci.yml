@@ -1,0 +1,166 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "develop"]
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run lint
+
+  build:
+    name: Build JS/TS
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: salesos
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://postgres:password@localhost:5432/salesos
+      REDIS_URL: redis://localhost:6379
+      RESEND_API_KEY: re_123456789
+      STRIPE_SECRET_KEY: sk_test_123456789
+      NEXT_PUBLIC_API_URL: http://localhost:3000
+      NEXTAUTH_SECRET: supersecret
+      NEXTAUTH_URL: http://localhost:3000
+      SKIP_ENV_VALIDATION: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - name: Setup Database
+        run: npx prisma db push --schema=packages/database/prisma/schema.prisma
+      - run: npm run build
+      - name: Notify on Failure
+        if: failure()
+        run: echo "::error::Build failed! Please check the logs."
+      # - name: Slack Notification
+      #   if: failure()
+      #   uses: rtCamp/action-slack-notify@v2
+      #   env:
+      #     SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+
+  test-js:
+    name: Test JS/TS
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: salesos
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://postgres:password@localhost:5432/salesos
+      REDIS_URL: redis://localhost:6379
+      NEXTAUTH_SECRET: supersecret
+      NEXTAUTH_URL: http://localhost:3000
+      SKIP_ENV_VALIDATION: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - name: Setup Database
+        run: npx prisma db push --schema=packages/database/prisma/schema.prisma
+      - run: npx turbo run test
+
+  test-python:
+    name: Test Python
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - name: Install dependencies
+        run: |
+          pip install -r apps/ai-agents/requirements.txt
+          pip install pytest pytest-asyncio
+      - name: Run tests
+        run: |
+          cd apps/ai-agents
+          pytest
+      - name: Notify on Failure
+        if: failure()
+        run: echo "::error::Python Tests failed!"
+
+  docker-build:
+    name: Docker Build Check
+    runs-on: ubuntu-latest
+    # Only run if relevant files changed or on main/develop
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Web
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          push: false
+          tags: salesos-web:test
+          build-args: |
+            NEXT_PUBLIC_API_URL=http://localhost:3000
+
+      - name: Build AI Agents
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: apps/ai-agents/Dockerfile
+          push: false
+          tags: salesos-ai-agents:test
