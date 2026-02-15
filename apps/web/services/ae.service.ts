@@ -1,4 +1,4 @@
-import { IMeetingAnalysis, IProposal } from '../types/ae';
+import { IMeetingAnalysis, IProposal } from '../lib/ae';
 
 export class AEService {
   // 1. Assistente de Reunião Inteligente

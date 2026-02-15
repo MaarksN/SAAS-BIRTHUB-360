@@ -114,4 +114,22 @@ export class SDRService {
 
   // 20. Voice Note Summary
   async summarizeVoice(text: string): Promise<string> { return `**Resumo da Call:**\n- Cliente interessado.\n- Dor principal: Preço.\n- Próximo passo: Enviar proposta até sexta.`; }
+
+  // 21. Analisador de Respostas de E-mail
+  async analyzeResponse(emailContent: string): Promise<{ category: string; nextStep: string }> {
+    const content = emailContent.toLowerCase();
+    if (content.includes('não tenho interesse') || content.includes('remova')) {
+      return { category: 'Not Interested', nextStep: 'Archive' };
+    }
+    if (content.includes('fale com') || content.includes('encaminhar')) {
+      return { category: 'Referral', nextStep: 'Contact New Person' };
+    }
+    if (content.includes('preço') || content.includes('quanto custa')) {
+      return { category: 'Interested (Pricing)', nextStep: 'Send Pricing Deck' };
+    }
+    if (content.includes('agendar') || content.includes('reunião')) {
+      return { category: 'Interested (Meeting)', nextStep: 'Book Meeting' };
+    }
+    return { category: 'Unknown', nextStep: 'Manual Review' };
+  }
 }

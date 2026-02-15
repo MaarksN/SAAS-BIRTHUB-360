@@ -1,4 +1,4 @@
-import { IBuyingCommitteeMap, IEmailValidation, IMessageGeneration } from '../types/bdr';
+import { IBuyingCommitteeMap, IEmailValidation, IMessageGeneration } from '../lib/bdr';
 import { BuyingCommitteeMapSchema, EmailValidationSchema } from '../schemas';
 import { logger } from '@salesos/core';
 
@@ -203,5 +203,26 @@ export class BDRService {
   // 40. Champion Enablement Kit
   async enableChampion(): Promise<string> {
     return "Here is a 1-page PDF you can forward to your CFO to justify the budget.";
+  }
+
+  // 41. Gerador de Listas de Prospecção (Alias/Extension)
+  async generateProspectList(icp: any): Promise<any[]> {
+    return [
+      { company: 'Acme Corp', contact: 'John Doe', email: 'john@acme.com', score: 95 },
+      { company: 'Globex', contact: 'Jane Smith', email: 'jane@globex.com', score: 88 }
+    ];
+  }
+
+  // 42. Otimizador de Cadência de E-mails (Alias/Extension)
+  async optimizeCadence(sequenceId: string): Promise<any> {
+    return {
+      sequenceId,
+      optimizedSteps: [
+        { day: 1, type: 'Email', subject: 'Question about [Pain Point]' },
+        { day: 3, type: 'Call', script: 'Did you see my email?' },
+        { day: 5, type: 'LinkedIn', message: 'Connecting...' }
+      ],
+      predictedResponseRate: '12%'
+    };
   }
 }
