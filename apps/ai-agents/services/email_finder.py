@@ -49,9 +49,10 @@ class EmailValidator:
         # Set a short timeout for DNS
         self.resolver.lifetime = 5.0
 
-    def get_mx_records(self, domain: str) -> List[str]:
+    async def get_mx_records(self, domain: str) -> List[str]:
         try:
-            records = self.resolver.resolve(domain, 'MX')
+            loop = asyncio.get_running_loop()
+            records = await loop.run_in_executor(None, self.resolver.resolve, domain, 'MX')
             sorted_records = sorted(records, key=lambda r: r.preference)
             return [str(r.exchange).rstrip('.') for r in sorted_records]
         except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN, dns.resolver.NoNameservers, Exception) as e:
@@ -132,7 +133,7 @@ class EmailValidator:
         permutator = EmailPermutator()
         candidates = permutator.generate_permutations(first_name, last_name, domain)
 
-        mx_records = self.get_mx_records(domain)
+        mx_records = await self.get_mx_records(domain)
         if not mx_records:
             return {"status": "error", "error": "No MX records found"}
 

@@ -16,3 +16,5 @@ anthropic
 numpy
 dnspython
 aiosmtplib
+python-whois
+google-search-results

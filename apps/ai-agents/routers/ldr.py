@@ -9,6 +9,8 @@ from services.icp_agent import ICPAgent
 from schemas.agent import ICPClassificationRequest
 from services.linkedin_scraper import LinkedInScraper
 from services.email_finder import email_validator_service
+from services.technology_lookup import tech_lookup_service
+from services.domain_search import domain_search_service
 
 router = APIRouter()
 icp_agent = ICPAgent()
@@ -134,4 +136,37 @@ async def find_email(request: EmailFinderRequest):
         request.last_name,
         request.domain
     )
+    return result
+
+# --- Cycle 37: Technology Lookup ---
+class TechLookupRequest(BaseModel):
+    url: str = Field(..., description="URL do site para análise (ex: https://example.com)")
+
+class TechLookupResponse(BaseModel):
+    technologies: Dict[str, List[str]]
+    error: Optional[str] = None
+
+@router.post("/ldr/technology-lookup", response_model=TechLookupResponse)
+async def technology_lookup(request: TechLookupRequest):
+    logger.info(f"Tech lookup requested for: {request.url}")
+    result = await tech_lookup_service.analyze_stack(request.url)
+    if "error" in result:
+        return {"technologies": {}, "error": result["error"]}
+    return {"technologies": result}
+
+# --- Cycle 38: Domain Search ---
+class DomainSearchRequest(BaseModel):
+    domain: str = Field(..., description="Domínio para expansão (ex: company.com)")
+
+class DomainSearchResponse(BaseModel):
+    domain: str
+    registrant: Optional[Dict[str, Any]]
+    related_domains: List[str]
+    source: str
+
+@router.post("/ldr/domain-search", response_model=DomainSearchResponse)
+def domain_search(request: DomainSearchRequest):
+    logger.info(f"Domain search requested for: {request.domain}")
+    # Running as a sync function allows FastAPI to run it in a threadpool
+    result = domain_search_service.search_related_domains(request.domain)
     return result
