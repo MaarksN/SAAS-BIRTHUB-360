@@ -1,7 +1,8 @@
+import { AppError, ErrorCategory, ErrorCode, prisma,ReferralService } from '@salesos/core';
 import { NextRequest, NextResponse } from 'next/server';
-import { ReferralService, AppError, ErrorCode, ErrorCategory, prisma } from '@salesos/core';
-import { createApiHandler } from '@/lib/api-handler';
 import { z } from 'zod';
+
+import { createApiHandler } from '@/lib/api-handler';
 
 const inviteSchema = z.object({
     email: z.string().email(),

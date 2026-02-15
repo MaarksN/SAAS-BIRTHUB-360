@@ -1,5 +1,6 @@
-import Redis from 'ioredis';
 import { env } from '@salesos/config';
+import Redis from 'ioredis';
+
 import { CacheService } from './types';
 
 export class RedisCacheService implements CacheService {

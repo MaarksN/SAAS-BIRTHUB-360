@@ -27,8 +27,8 @@ export function KanbanBoardSimple<T extends { id: string | number }>({
   return (
     <div className="flex gap-4 overflow-x-auto pb-4">
       {uniqueStatuses.map((status) => (
-        <div key={status} className="min-w-[300px] bg-slate-100 dark:bg-slate-800 p-4 rounded-xl">
-          <h3 className="font-bold uppercase text-slate-500 mb-4">
+        <div key={status} className="min-w-[300px] rounded-xl bg-slate-100 p-4 dark:bg-slate-800">
+          <h3 className="mb-4 font-bold uppercase text-slate-500">
             {labels?.[status] || status}
           </h3>
           <div className="space-y-3">
@@ -38,7 +38,7 @@ export function KanbanBoardSimple<T extends { id: string | number }>({
               </div>
             ))}
             {groupedItems[status]?.length === 0 && (
-              <div className="text-center p-4 border-2 border-dashed border-slate-300 rounded text-slate-400">
+              <div className="rounded border-2 border-dashed border-slate-300 p-4 text-center text-slate-400">
                 Vazio
               </div>
             )}

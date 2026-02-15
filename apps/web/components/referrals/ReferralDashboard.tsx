@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { Button } from '@salesos/ui';
+import { Check, Copy, DollarSign, Gift,Users } from 'lucide-react';
+import { useEffect,useState } from 'react';
+import { toast } from 'sonner';
+
 import { Input } from '../Input';
 import { ReferralStatsCard } from './ReferralStatsCard';
-import { Users, DollarSign, Copy, Check, Gift } from 'lucide-react';
-import { toast } from 'sonner';
 
 export function ReferralDashboard() {
   const [stats, setStats] = useState<any>(null);
@@ -88,26 +89,26 @@ export function ReferralDashboard() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <div className="p-6 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-            <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
-              <Gift className="w-5 h-5 text-blue-500" />
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-6 dark:border-slate-800 dark:bg-slate-900">
+            <h3 className="mb-4 flex items-center gap-2 text-lg font-medium">
+              <Gift className="size-5 text-blue-500" />
               Share your unique link
             </h3>
-            <p className="text-sm text-slate-500 mb-4">
+            <p className="mb-4 text-sm text-slate-500">
               Give your friends 50 credits to start. You'll get 50 credits when they sign up!
             </p>
             <div className="flex gap-2">
-              <div className="flex-1 bg-white dark:bg-slate-800 p-2 rounded border border-slate-200 dark:border-slate-700 font-mono text-sm truncate">
+              <div className="flex-1 truncate rounded border border-slate-200 bg-white p-2 font-mono text-sm dark:border-slate-700 dark:bg-slate-800">
                 {typeof window !== 'undefined' ? `${window.location.origin}/signup?ref=${code}` : `.../signup?ref=${code}`}
               </div>
               <Button onClick={handleCopy} variant="outline" size="icon">
-                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
               </Button>
             </div>
         </div>
 
-        <div className="p-6 bg-white dark:bg-slate-950 rounded-lg border border-slate-200 dark:border-slate-800">
-            <h3 className="text-lg font-medium mb-4">Invite by Email</h3>
+        <div className="rounded-lg border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-950">
+            <h3 className="mb-4 text-lg font-medium">Invite by Email</h3>
             <form onSubmit={handleInvite} className="flex gap-2">
               <Input
                 type="email"

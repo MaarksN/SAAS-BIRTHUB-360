@@ -1,10 +1,10 @@
 'use client';
 
-import { useTheme } from 'next-themes';
 import { Button } from '@salesos/ui';
-import { Moon, Sun, Monitor, Contrast } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from '@salesos/ui';
-import { useState, useEffect } from 'react';
+import { Card, CardContent,CardHeader, CardTitle } from '@salesos/ui';
+import { Contrast,Monitor, Moon, Sun } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import { useEffect,useState } from 'react';
 
 export default function AppearanceSettings() {
   const { theme, setTheme, systemTheme } = useTheme();
@@ -30,7 +30,7 @@ export default function AppearanceSettings() {
   if (!mounted) return null;
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <div className="mx-auto max-w-4xl space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Appearance</h1>
         <p className="text-slate-500 dark:text-slate-400">
@@ -47,25 +47,25 @@ export default function AppearanceSettings() {
             <Button
                 variant={theme === 'light' ? 'default' : 'outline'}
                 onClick={() => setTheme('light')}
-                className="flex flex-col h-auto py-4 px-6 gap-2"
+                className="flex h-auto flex-col gap-2 px-6 py-4"
             >
-                <Sun className="w-6 h-6" />
+                <Sun className="size-6" />
                 <span>Light</span>
             </Button>
             <Button
                 variant={theme === 'dark' ? 'default' : 'outline'}
                 onClick={() => setTheme('dark')}
-                className="flex flex-col h-auto py-4 px-6 gap-2"
+                className="flex h-auto flex-col gap-2 px-6 py-4"
             >
-                <Moon className="w-6 h-6" />
+                <Moon className="size-6" />
                 <span>Dark</span>
             </Button>
             <Button
                 variant={theme === 'system' ? 'default' : 'outline'}
                 onClick={() => setTheme('system')}
-                className="flex flex-col h-auto py-4 px-6 gap-2"
+                className="flex h-auto flex-col gap-2 px-6 py-4"
             >
-                <Monitor className="w-6 h-6" />
+                <Monitor className="size-6" />
                 <span>System</span>
             </Button>
           </div>
@@ -86,7 +86,7 @@ export default function AppearanceSettings() {
                       variant={highContrast ? 'default' : 'outline'}
                       onClick={toggleHighContrast}
                   >
-                      <Contrast className="w-4 h-4 mr-2" />
+                      <Contrast className="mr-2 size-4" />
                       {highContrast ? 'Enabled' : 'Disabled'}
                   </Button>
               </div>

@@ -1,8 +1,9 @@
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { LeadListItem } from './lead-list-item';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+
+import { LeadListItem } from './lead-list-item';
 
 interface Lead {
   id: string;
@@ -84,21 +85,21 @@ export function LeadList({ initialLeads }: LeadListProps) {
   return (
     <div className="space-y-4">
       {leads.map((lead) => (
-        <div key={lead.id} className="relative group">
+        <div key={lead.id} className="group relative">
           <LeadListItem lead={lead} />
 
           {/* Quick Actions (Demo) */}
-          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800/90 rounded p-1 flex gap-2">
+          <div className="absolute right-2 top-2 flex gap-2 rounded bg-slate-800/90 p-1 opacity-0 transition-opacity group-hover:opacity-100">
             <button
               onClick={() => mutation.mutate({ id: lead.id, status: 'QUALIFIED' })}
-              className="text-xs text-emerald-400 hover:text-emerald-300 px-2 py-1"
+              className="px-2 py-1 text-xs text-emerald-400 hover:text-emerald-300"
               disabled={mutation.isPending}
             >
               Qualify
             </button>
             <button
               onClick={() => mutation.mutate({ id: lead.id, status: 'DISQUALIFIED' })}
-              className="text-xs text-red-400 hover:text-red-300 px-2 py-1"
+              className="px-2 py-1 text-xs text-red-400 hover:text-red-300"
               disabled={mutation.isPending}
             >
               Disqualify
@@ -107,7 +108,7 @@ export function LeadList({ initialLeads }: LeadListProps) {
         </div>
       ))}
       {leads.length === 0 && (
-        <div className="text-center py-10 text-slate-500">
+        <div className="py-10 text-center text-slate-500">
           No leads found.
         </div>
       )}

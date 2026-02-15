@@ -1,7 +1,8 @@
-import { createApiHandler } from './api-handler';
+import { AppError, ErrorCategory,ErrorCode } from '@salesos/core';
 import { NextRequest, NextResponse } from 'next/server';
-import { AppError, ErrorCode, ErrorCategory } from '@salesos/core';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+import { createApiHandler } from './api-handler';
 
 // Mock @salesos/core logger to avoid noise
 vi.mock('@salesos/core', async () => {

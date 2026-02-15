@@ -1,7 +1,8 @@
-import { describe, it, expect } from 'vitest';
-import { z } from 'zod';
-import { validate } from './validate';
 import { AppError, ErrorCode } from '@salesos/core';
+import { describe, expect,it } from 'vitest';
+import { z } from 'zod';
+
+import { validate } from './validate';
 
 describe('validate', () => {
   const schema = z.object({

@@ -1,6 +1,7 @@
-import { IBuyingCommitteeMap, IEmailValidation, IMessageGeneration } from '../types/bdr';
-import { BuyingCommitteeMapSchema, EmailValidationSchema } from '../schemas';
 import { logger } from '@salesos/core';
+
+import { BuyingCommitteeMapSchema, EmailValidationSchema } from '../schemas';
+import { IBuyingCommitteeMap, IEmailValidation, IMessageGeneration } from '../types/bdr';
 
 export class BDRService {
   // 1. Mapeamento de Buying Committee

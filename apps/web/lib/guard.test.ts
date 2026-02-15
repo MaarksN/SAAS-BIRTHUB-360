@@ -1,8 +1,8 @@
+// import { guard } from './guard'; // This file does not exist!
+import { guard } from '@salesos/core'; // Use the core one
 import { describe, expect, it } from 'vitest';
 
 import { features } from './features';
-// import { guard } from './guard'; // This file does not exist!
-import { guard } from '@salesos/core'; // Use the core one
 
 describe('Guard', () => {
   it('should allow requests within rate limit', async () => {

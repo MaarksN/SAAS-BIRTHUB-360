@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@salesos/ui';
 import { Button } from '@salesos/ui';
-import { MarketTool } from '@/lib/market-intelligence-tools';
-import { Input } from '@/components/Input';
+import React, { useState } from 'react';
 import { toast } from 'sonner';
+
+import { Input } from '@/components/Input';
+import { MarketTool } from '@/lib/market-intelligence-tools';
+
 import { ToolErrorBoundary } from '../ToolErrorBoundary';
 
 interface IcpDataUnifierProps {
@@ -59,9 +61,9 @@ function IcpDataUnifierContent({ tool }: IcpDataUnifierProps) {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
       {/* Input Section */}
-      <div className="lg:col-span-1 space-y-6">
+      <div className="space-y-6 lg:col-span-1">
         <Card>
           <CardHeader>
             <CardTitle className="text-xl">Define Criteria</CardTitle>
@@ -69,7 +71,7 @@ function IcpDataUnifierContent({ tool }: IcpDataUnifierProps) {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Industry</label>
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Industry</label>
                 <Input
                   value={formData.industry}
                   onChange={(e) => setFormData({...formData, industry: e.target.value})}
@@ -77,9 +79,9 @@ function IcpDataUnifierContent({ tool }: IcpDataUnifierProps) {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Employee Count</label>
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Employee Count</label>
                 <select
-                  className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-slate-900 dark:border-slate-700"
+                  className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 dark:border-slate-700 dark:bg-slate-900"
                   value={formData.employeeCount}
                   onChange={(e) => setFormData({...formData, employeeCount: e.target.value})}
                 >
@@ -91,9 +93,9 @@ function IcpDataUnifierContent({ tool }: IcpDataUnifierProps) {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Annual Revenue</label>
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Annual Revenue</label>
                 <select
-                   className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-slate-900 dark:border-slate-700"
+                   className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 dark:border-slate-700 dark:bg-slate-900"
                    value={formData.revenue}
                    onChange={(e) => setFormData({...formData, revenue: e.target.value})}
                 >
@@ -104,7 +106,7 @@ function IcpDataUnifierContent({ tool }: IcpDataUnifierProps) {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Location</label>
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Location</label>
                 <Input
                   value={formData.location}
                   onChange={(e) => setFormData({...formData, location: e.target.value})}
@@ -112,7 +114,7 @@ function IcpDataUnifierContent({ tool }: IcpDataUnifierProps) {
                 />
               </div>
                <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Target Job Titles</label>
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Target Job Titles</label>
                 <Input
                   value={formData.jobTitles}
                   onChange={(e) => setFormData({...formData, jobTitles: e.target.value})}
@@ -120,7 +122,7 @@ function IcpDataUnifierContent({ tool }: IcpDataUnifierProps) {
                 />
               </div>
 
-              <Button type="submit" className="w-full mt-4" disabled={loading}>
+              <Button type="submit" className="mt-4 w-full" disabled={loading}>
                 {loading ? 'Analyzing...' : 'Generate Unified Profile'}
               </Button>
             </form>
@@ -129,10 +131,10 @@ function IcpDataUnifierContent({ tool }: IcpDataUnifierProps) {
       </div>
 
       {/* Result Section */}
-      <div className="lg:col-span-2 space-y-6">
+      <div className="space-y-6 lg:col-span-2">
          {!result && !loading && (
-             <div className="h-full flex flex-col items-center justify-center p-12 text-slate-400 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-lg bg-slate-50 dark:bg-slate-900/50">
-                 <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-full mb-4">
+             <div className="flex h-full flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-200 bg-slate-50 p-12 text-slate-400 dark:border-slate-800 dark:bg-slate-900/50">
+                 <div className="mb-4 rounded-full bg-slate-100 p-4 dark:bg-slate-800">
                     <tool.icon size={32} />
                  </div>
                  <p>Enter criteria on the left to generate your Ideal Customer Profile.</p>
@@ -140,38 +142,38 @@ function IcpDataUnifierContent({ tool }: IcpDataUnifierProps) {
          )}
 
          {loading && (
-             <div className="space-y-4 animate-pulse">
-                 <div className="h-48 bg-slate-200 dark:bg-slate-800 rounded-lg"></div>
-                 <div className="h-24 bg-slate-200 dark:bg-slate-800 rounded-lg"></div>
-                 <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-lg"></div>
+             <div className="animate-pulse space-y-4">
+                 <div className="h-48 rounded-lg bg-slate-200 dark:bg-slate-800"></div>
+                 <div className="h-24 rounded-lg bg-slate-200 dark:bg-slate-800"></div>
+                 <div className="h-64 rounded-lg bg-slate-200 dark:bg-slate-800"></div>
              </div>
          )}
 
          {result && (
              <>
-                <Card className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white border-none">
+                <Card className="border-none bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
                     <CardContent className="p-8">
-                        <h2 className="text-2xl font-bold mb-2">{result.summary}</h2>
-                        <div className="flex gap-8 mt-6">
+                        <h2 className="mb-2 text-2xl font-bold">{result.summary}</h2>
+                        <div className="mt-6 flex gap-8">
                             <div>
-                                <p className="text-blue-100 text-sm uppercase font-semibold">Match Score</p>
+                                <p className="text-sm font-semibold uppercase text-blue-100">Match Score</p>
                                 <p className="text-4xl font-bold">{result.score}/100</p>
                             </div>
                             <div>
-                                <p className="text-blue-100 text-sm uppercase font-semibold">Total Addressable</p>
+                                <p className="text-sm font-semibold uppercase text-blue-100">Total Addressable</p>
                                 <p className="text-4xl font-bold">{result.totalAddressable.toLocaleString()}</p>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <Card>
                         <CardHeader><CardTitle>Key Attributes</CardTitle></CardHeader>
                         <CardContent>
                             <ul className="space-y-3">
                                 {result.attributes.map((attr: any, i: number) => (
-                                    <li key={i} className="flex justify-between border-b border-slate-100 dark:border-slate-800 pb-2 last:border-0">
+                                    <li key={i} className="flex justify-between border-b border-slate-100 pb-2 last:border-0 dark:border-slate-800">
                                         <span className="text-slate-500">{attr.label}</span>
                                         <span className="font-semibold">{attr.value}</span>
                                     </li>
@@ -185,13 +187,13 @@ function IcpDataUnifierContent({ tool }: IcpDataUnifierProps) {
                         <CardContent>
                             <ul className="space-y-3">
                                 {result.topProspects.map((prospect: any, i: number) => (
-                                    <li key={i} className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg">
+                                    <li key={i} className="flex items-center justify-between rounded-lg bg-slate-50 p-3 dark:bg-slate-800/50">
                                         <span className="font-medium">{prospect.name}</span>
-                                        <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-bold">{prospect.relevancy} Match</span>
+                                        <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-bold text-green-700">{prospect.relevancy} Match</span>
                                     </li>
                                 ))}
                             </ul>
-                             <Button variant="outline" className="w-full mt-4 text-xs">View All Prospects</Button>
+                             <Button variant="outline" className="mt-4 w-full text-xs">View All Prospects</Button>
                         </CardContent>
                     </Card>
                 </div>

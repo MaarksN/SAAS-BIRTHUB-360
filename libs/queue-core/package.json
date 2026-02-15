@@ -5,11 +5,7 @@
   "types": "src/index.ts",
   "scripts": {
     "lint": "ESLINT_USE_FLAT_CONFIG=false eslint .",
-    "type-check": "tsc --noEmit",
-    "worker:email": "tsx src/workers/email-sender.worker.ts",
-    "scheduler:email": "tsx src/schedulers/email-scheduler.ts",
-    "worker:audit": "echo 'Audit worker not implemented'",
-    "workers:all": "npm run worker:email & npm run scheduler:email & npm run worker:audit & wait"
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@salesos/core": "*",
@@ -22,5 +18,11 @@
     "@types/node": "^20.0.0",
     "@types/react": "^18.3.28",
     "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "worker:email": "tsx src/workers/email-sender.worker.ts",
+    "scheduler:email": "tsx src/schedulers/email-scheduler.ts",
+    "worker:audit": "echo 'Audit worker not implemented'",
+    "workers:all": "npm run worker:email & npm run scheduler:email & npm run worker:audit & wait"
   }
 }

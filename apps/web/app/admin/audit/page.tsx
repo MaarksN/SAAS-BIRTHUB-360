@@ -1,6 +1,7 @@
 import { prisma } from '@salesos/core';
-import { Badge } from '@/components/Badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@salesos/ui';
+
+import { Badge } from '@/components/Badge';
 import {
   Table,
   TableBody,
@@ -34,12 +35,12 @@ export default async function AuditLogPage() {
   });
 
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 p-8">
+      <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Audit Logs (Compliance)</h1>
         <div className="flex gap-2">
-            <span className="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full font-mono">Immutable</span>
-            <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-mono">SOC2 Ready</span>
+            <span className="rounded-full bg-emerald-100 px-2 py-1 font-mono text-xs text-emerald-800">Immutable</span>
+            <span className="rounded-full bg-blue-100 px-2 py-1 font-mono text-xs text-blue-800">SOC2 Ready</span>
         </div>
       </div>
 
@@ -86,7 +87,7 @@ export default async function AuditLogPage() {
               ))}
               {logs.length === 0 && (
                   <TableRow>
-                      <TableCell colSpan={6} className="text-center h-24 text-slate-500">
+                      <TableCell colSpan={6} className="h-24 text-center text-slate-500">
                           No audit logs found.
                       </TableCell>
                   </TableRow>

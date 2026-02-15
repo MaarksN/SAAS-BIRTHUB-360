@@ -1,7 +1,8 @@
+import { AppError, ErrorCategory,ErrorCode, ReferralService } from '@salesos/core';
 import { NextRequest, NextResponse } from 'next/server';
-import { ReferralService, AppError, ErrorCode, ErrorCategory } from '@salesos/core';
-import { createApiHandler } from '@/lib/api-handler';
 import { z } from 'zod';
+
+import { createApiHandler } from '@/lib/api-handler';
 
 const completeSchema = z.object({
     code: z.string(),

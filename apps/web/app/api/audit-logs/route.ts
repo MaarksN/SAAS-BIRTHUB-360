@@ -1,6 +1,7 @@
-import { createApiHandler } from '@/lib/api-handler';
-import { prisma, getContext, AppError, ErrorCode, ErrorCategory } from '@salesos/core';
+import { AppError, ErrorCategory,ErrorCode, getContext, prisma } from '@salesos/core';
 import { NextResponse } from 'next/server';
+
+import { createApiHandler } from '@/lib/api-handler';
 
 export const GET = createApiHandler(
   async (req) => {

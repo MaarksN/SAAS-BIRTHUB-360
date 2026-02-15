@@ -1,6 +1,7 @@
 import { llmGateway } from '@salesos/ai';
 import { RedisCacheService } from '@salesos/cache';
 import { logger } from '@salesos/core';
+
 import { SmartSearchQuerySchema } from './schemas';
 
 const cache = new RedisCacheService();

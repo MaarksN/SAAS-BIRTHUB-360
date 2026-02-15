@@ -1,8 +1,9 @@
+import Anthropic from '@anthropic-ai/sdk';
+import { type AiGenerationRequest,AiGenerationSchema, calculateUsage, logAIUsage } from '@salesos/core';
 import { NextRequest, NextResponse } from 'next/server';
+
 import { createApiHandler } from '@/lib/api-handler';
 import { guardAIRequest, QuotaExceededError } from '@/lib/budget-guard';
-import { calculateUsage, logAIUsage, AiGenerationSchema, type AiGenerationRequest } from '@salesos/core';
-import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!

@@ -1,7 +1,8 @@
-import { ILeadScore, IObjectionResponse } from '../types/sdr';
 import { RedisCacheService } from '@salesos/cache';
 import { logger } from '@salesos/core';
+
 import { LeadScoreSchema } from '../schemas';
+import { ILeadScore, IObjectionResponse } from '../types/sdr';
 
 export class SDRService {
   private cache = new RedisCacheService();

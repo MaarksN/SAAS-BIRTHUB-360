@@ -1,5 +1,6 @@
-import React, { createContext, useContext, ReactNode } from 'react';
-import { User, Session, mockUser } from './index';
+import React, { createContext, ReactNode,useContext } from 'react';
+
+import { mockUser,Session, User } from './index';
 
 interface AuthContextType {
   session: Session | null;

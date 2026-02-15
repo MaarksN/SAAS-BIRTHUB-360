@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { logger,processLeadIngestion } from '@salesos/core';
 import crypto from 'crypto';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { processLeadIngestion, logger } from '@salesos/core';
 
 const LeadSchema = z.object({
   email: z.string().email(),

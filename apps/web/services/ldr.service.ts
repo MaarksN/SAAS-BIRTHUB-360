@@ -1,13 +1,12 @@
-import Redis from 'ioredis';
 import {
   env,
-  logger,
   ICNPJEnrichmentResult,
   IDataReliabilityScore,
+  logger,
   // CNPJEnrichmentResultSchema // Assuming this is in core or local
 } from '@salesos/core';
+import Redis from 'ioredis';
 // import { CNPJEnrichmentResultSchema } from '../schemas'; // Potential conflict if missing
-
 // Mock Schema if not found, or use Zod directly
 import { z } from 'zod';
 

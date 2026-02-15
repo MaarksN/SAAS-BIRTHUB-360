@@ -1,5 +1,5 @@
+import { RequestContext, runWithContext, updateContext } from '@salesos/core';
 import { NextRequest } from 'next/server';
-import { runWithContext, RequestContext, updateContext } from '@salesos/core';
 
 /**
  * Extrai contexto do NextRequest e executa callback dentro do contexto

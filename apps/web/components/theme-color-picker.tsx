@@ -6,7 +6,7 @@ export function ThemeColorPicker() {
   return (
     <input
        type="color"
-       className="w-8 h-8 rounded cursor-pointer border-0 p-0"
+       className="size-8 cursor-pointer rounded border-0 p-0"
        onChange={(e) => {
           document.documentElement.style.setProperty('--primary-color', e.target.value);
           if (typeof window !== "undefined") {

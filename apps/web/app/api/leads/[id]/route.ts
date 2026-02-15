@@ -1,7 +1,8 @@
-import { createApiHandler } from '@/lib/api-handler';
-import { prisma, AppError, ErrorCode, ErrorCategory } from '@salesos/core';
+import { AppError, ErrorCategory,ErrorCode, prisma } from '@salesos/core';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+
+import { createApiHandler } from '@/lib/api-handler';
 
 const updateLeadSchema = z.object({
   status: z.enum(['NEW', 'QUALIFIED', 'DISQUALIFIED', 'CONTACTED', 'NEGOTIATION', 'CLOSED_WON', 'CLOSED_LOST']).optional(),

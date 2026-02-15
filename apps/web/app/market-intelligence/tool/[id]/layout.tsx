@@ -6,7 +6,7 @@ export default function ToolLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full flex-col">
       {children}
     </div>
   );

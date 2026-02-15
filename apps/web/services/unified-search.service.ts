@@ -1,5 +1,5 @@
-import { LDRService } from '@salesos/prospector';
 import { SDRService } from '@salesos/hub';
+import { LDRService } from '@salesos/prospector';
 
 export interface SearchResult {
   source: 'PROSPECTOR' | 'HUB';

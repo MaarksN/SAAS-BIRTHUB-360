@@ -1,10 +1,12 @@
 'use client';
 
-import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query';
+import { MutationCache,QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState } from 'react';
-import { ThemeProvider } from './theme-provider';
 import { toast } from 'sonner';
+
+import { ThemeProvider } from './theme-provider';
+import { ToasterHot } from './toaster-hot';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient({
@@ -30,6 +32,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         enableSystem
         disableTransitionOnChange
       >
+        <ToasterHot />
         {children}
       </ThemeProvider>
       <ReactQueryDevtools initialIsOpen={false} />

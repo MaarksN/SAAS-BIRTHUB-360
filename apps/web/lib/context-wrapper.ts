@@ -1,5 +1,5 @@
-import { headers } from 'next/headers';
 import { runWithContext } from '@salesos/core';
+import { headers } from 'next/headers';
 
 /**
  * Wraps a Server Component or Action with the Tenant Context.

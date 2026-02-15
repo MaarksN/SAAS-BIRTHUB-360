@@ -4,11 +4,11 @@
 import React from 'react';
 
 export function Card({ children, className }: any) {
-  return <div className={`bg-white shadow rounded-lg border ${className}`}>{children}</div>;
+  return <div className={`rounded-lg border bg-white shadow ${className}`}>{children}</div>;
 }
 
 export function CardHeader({ children }: any) {
-  return <div className="px-6 py-4 border-b">{children}</div>;
+  return <div className="border-b px-6 py-4">{children}</div>;
 }
 
 export function CardTitle({ children }: any) {
@@ -20,7 +20,7 @@ export function CardContent({ children }: any) {
 }
 
 export function Badge({ children, variant, className }: any) {
-    return <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 ${className}`}>{children}</span>;
+    return <span className={`inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800 ${className}`}>{children}</span>;
 }
 
 export function Table({ children }: any) {

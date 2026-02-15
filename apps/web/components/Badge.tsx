@@ -17,7 +17,7 @@ export const Badge: React.FC<BadgeProps> = ({ label, color = 'blue', className }
   };
 
   return (
-    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${colors[color]} ${className || ""}`}>
+    <span className={`rounded border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${colors[color]} ${className || ""}`}>
       {label}
     </span>
   );

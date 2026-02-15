@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
-import { ToolCard } from './tool-card';
-import { marketIntelligenceTools } from '@/lib/market-intelligence-tools';
 import { Search } from 'lucide-react';
+import React, { useState } from 'react';
+
+import { marketIntelligenceTools } from '@/lib/market-intelligence-tools';
+
+import { ToolCard } from './tool-card';
 
 export function ToolGrid() {
   const [search, setSearch] = useState('');
@@ -21,22 +23,22 @@ export function ToolGrid() {
         <input
           type="text"
           placeholder="Search tools, functions, or pains..."
-          className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none placeholder:text-slate-400 text-slate-900 dark:text-white"
+          className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {filteredTools.map((tool) => (
           <ToolCard key={tool.id} tool={tool} />
         ))}
       </div>
 
       {filteredTools.length === 0 && (
-        <div className="text-center py-12 text-slate-500 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-dashed border-slate-300 dark:border-slate-700">
+        <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 py-12 text-center text-slate-500 dark:border-slate-700 dark:bg-slate-900/50">
           <p>No tools found matching your search.</p>
-          <button onClick={() => setSearch('')} className="text-blue-600 hover:underline mt-2 text-sm">Clear search</button>
+          <button onClick={() => setSearch('')} className="mt-2 text-sm text-blue-600 hover:underline">Clear search</button>
         </div>
       )}
     </div>

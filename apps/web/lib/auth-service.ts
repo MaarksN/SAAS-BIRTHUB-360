@@ -1,5 +1,6 @@
-import { env } from '../env.mjs';
 import { Role } from '@salesos/core';
+
+import { env } from '../env.mjs';
 
 export interface UserSession {
   userId: string;

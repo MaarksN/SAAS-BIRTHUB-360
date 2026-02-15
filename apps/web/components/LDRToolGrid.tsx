@@ -1,7 +1,7 @@
 'use client';
 
+import { Card, CardContent,CardHeader, CardTitle } from '@salesos/ui';
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@salesos/ui';
 
 interface Tool {
   id: string;
@@ -35,13 +35,13 @@ const tools: Tool[] = [
 
 export function LDRToolGrid() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4">
+    <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2 lg:grid-cols-4">
       {tools.map((tool) => (
-        <Card key={tool.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+        <Card key={tool.id} className="cursor-pointer transition-shadow hover:shadow-lg">
           <CardHeader>
-            <CardTitle className="text-lg flex justify-between items-center">
+            <CardTitle className="flex items-center justify-between text-lg">
               {tool.name}
-              <span className={`text-xs px-2 py-1 rounded-full ${tool.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+              <span className={`rounded-full px-2 py-1 text-xs ${tool.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
                 {tool.status}
               </span>
             </CardTitle>

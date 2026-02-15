@@ -1,4 +1,5 @@
 import { prisma } from '@salesos/core';
+
 import { ThreadList } from '@/components/inbox/thread-list';
 import { ThreadView } from '@/components/inbox/thread-view';
 
@@ -17,7 +18,7 @@ export default async function InboxPage({ searchParams }: { searchParams: { thre
       {selectedThreadId ? (
         <ThreadView threadId={selectedThreadId} />
       ) : (
-        <div className="flex-1 flex items-center justify-center text-slate-500 bg-slate-950">
+        <div className="flex flex-1 items-center justify-center bg-slate-950 text-slate-500">
           Select a conversation to start reading
         </div>
       )}

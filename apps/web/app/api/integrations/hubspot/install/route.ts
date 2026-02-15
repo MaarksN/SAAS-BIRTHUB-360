@@ -1,5 +1,5 @@
+import { getOrganizationId,HubSpotIntegration, prisma } from '@salesos/core'; // Assuming helper exported
 import { NextRequest, NextResponse } from 'next/server';
-import { HubSpotIntegration, prisma, getOrganizationId } from '@salesos/core'; // Assuming helper exported
 // Wait, HubSpotIntegration is in core, but needs to be exported.
 // I need to check if I exported it in previous step.
 // Assuming yes based on memory recording.

@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { driver } from 'driver.js';
 import 'driver.js/dist/driver.css';
+
+import { driver } from 'driver.js';
 import { HelpCircle } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export function OnboardingTour() {
   const [hasSeenTour, setHasSeenTour] = useState(true);
@@ -11,7 +12,7 @@ export function OnboardingTour() {
   useEffect(() => {
     // Client-side only
     const seen = localStorage.getItem('salesos_tour_seen');
-    setHasSeenTour(!!seen);
+    setHasSeenTour(Boolean(seen));
   }, []);
 
   const startTour = () => {
@@ -64,11 +65,11 @@ export function OnboardingTour() {
 
   return (
     <button
-        className="fixed bottom-4 right-4 z-50 p-3 rounded-full shadow-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 transition-colors"
+        className="fixed bottom-4 right-4 z-50 rounded-full border border-slate-200 bg-white p-3 shadow-lg transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800"
         onClick={startTour}
         title="Start Tour"
     >
-        <HelpCircle className="w-6 h-6 text-blue-600" />
+        <HelpCircle className="size-6 text-blue-600" />
     </button>
   );
 }
