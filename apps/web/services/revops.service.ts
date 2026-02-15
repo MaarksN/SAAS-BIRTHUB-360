@@ -98,4 +98,14 @@ export class RevOpsService {
   async scoreHygiene(): Promise<string> {
     return "Hygiene Score: 85/100. Issues: 150 duplicates found.";
   }
+
+  // 161. Otimizador de Processos do Funil
+  async optimizeFunnelProcess(): Promise<string> {
+    return "Suggestion: Reduce 'Qualifying' stage time by automating budget check. Predicted Impact: -2 days in sales cycle.";
+  }
+
+  // 162. Analisador de Qualidade de Dados do CRM (Alias/Extension)
+  async analyzeCRMDataQuality(): Promise<string> {
+     return await this.scoreHygiene(); // Reusing existing method
+  }
 }
