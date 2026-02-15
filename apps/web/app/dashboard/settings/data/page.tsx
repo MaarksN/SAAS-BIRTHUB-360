@@ -34,7 +34,7 @@ export default function DataSettingsPage() {
       });
       const data = await res.json();
       if (data.success) {
-        toast.success(`Imported ${data.imported} records with ${data.errors} errors.`);
+        toast.success('Import started in background. You will be notified when complete.');
         setImportFile(null);
       } else {
         toast.error(data.error || 'Import failed');

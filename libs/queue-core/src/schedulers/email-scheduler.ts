@@ -1,4 +1,5 @@
-import { prisma, logger } from '@salesos/core';
+import { logger,prisma } from '@salesos/core';
+
 import { createQueue } from '../queue-wrapper';
 
 interface EmailJob {

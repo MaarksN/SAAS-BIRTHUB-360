@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DataManagementService, AppError, ErrorCode, ErrorCategory } from '@salesos/core';
-import { createApiHandler } from '@/lib/api-handler';
+import { createQueue, DataImportJob } from '@salesos/queue-core';
 
 export const POST = async (req: NextRequest) => {
   const userId = req.headers.get('x-user-id');
@@ -25,8 +24,23 @@ export const POST = async (req: NextRequest) => {
   const format = file.name.endsWith('.json') ? 'json' : 'csv';
 
   try {
-    const result = await DataManagementService.importData(orgId, type, text, format);
-    return NextResponse.json({ success: true, ...result });
+    const queue = createQueue<DataImportJob>('data-import');
+
+    const job = await queue.add('import-data', {
+      organizationId: orgId,
+      entityType: type,
+      data: text,
+      format
+    });
+
+    // Close queue to release Redis connection
+    await queue.close();
+
+    return NextResponse.json({
+      success: true,
+      message: 'Import started in background',
+      jobId: job.id
+    });
   } catch (e: any) {
     return NextResponse.json({ success: false, error: e.message }, { status: 500 });
   }
