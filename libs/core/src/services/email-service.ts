@@ -4,7 +4,7 @@ import { logger } from '../logger';
 
 // Inicialização Lazy do Resend
 // Note: process.env.RESEND_API_KEY is usually loaded by dotenv or framework
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY || 're_123456789');
 
 interface SendEmailParams {
   scheduledEmailId: string;
