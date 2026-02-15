@@ -1,8 +1,9 @@
+import { logger } from '@salesos/core';
+import * as cheerio from 'cheerio';
+import { Browser } from 'puppeteer';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import { Browser, Page } from 'puppeteer';
-import * as cheerio from 'cheerio';
-import { logger } from '@salesos/core';
+
 import { ProxyManager } from './proxy-manager';
 
 puppeteer.use(StealthPlugin());

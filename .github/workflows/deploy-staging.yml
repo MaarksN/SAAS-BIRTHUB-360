@@ -50,6 +50,8 @@ jobs:
           script: |
             cd /opt/salesos
             git pull
+            export DOCKER_IMAGE_WEB=${{ secrets.DOCKERHUB_USERNAME }}/salesos-web
+            export DOCKER_IMAGE_WORKER=${{ secrets.DOCKERHUB_USERNAME }}/salesos-ai-agents
             # Ensure staging config exists or use prod as base
             docker-compose -f docker-compose.staging.yml pull
             docker-compose -f docker-compose.staging.yml up -d

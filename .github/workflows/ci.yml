@@ -22,6 +22,38 @@ jobs:
   build:
     name: Build JS/TS
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: salesos
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://postgres:password@localhost:5432/salesos
+      REDIS_URL: redis://localhost:6379
+      RESEND_API_KEY: re_123456789
+      STRIPE_SECRET_KEY: sk_test_123456789
+      NEXT_PUBLIC_API_URL: http://localhost:3000
+      NEXTAUTH_SECRET: supersecret
+      NEXTAUTH_URL: http://localhost:3000
+      SKIP_ENV_VALIDATION: 1
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -29,6 +61,8 @@ jobs:
           node-version: 20
           cache: 'npm'
       - run: npm ci
+      - name: Setup Database
+        run: npx prisma db push --schema=packages/database/prisma/schema.prisma
       - run: npm run build
       - name: Notify on Failure
         if: failure()
@@ -42,6 +76,35 @@ jobs:
   test-js:
     name: Test JS/TS
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: salesos
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://postgres:password@localhost:5432/salesos
+      REDIS_URL: redis://localhost:6379
+      NEXTAUTH_SECRET: supersecret
+      NEXTAUTH_URL: http://localhost:3000
+      SKIP_ENV_VALIDATION: 1
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -49,6 +112,8 @@ jobs:
           node-version: 20
           cache: 'npm'
       - run: npm ci
+      - name: Setup Database
+        run: npx prisma db push --schema=packages/database/prisma/schema.prisma
       - run: npx turbo run test
 
   test-python:

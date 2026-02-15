@@ -22,4 +22,6 @@ jobs:
           key: ${{ secrets.PROD_SSH_KEY }}
           script: |
             cd /opt/salesos
+            export DOCKER_IMAGE_WEB=${{ secrets.DOCKERHUB_USERNAME }}/salesos-web
+            export DOCKER_IMAGE_WORKER=${{ secrets.DOCKERHUB_USERNAME }}/salesos-ai-agents
             ./scripts/rollback.sh ${{ inputs.version }}

@@ -51,6 +51,8 @@ jobs:
           script: |
             cd /opt/salesos
             git pull
+            export DOCKER_IMAGE_WEB=${{ secrets.DOCKERHUB_USERNAME }}/salesos-web
+            export DOCKER_IMAGE_WORKER=${{ secrets.DOCKERHUB_USERNAME }}/salesos-ai-agents
             docker-compose -f docker-compose.prod.yml pull
             docker-compose -f docker-compose.prod.yml up -d
             ./scripts/health-check.sh
