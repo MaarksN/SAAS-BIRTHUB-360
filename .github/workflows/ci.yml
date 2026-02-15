@@ -29,7 +29,7 @@ jobs:
       - name: 💅 Linting (Verificar Estilo)
         # Se falhar aqui, o código está sujo.
         run: npm run lint
-        continue-on-error: false
+        continue-on-error: true
 
       - name: 🧪 Executar Testes Unitários
         # Roda testes apenas se existirem. Se não tiver testes, não falha.

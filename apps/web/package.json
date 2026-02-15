@@ -5,7 +5,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "SKIP_ENV_VALIDATION=1 next lint",
+    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint .",
     "type-check": "tsc --noEmit",
     "test:e2e": "playwright test"
   },
