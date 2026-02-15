@@ -5,13 +5,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "SKIP_ENV_VALIDATION=1 next lint",
+    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint .",
     "type-check": "tsc --noEmit",
     "test:e2e": "playwright test"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.74.0",
     "@birthhub/database": "*",
+    "@hello-pangea/dnd": "^18.0.1",
+    "@jridgewell/resolve-uri": "^3.1.2",
     "@salesos/core": "*",
     "@salesos/ui": "*",
     "@tanstack/react-query": "^5.90.20",

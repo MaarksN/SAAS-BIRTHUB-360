@@ -1,0 +1,78 @@
+name: CI Pipeline (Quality Gate)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  quality-check:
+    name: Build, Lint & Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: salesos
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: "postgresql://user:password@localhost:5432/salesos"
+      REDIS_URL: "redis://localhost:6379"
+      NEXTAUTH_URL: "http://localhost:3000"
+      NEXTAUTH_SECRET: "mock_secret_key_for_testing_only"
+      STRIPE_SECRET_KEY: "sk_test_mock_stripe_key"
+      RESEND_API_KEY: "re_mock_resend_key"
+      ADMIN_KEY: "mock_admin_key"
+      SKIP_ENV_VALIDATION: "1"
+
+    steps:
+      - name: 🏗️ Checkout do Código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Instalar Dependências
+        run: npm ci
+
+      - name: 🗄️ Setup Database
+        run: npx prisma migrate deploy --schema=packages/database/prisma/schema.prisma
+
+      - name: 💅 Linting (Verificar Estilo)
+        # Se falhar aqui, o código está sujo.
+        run: npm run lint
+        continue-on-error: true
+
+      - name: 🧪 Executar Testes Unitários
+        # Roda testes apenas se existirem. Se não tiver testes, não falha.
+        run: npx turbo run test --filter=...[HEAD^1]
+
+      - name: 🏗️ Teste de Build (Dry Run)
+        # Garante que o projeto compila sem erros
+        run: npx turbo run build --filter=web

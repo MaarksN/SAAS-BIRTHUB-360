@@ -1,13 +1,18 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 import random
 from datetime import datetime
 from utils.logger import logger
+from services.icp_agent import ICPAgent
+from schemas.agent import ICPClassificationRequest
+from services.linkedin_scraper import LinkedInScraper
+from services.email_finder import email_validator_service
 
 router = APIRouter()
 icp_agent = ICPAgent()
+linkedin_scraper = LinkedInScraper()
 
 # --- Models Robustos ---
 class CNPJEnrichmentRequest(BaseModel):
@@ -86,3 +91,47 @@ async def classify_icp(request: ICPClassificationRequest):
         icp_agent.classify_company(request.model_dump()),
         media_type="text/event-stream"
     )
+
+# --- Cycle 35: LinkedIn Scraper ---
+class LinkedInScrapeRequest(BaseModel):
+    url: str = Field(..., description="URL do perfil do LinkedIn")
+
+class LinkedInProfileResponse(BaseModel):
+    status: str
+    data: Optional[Dict[str, Any]] = None
+    error: Optional[str] = None
+    retryable: bool = False
+
+@router.post("/ldr/scrape-linkedin-profile", response_model=LinkedInProfileResponse)
+async def scrape_linkedin_profile(request: LinkedInScrapeRequest):
+    logger.info(f"LinkedIn scrape requested for: {request.url}")
+    result = await linkedin_scraper.scrape_profile(request.url)
+
+    if result.get("status") == "failed" or result.get("status") == "error":
+        logger.warning(f"Scrape failed: {result.get('error')}")
+
+    return result
+
+# --- Cycle 36: Email Finder ---
+class EmailFinderRequest(BaseModel):
+    first_name: str = Field(..., description="Primeiro nome do lead")
+    last_name: str = Field(..., description="Sobrenome do lead")
+    domain: str = Field(..., description="Domínio da empresa (ex: google.com)")
+
+class EmailFinderResponse(BaseModel):
+    status: str
+    email: Optional[str] = None
+    confidence: Optional[str] = None
+    candidates: Optional[List[str]] = None
+    message: Optional[str] = None
+    logs: Optional[List[Dict[str, Any]]] = None
+
+@router.post("/ldr/find-email", response_model=EmailFinderResponse)
+async def find_email(request: EmailFinderRequest):
+    logger.info(f"Email finder requested for: {request.first_name} {request.last_name} @ {request.domain}")
+    result = await email_validator_service.find_valid_email(
+        request.first_name,
+        request.last_name,
+        request.domain
+    )
+    return result

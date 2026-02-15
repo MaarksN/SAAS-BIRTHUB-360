@@ -1,8 +1,9 @@
-import { createWorker, createQueue } from '@salesos/queue-core';
-import { ScraperEngine } from './scraper/scraper-engine';
-import { logger, prisma, AuditLogData, EmailService, WebhookService } from '@salesos/core';
-import IORedis from 'ioredis';
+import { AuditLogData, EmailService, logger, prisma, WebhookService } from '@salesos/core';
+import { createQueue, createWorker } from '@salesos/queue-core';
 import { Job } from 'bullmq';
+import IORedis from 'ioredis';
+
+import { ScraperEngine } from './scraper/scraper-engine';
 
 // Initialize Engines
 const scraperEngine = new ScraperEngine();
@@ -113,7 +114,7 @@ export const emailWorker = createWorker<EmailJobData>(
       await EmailService.markAsSent(scheduledEmailId, messageId);
       logger.info({ scheduledEmailId, messageId }, 'Email sent successfully');
 
-    } catch (error: any) {
+    } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
       // 6. Falha: Análise de Erro
       logger.error({ error, scheduledEmailId }, 'Email sending failed');
 
