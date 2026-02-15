@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { ADMIN_COOKIE_NAME, verifyAdminSecret, IMPERSONATE_COOKIE_NAME, SYSTEM_ADMIN_HEADER } from './lib/admin-auth';
 
 export function middleware(request: NextRequest) {
   // Gerar ou extrair Request ID
@@ -14,6 +15,25 @@ export function middleware(request: NextRequest) {
   requestHeaders.set('x-request-id', requestId);
   requestHeaders.set('x-client-ip', ip);
   requestHeaders.set('x-user-agent', userAgent);
+
+  // Admin Auth Logic
+  const adminCookie = request.cookies.get(ADMIN_COOKIE_NAME);
+  const adminSecret = adminCookie?.value;
+
+  if (adminSecret && verifyAdminSecret(adminSecret)) {
+    requestHeaders.set(SYSTEM_ADMIN_HEADER, 'true');
+    // We treat this session as an Admin (or Owner) for RBAC purposes
+    requestHeaders.set('x-user-role', 'OWNER');
+
+    const impersonateId = request.cookies.get(IMPERSONATE_COOKIE_NAME)?.value;
+    if (impersonateId) {
+      requestHeaders.set('x-user-id', impersonateId);
+    } else {
+      // System Admin Session
+      requestHeaders.set('x-user-id', '00000000-0000-0000-0000-000000000000');
+      requestHeaders.set('x-org-id', '00000000-0000-0000-0000-000000000000');
+    }
+  }
 
   // Criar response passando os headers modificados
   const response = NextResponse.next({

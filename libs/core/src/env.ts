@@ -10,6 +10,7 @@ const envSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().min(1).optional(),
   RESEND_API_KEY: z.string().min(1).optional(),
   DEFAULT_FROM_EMAIL: z.string().email().optional(),
+  ADMIN_SECRET: z.string().optional(),
   // Add other secrets here
 });
 
