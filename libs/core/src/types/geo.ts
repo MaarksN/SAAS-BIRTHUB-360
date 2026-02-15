@@ -13,7 +13,7 @@ export interface LocalBusiness {
   userRatingsTotal?: number;
   phone?: string;
   website?: string;
-  source: 'google_places' | 'serp_api';
+  source: 'google_places' | 'serp_api' | 'mock';
   metadata?: Record<string, any>;
 }
 

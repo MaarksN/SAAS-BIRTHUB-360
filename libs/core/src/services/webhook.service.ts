@@ -13,7 +13,7 @@ export class WebhookService {
   static getQueue() {
     if (!this.queue) {
       this.queue = new Queue(WEBHOOK_QUEUE_NAME, {
-        connection: redis
+        connection: redis as any
       });
     }
     return this.queue;

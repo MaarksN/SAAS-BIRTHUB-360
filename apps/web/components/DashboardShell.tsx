@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { tokens } from '../tokens';
+import { tokens } from '../lib/tokens';
 
 interface DashboardShellProps {
   children: ReactNode;

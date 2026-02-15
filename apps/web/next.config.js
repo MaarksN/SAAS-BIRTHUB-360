@@ -1,9 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  serverExternalPackages: ['tiktoken'],
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -11,7 +9,7 @@ const nextConfig = {
     "@salesos/ui",
     "@salesos/core",
     "@salesos/auth",
-    "@salesos/database",
+    "@birthhub/database",
     "@salesos/enterprise",
     "@salesos/growth",
     "@salesos/social",

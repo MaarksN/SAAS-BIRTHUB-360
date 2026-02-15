@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardTitle, CardContent } from '../Card';
+import { Card, CardHeader, CardTitle, CardContent } from '@salesos/ui';
 import { LucideIcon } from 'lucide-react';
 
 interface ReferralStatsCardProps {

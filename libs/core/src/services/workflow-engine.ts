@@ -18,7 +18,7 @@ export class WorkflowEngine extends EventEmitter {
     // Fix: Use new Redis() instance for BullMQ connection
     const connection = new Redis(REDIS_URL, {
         maxRetriesPerRequest: null // Required by BullMQ
-    });
+    }) as any;
 
     this.flowProducer = new FlowProducer({ connection });
     this.redisSubscriber = new Redis(REDIS_URL);

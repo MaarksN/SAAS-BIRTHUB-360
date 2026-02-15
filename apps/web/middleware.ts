@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { randomUUID } from 'crypto';
 
 export function middleware(request: NextRequest) {
   // Gerar ou extrair Request ID
-  const requestId = request.headers.get('x-request-id') || randomUUID();
+  const requestId = request.headers.get('x-request-id') || crypto.randomUUID();
 
   // Extrair informações do request
   const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown';
