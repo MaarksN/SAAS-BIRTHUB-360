@@ -1,6 +1,5 @@
-import React, { createContext, ReactNode, useContext } from 'react';
-
-import { mockUser, Session, User } from './index';
+import React, { createContext, useContext, ReactNode } from 'react';
+import { User, Session, mockUser } from './index';
 
 interface AuthContextType {
   session: Session | null;
@@ -10,13 +9,11 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({
-  children,
-}) => {
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [session, setSession] = React.useState<Session | null>({
     token: 'mock-token',
     user: mockUser,
-    expiresAt: new Date(Date.now() + 3600 * 1000),
+    expiresAt: new Date(Date.now() + 3600 * 1000)
   });
 
   const login = () => {
@@ -24,7 +21,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     setSession({
       token: 'new-token',
       user: mockUser,
-      expiresAt: new Date(Date.now() + 3600 * 1000),
+      expiresAt: new Date(Date.now() + 3600 * 1000)
     });
   };
 

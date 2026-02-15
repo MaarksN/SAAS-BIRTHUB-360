@@ -1,7 +1,6 @@
 import { prisma } from '@salesos/core';
-import { Card, CardContent, CardHeader, CardTitle } from '@salesos/ui';
-
 import { Badge } from '@/components/Badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@salesos/ui';
 import {
   Table,
   TableBody,
@@ -30,23 +29,17 @@ export default async function AuditLogPage() {
     take: 50,
     orderBy: { createdAt: 'desc' },
     include: {
-      organization: true,
-    },
+        organization: true
+    }
   });
 
   return (
-    <div className="space-y-6 p-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">
-          Audit Logs (Compliance)
-        </h1>
+    <div className="p-8 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold tracking-tight">Audit Logs (Compliance)</h1>
         <div className="flex gap-2">
-          <span className="rounded-full bg-emerald-100 px-2 py-1 font-mono text-xs text-emerald-800">
-            Immutable
-          </span>
-          <span className="rounded-full bg-blue-100 px-2 py-1 font-mono text-xs text-blue-800">
-            SOC2 Ready
-          </span>
+            <span className="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full font-mono">Immutable</span>
+            <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-mono">SOC2 Ready</span>
         </div>
       </div>
 
@@ -72,22 +65,15 @@ export default async function AuditLogPage() {
                   <TableCell className="font-mono text-xs">
                     {log.createdAt.toLocaleString()}
                   </TableCell>
-                  <TableCell>
-                    {log.organization?.name || log.organizationId}
-                  </TableCell>
+                  <TableCell>{log.organization?.name || log.organizationId}</TableCell>
                   <TableCell>{log.actorId || 'System'}</TableCell>
                   <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={
-                        log.action.includes('DELETE')
-                          ? 'border-red-500 text-red-500'
-                          : log.action.includes('UPDATE')
-                            ? 'border-amber-500 text-amber-500'
-                            : 'border-blue-500 text-blue-500'
-                      }
-                    >
-                      {log.action}
+                    <Badge variant="outline" className={
+                        log.action.includes('DELETE') ? 'border-red-500 text-red-500' :
+                        log.action.includes('UPDATE') ? 'border-amber-500 text-amber-500' :
+                        'border-blue-500 text-blue-500'
+                    }>
+                        {log.action}
                     </Badge>
                   </TableCell>
                   <TableCell className="font-mono text-xs">
@@ -99,14 +85,11 @@ export default async function AuditLogPage() {
                 </TableRow>
               ))}
               {logs.length === 0 && (
-                <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="h-24 text-center text-slate-500"
-                  >
-                    No audit logs found.
-                  </TableCell>
-                </TableRow>
+                  <TableRow>
+                      <TableCell colSpan={6} className="text-center h-24 text-slate-500">
+                          No audit logs found.
+                      </TableCell>
+                  </TableRow>
               )}
             </TableBody>
           </Table>

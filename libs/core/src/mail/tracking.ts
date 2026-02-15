@@ -1,9 +1,6 @@
 import { env } from '../env';
 
-const TRACKING_DOMAIN =
-  env.NODE_ENV === 'production'
-    ? 'https://api.salesos.com'
-    : 'http://localhost:3000';
+const TRACKING_DOMAIN = env.NODE_ENV === 'production' ? 'https://api.salesos.com' : 'http://localhost:3000';
 
 export function injectTracking(html: string, trackingId: string): string {
   if (!trackingId) return html;

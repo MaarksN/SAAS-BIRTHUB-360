@@ -28,9 +28,7 @@ async function main() {
       throw e;
     }
 
-    console.log(
-      '🟢 Backup Verification Passed: Database is accessible and readable.',
-    );
+    console.log('🟢 Backup Verification Passed: Database is accessible and readable.');
   } catch (error) {
     console.error('🔴 Backup Verification Failed:', error);
     process.exit(1);

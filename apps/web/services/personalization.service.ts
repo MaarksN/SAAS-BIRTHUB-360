@@ -1,12 +1,12 @@
 export class PersonalizationService {
   // 121. Psychometric Profiling (DISC)
   async profileUser(textSample: string): Promise<string> {
-    return 'Profile: High D (Dominance). Be brief and results-oriented.';
+    return "Profile: High D (Dominance). Be brief and results-oriented.";
   }
 
   // 122. Deepfake Video Gen (Ethical Simulation)
   async generateVideo(script: string, avatar: string): Promise<string> {
-    return 'Generating synthetic video for demo purposes... [URL]';
+    return "Generating synthetic video for demo purposes... [URL]";
   }
 
   // 123. Voice Cloning for Voicemail Drops
@@ -26,12 +26,12 @@ export class PersonalizationService {
 
   // 126. LinkedIn Comment Generator (Context-Aware)
   async generateComment(postContent: string): Promise<string> {
-    return 'Insightful comment generated based on post analysis.';
+    return "Insightful comment generated based on post analysis.";
   }
 
   // 127. Gift/Swag Recommendation Engine
   async recommendGift(interests: string[]): Promise<string> {
-    return 'Interest: Golf. Recommendation: Personalized Titleist Balls.';
+    return "Interest: Golf. Recommendation: Personalized Titleist Balls.";
   }
 
   // 128. Meeting Icebreaker Generator (Real-time)
@@ -41,24 +41,22 @@ export class PersonalizationService {
 
   // 129. Proposal Personalization AI
   async personalizeProposal(doc: string, companyData: any): Promise<string> {
-    return 'Updated Proposal: Replaced generic logos and terms with Company specific data.';
+    return "Updated Proposal: Replaced generic logos and terms with Company specific data.";
   }
 
   // 130. Chatbot Persona Adapter
   async adaptBotPersona(visitorIndustry: string): Promise<string> {
-    return visitorIndustry === 'Finance'
-      ? 'Bot Style: Formal, Professional.'
-      : 'Bot Style: Casual, Emoji-friendly.';
+    return visitorIndustry === 'Finance' ? "Bot Style: Formal, Professional." : "Bot Style: Casual, Emoji-friendly.";
   }
 
   // 131. Email Tone Matcher
   async matchTone(incomingEmail: string): Promise<string> {
-    return 'Detected Tone: Urgent/Frustrated. Draft Reply: Concise/Empathetic.';
+    return "Detected Tone: Urgent/Frustrated. Draft Reply: Concise/Empathetic.";
   }
 
   // 132. Cultural Nuance Checker
   async checkCulture(country: string, message: string): Promise<string> {
-    return 'Warning: Avoid using baseball metaphors for a European prospect.';
+    return "Warning: Avoid using baseball metaphors for a European prospect.";
   }
 
   // 133. Subject Line Personalizer (AI)
@@ -68,9 +66,7 @@ export class PersonalizationService {
 
   // 134. Content Content Recommendation
   async recommendContent(stage: string): Promise<string> {
-    return stage === 'Discovery'
-      ? "Send: 'State of Industry Report'"
-      : "Send: 'Implementation Guide'";
+    return stage === 'Discovery' ? "Send: 'State of Industry Report'" : "Send: 'Implementation Guide'";
   }
 
   // 135. SMS/WhatsApp Shortener & Personalizer
@@ -80,7 +76,7 @@ export class PersonalizationService {
 
   // 136. Handwriting Synthesizer (Direct Mail)
   async synthesizeHandwriting(text: string): Promise<string> {
-    return 'Generated robotic handwriting image for postcard.';
+    return "Generated robotic handwriting image for postcard.";
   }
 
   // 137. Meme Generator (Contextual)
@@ -100,6 +96,6 @@ export class PersonalizationService {
 
   // 140. Interactive Demo Personalizer
   async customizeDemo(flow: string, company: string): Promise<string> {
-    return 'Demo Flow updated: Data prepopulated with [Company] tickers.';
+    return "Demo Flow updated: Data prepopulated with [Company] tickers.";
   }
 }

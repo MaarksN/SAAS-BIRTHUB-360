@@ -1,11 +1,8 @@
-'use client';
+"use client";
 
 import { useEffect, useState } from 'react';
 
-export function usePredictivePrefetch<T>(
-  fetcher: () => Promise<T>,
-  triggerSelector: string,
-) {
+export function usePredictivePrefetch<T>(fetcher: () => Promise<T>, triggerSelector: string) {
   const [data, setData] = useState<T | null>(null);
 
   useEffect(() => {
@@ -18,14 +15,10 @@ export function usePredictivePrefetch<T>(
       }
     };
 
-    elements.forEach((el) =>
-      el.addEventListener('mouseenter', handleMouseEnter),
-    );
+    elements.forEach(el => el.addEventListener('mouseenter', handleMouseEnter));
 
     return () => {
-      elements.forEach((el) =>
-        el.removeEventListener('mouseenter', handleMouseEnter),
-      );
+      elements.forEach(el => el.removeEventListener('mouseenter', handleMouseEnter));
     };
   }, [triggerSelector, fetcher, data]);
 

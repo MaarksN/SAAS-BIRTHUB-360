@@ -1,7 +1,6 @@
 import { Resend } from 'resend';
-
-import { logger } from '../logger';
 import { prisma } from '../prisma';
+import { logger } from '../logger';
 
 // Inicialização Lazy do Resend
 // Note: process.env.RESEND_API_KEY is usually loaded by dotenv or framework
@@ -24,18 +23,14 @@ export class EmailService {
   /**
    * Executa o envio real via provedor (Resend)
    */
-  static async sendNow(
-    params: SendEmailParams,
-  ): Promise<{ messageId: string }> {
-    const { scheduledEmailId, to, subject, html, organizationId, senderEmail } =
-      params;
+  static async sendNow(params: SendEmailParams): Promise<{ messageId: string }> {
+    const { scheduledEmailId, to, subject, html, organizationId, senderEmail } = params;
 
     // 1. Validação de Rate Limit da Organização (Opcional - Camada extra de segurança)
     // Implementar checkBudgetLimit(organizationId) aqui se necessário
 
     // 2. Definir remetente
-    const from =
-      senderEmail || process.env.DEFAULT_FROM_EMAIL || 'onboarding@resend.dev';
+    const from = senderEmail || process.env.DEFAULT_FROM_EMAIL || 'onboarding@resend.dev';
 
     try {
       // 3. Chamada à API externa
@@ -59,15 +54,13 @@ export class EmailService {
       }
 
       return { messageId: data.data?.id || 'unknown' };
+
     } catch (error: any) {
-      logger.error(
-        {
-          error: error.message,
-          scheduledEmailId,
-          provider: 'RESEND',
-        },
-        'Failed to send email via provider',
-      );
+      logger.error({
+        error: error.message,
+        scheduledEmailId,
+        provider: 'RESEND',
+      }, 'Failed to send email via provider');
 
       throw error; // Re-throw para o worker lidar com a estratégia de retry
     }

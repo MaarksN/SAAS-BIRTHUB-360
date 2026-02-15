@@ -1,6 +1,5 @@
-import { faker } from '@faker-js/faker';
-
 import { prisma } from '../libs/core/src/prisma';
+import { faker } from '@faker-js/faker';
 
 async function main() {
   console.log('🌱 Starting stress seed...');
@@ -50,9 +49,7 @@ async function main() {
     await prisma.lead.createMany({
       data: batch,
     });
-    console.log(
-      `Inserted batch ${i / batchSize + 1}/${leadsData.length / batchSize}`,
-    );
+    console.log(`Inserted batch ${i / batchSize + 1}/${leadsData.length / batchSize}`);
   }
 
   // 4. Create Cadences (Campaigns)

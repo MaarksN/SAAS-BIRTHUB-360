@@ -1,7 +1,6 @@
-import Redis from 'ioredis';
-
-import { env } from './env';
 import { logger } from './logger';
+import Redis from 'ioredis';
+import { env } from './env';
 import { prisma } from './prisma';
 
 // Use Redis from env, or default to localhost
@@ -12,10 +11,7 @@ export const guard = {
    * Checks if the user has exceeded the rate limit for the given action.
    * Uses Redis for distributed rate limiting.
    */
-  checkRateLimit: async (
-    actionType: string,
-    userId: string = 'anonymous',
-  ): Promise<void> => {
+  checkRateLimit: async (actionType: string, userId: string = 'anonymous'): Promise<void> => {
     let limit = 100;
     const window = 60; // 1 minute
 
@@ -31,12 +27,8 @@ export const guard = {
     }
 
     if (current > limit) {
-      logger.warn(
-        `Rate limit exceeded for user ${userId} on action ${actionType}`,
-      );
-      throw new Error(
-        `Rate limit exceeded for ${actionType}. Please try again later.`,
-      );
+      logger.warn(`Rate limit exceeded for user ${userId} on action ${actionType}`);
+      throw new Error(`Rate limit exceeded for ${actionType}. Please try again later.`);
     }
   },
 
@@ -44,14 +36,10 @@ export const guard = {
    * Checks if the organization has exceeded its plan limits.
    * Fetches the plan via organizationId -> plan -> limits.
    */
-  checkPlanLimit: async (
-    organizationId: string,
-    resource: 'max_leads' | 'ai_tokens',
-    amountToConsume: number = 1,
-  ): Promise<void> => {
+  checkPlanLimit: async (organizationId: string, resource: 'max_leads' | 'ai_tokens', amountToConsume: number = 1): Promise<void> => {
     // 1. Get Plan Limits (Cache in Redis for 5 mins to reduce DB load)
     const planKey = `org:plan:${organizationId}`;
-    const limitsStr = await redis.get(planKey);
+    let limitsStr = await redis.get(planKey);
     let limits: any;
 
     if (!limitsStr) {
@@ -63,7 +51,7 @@ export const guard = {
       if (!org || !org.plan) {
         // Fallback or throw? Ideally throw if no plan assigned.
         // For now, assume a default limit or throw "No Active Plan"
-        throw new Error('No active subscription plan found.');
+        throw new Error("No active subscription plan found.");
       }
 
       limits = org.plan.limits;
@@ -87,14 +75,12 @@ export const guard = {
     const currentUsage = await redis.incrby(usageKey, amountToConsume);
     // Set expiry if new key (e.g. 40 days just to be safe)
     if (currentUsage === amountToConsume) {
-      await redis.expire(usageKey, 60 * 60 * 24 * 40);
+        await redis.expire(usageKey, 60 * 60 * 24 * 40);
     }
 
     if (currentUsage > limit) {
-      logger.warn(
-        `Plan limit exceeded for org ${organizationId} on ${resource}. Used: ${currentUsage}, Limit: ${limit}`,
-      );
-      throw new Error(`Plan limit reached for ${resource}. Please upgrade.`);
+        logger.warn(`Plan limit exceeded for org ${organizationId} on ${resource}. Used: ${currentUsage}, Limit: ${limit}`);
+        throw new Error(`Plan limit reached for ${resource}. Please upgrade.`);
     }
   },
 
@@ -102,11 +88,7 @@ export const guard = {
    * Checks if the user has enough budget/quota for the action.
    * Tracks usage against daily/monthly limits.
    */
-  checkCost: async (
-    actionType: string,
-    userId: string = 'anonymous',
-    estimatedCost: number = 1,
-  ): Promise<void> => {
+  checkCost: async (actionType: string, userId: string = 'anonymous', estimatedCost: number = 1): Promise<void> => {
     // Hard limit per user per day (mock currency units)
     const DAILY_LIMIT = 1000;
 
@@ -118,9 +100,7 @@ export const guard = {
     const current = currentStr ? parseFloat(currentStr) : 0;
 
     if (current + estimatedCost > DAILY_LIMIT) {
-      logger.warn(
-        `Cost limit exceeded for user ${userId} on action ${actionType}. Current: ${current}, Limit: ${DAILY_LIMIT}`,
-      );
+      logger.warn(`Cost limit exceeded for user ${userId} on action ${actionType}. Current: ${current}, Limit: ${DAILY_LIMIT}`);
       throw new Error(`Daily cost limit reached for this account.`);
     }
 
@@ -128,7 +108,7 @@ export const guard = {
     await redis.incrbyfloat(key, estimatedCost);
     // Set expiry for 24 hours
     if (current === 0) {
-      await redis.expire(key, 86400);
+        await redis.expire(key, 86400);
     }
-  },
+  }
 };

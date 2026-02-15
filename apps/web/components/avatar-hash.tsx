@@ -18,7 +18,7 @@ interface AvatarHashProps {
 export const AvatarHash = ({ name, className }: AvatarHashProps) => {
   return (
     <div
-      className={`flex size-10 items-center justify-center rounded-full font-bold text-white shadow-sm ${className || ''}`}
+      className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-sm ${className || ''}`}
       style={{ backgroundColor: stringToColor(name) }}
     >
       {name.charAt(0).toUpperCase()}

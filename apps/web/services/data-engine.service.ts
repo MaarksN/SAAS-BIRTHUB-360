@@ -6,12 +6,12 @@ export class DataEngineService {
 
   // 102. Dark Social Tracking
   async trackDarkSocial(brand: string): Promise<string> {
-    return 'Detected 450 mentions in private Slack communities and WhatsApp groups.';
+    return "Detected 450 mentions in private Slack communities and WhatsApp groups.";
   }
 
   // 103. Intent Data Aggregation
   async aggregateIntent(domain: string): Promise<string> {
-    return 'High Intent: Visiting pricing page, reading comparison reviews on G2.';
+    return "High Intent: Visiting pricing page, reading comparison reviews on G2.";
   }
 
   // 104. Lead Scoring v2 (Behavioral + Firmographic + Intent)
@@ -36,7 +36,7 @@ export class DataEngineService {
 
   // 108. Job Posting Intent Analysis
   async analyzeJobs(company: string): Promise<string> {
-    return 'Hiring 5 React Developers -> Signal: Building new frontend product.';
+    return "Hiring 5 React Developers -> Signal: Building new frontend product.";
   }
 
   // 109. SEC Filing/Earnings Call Analyzer
@@ -46,52 +46,52 @@ export class DataEngineService {
 
   // 110. Website De-anonymization
   async identifyVisitor(ip: string): Promise<string> {
-    return 'Visitor IP belongs to: Microsoft Corporation.';
+    return "Visitor IP belongs to: Microsoft Corporation.";
   }
 
   // 111. Lookalike Audience Builder
   async buildLookalikes(bestCustomers: string[]): Promise<string[]> {
-    return ['Company A', 'Company B', 'Company C (98% match)'];
+    return ["Company A", "Company B", "Company C (98% match)"];
   }
 
   // 112. Contact Data Enrichment Cascade
   async waterfallEnrich(email: string): Promise<any> {
-    return { phone: '+1...', linkedin: '...', twitter: '...' };
+    return { phone: "+1...", linkedin: "...", twitter: "..." };
   }
 
   // 113. Org Chart Synthesis
   async synthesizeOrgChart(company: string): Promise<string> {
-    return 'Generated Org Chart: Reporting lines inferred from public data.';
+    return "Generated Org Chart: Reporting lines inferred from public data.";
   }
 
   // 114. Past Customer Tracking (Job Changes)
   async trackAlumni(company: string): Promise<string[]> {
-    return ['User X moved from Client Y to Prospect Z. Champion Alert!'];
+    return ["User X moved from Client Y to Prospect Z. Champion Alert!"];
   }
 
   // 115. Conference/Event Attendee Prediction
   async predictAttendees(event: string): Promise<string[]> {
-    return ['Likely attending: CTO of Target Acc 1, VP of Target Acc 2.'];
+    return ["Likely attending: CTO of Target Acc 1, VP of Target Acc 2."];
   }
 
   // 116. News Sentiment Sentiment
   async scoreNewsSentiment(company: string): Promise<string> {
-    return 'Negative sentiment detected: Recent data breach news.';
+    return "Negative sentiment detected: Recent data breach news.";
   }
 
   // 117. Influencer Network Mapping
   async mapInfluencers(industry: string): Promise<string[]> {
-    return ['Key Voice: Jane Doe (50k followers). She influences your buyers.'];
+    return ["Key Voice: Jane Doe (50k followers). She influences your buyers."];
   }
 
   // 118. Funding Round Prediction
   async predictFunding(company: string): Promise<string> {
-    return 'Prediction: Series C in Q3 2026 based on hiring velocity.';
+    return "Prediction: Series C in Q3 2026 based on hiring velocity.";
   }
 
   // 119. Website Tech Debt Scorer
   async scoreTechDebt(domain: string): Promise<string> {
-    return 'Low performance score. Using outdated jQuery. Good target for modernization.';
+    return "Low performance score. Using outdated jQuery. Good target for modernization.";
   }
 
   // 120. B2B Intent Keyword Clustering

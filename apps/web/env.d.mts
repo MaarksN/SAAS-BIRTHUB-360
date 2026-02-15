@@ -1,8 +1,8 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 const server = z.object({
   DATABASE_URL: z.string().url(),
-  NODE_ENV: z.enum(['development', 'test', 'production']),
+  NODE_ENV: z.enum(["development", "test", "production"]),
   NEXTAUTH_SECRET: z.string().min(1).optional(),
   NEXTAUTH_URL: z.string().optional(),
   ADMIN_EMAIL: z.string().email().optional(),

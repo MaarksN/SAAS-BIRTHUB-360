@@ -1,9 +1,7 @@
 import jwt from 'jsonwebtoken';
-
 import { env } from '../env';
 
-const INVITE_SECRET =
-  process.env.JWT_SECRET || env.STRIPE_SECRET_KEY || 'default-secret-for-dev';
+const INVITE_SECRET = process.env.JWT_SECRET || env.STRIPE_SECRET_KEY || 'default-secret-for-dev';
 
 export interface InvitePayload {
   email: string;

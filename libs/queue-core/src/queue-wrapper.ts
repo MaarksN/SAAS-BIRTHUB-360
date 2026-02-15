@@ -1,20 +1,22 @@
-import { env, logger, RequestContext, runWithContext } from '@salesos/core';
-import { Processor, Queue, QueueOptions, Worker, WorkerOptions } from 'bullmq';
-import * as crypto from 'crypto';
+import { Queue, Worker, QueueOptions, WorkerOptions, Processor } from 'bullmq';
+import { logger, env, runWithContext, RequestContext } from '@salesos/core';
 import IORedis from 'ioredis';
+import * as crypto from 'crypto';
 
 const workers = new Set<Worker>();
 
 const createConnection = () => {
   return new IORedis(env.REDIS_URL, {
-    maxRetriesPerRequest: null,
+    maxRetriesPerRequest: null
   });
 };
 
 const attachSignalListeners = () => {
   const signalHandler = async (signal: string) => {
     logger.info(`Received ${signal}, closing workers...`);
-    await Promise.all(Array.from(workers).map((worker) => worker.close()));
+    await Promise.all(
+      Array.from(workers).map((worker) => worker.close())
+    );
     logger.info('All workers closed');
     process.exit(0);
   };
@@ -23,10 +25,7 @@ const attachSignalListeners = () => {
   process.once('SIGINT', () => signalHandler('SIGINT'));
 };
 
-export const createQueue = <T>(
-  name: string,
-  options?: Partial<QueueOptions>,
-) => {
+export const createQueue = <T>(name: string, options?: Partial<QueueOptions>) => {
   return new Queue<T>(name, {
     connection: createConnection() as any,
     defaultJobOptions: {
@@ -35,18 +34,18 @@ export const createQueue = <T>(
       attempts: 5,
       backoff: {
         type: 'exponential',
-        delay: 2000,
+        delay: 2000
       },
-      ...options?.defaultJobOptions,
+      ...options?.defaultJobOptions
     },
-    ...options,
+    ...options
   });
 };
 
 export const createWorker = <T = any>(
   name: string,
   processor: Processor<T>,
-  options?: Partial<WorkerOptions>,
+  options?: Partial<WorkerOptions>
 ) => {
   const worker = new Worker<T>(
     name,
@@ -55,7 +54,7 @@ export const createWorker = <T = any>(
       const context: Partial<RequestContext> = {
         requestId: job.id || crypto.randomUUID(),
         userId: (job.data as any)?.userId,
-        organizationId: (job.data as any)?.organizationId,
+        organizationId: (job.data as any)?.organizationId
       };
 
       // Executar processor dentro do contexto
@@ -83,14 +82,14 @@ export const createWorker = <T = any>(
     {
       connection: createConnection() as any,
       concurrency: options?.concurrency || 1,
-      ...options,
-    },
+      ...options
+    }
   );
 
   worker.on('failed', (job, err) => {
     logger.error(
       { jobId: job?.id, queue: name, error: err },
-      'Job failed permanently',
+      'Job failed permanently'
     );
   });
 

@@ -20,8 +20,6 @@ export class CleanRoomService {
   // Helper to hash emails (SHA-256)
   static hashEmail(email: string): string {
     const { createHash } = require('crypto');
-    return createHash('sha256')
-      .update(email.trim().toLowerCase())
-      .digest('hex');
+    return createHash('sha256').update(email.trim().toLowerCase()).digest('hex');
   }
 }

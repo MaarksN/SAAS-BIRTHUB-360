@@ -1,6 +1,6 @@
-import { logger } from '../logger';
 import { prisma } from '../prisma';
 import { redis } from '../redis';
+import { logger } from '../logger';
 
 const CACHE_TTL = 300; // 5 minutes
 
@@ -14,10 +14,7 @@ export class FeatureFlagService {
    * Checks if a feature flag is enabled for the given context.
    * Uses Redis caching (L1) and DB (L2).
    */
-  static async isEnabled(
-    key: string,
-    context: FeatureFlagContext = {},
-  ): Promise<boolean> {
+  static async isEnabled(key: string, context: FeatureFlagContext = {}): Promise<boolean> {
     try {
       // 1. Check Cache
       const cacheKey = `feature_flag:${key}`;
@@ -29,7 +26,7 @@ export class FeatureFlagService {
       } else {
         // 2. Fetch from DB
         flag = await prisma.featureFlag.findUnique({
-          where: { key },
+          where: { key }
         });
 
         if (flag) {
@@ -78,6 +75,7 @@ export class FeatureFlagService {
       }
 
       return false;
+
     } catch (error) {
       logger.error({ error, key, context }, 'Error evaluating feature flag');
       // Fail closed (safe)
@@ -89,7 +87,7 @@ export class FeatureFlagService {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = (hash << 5) - hash + char;
+      hash = ((hash << 5) - hash) + char;
       hash = hash & hash; // Convert to 32bit integer
     }
     return Math.abs(hash);

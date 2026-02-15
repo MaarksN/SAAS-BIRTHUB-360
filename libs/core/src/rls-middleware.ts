@@ -1,5 +1,4 @@
 import { Prisma } from '@birthhub/database';
-
 import { getOrganizationId } from './context';
 
 /**
@@ -16,7 +15,7 @@ const RLS_MODELS = [
   'AuditLog',
   'UsageLog',
   'CreditTransaction',
-  'EmailThread',
+  'EmailThread'
 ];
 
 /**
@@ -25,7 +24,7 @@ const RLS_MODELS = [
  */
 export function rlsMiddleware(
   params: Prisma.MiddlewareParams,
-  next: (params: Prisma.MiddlewareParams) => Promise<any>,
+  next: (params: Prisma.MiddlewareParams) => Promise<any>
 ) {
   // Só aplica em models com RLS
   if (!RLS_MODELS.includes(params.model || '')) {
@@ -43,9 +42,9 @@ export function rlsMiddleware(
 
   // Helper para verificar bypass explícito
   if (shouldBypassRLS(params.args)) {
-    // Remove a flag antes de enviar para o banco
-    delete params.args.__bypassRLS;
-    return next(params);
+      // Remove a flag antes de enviar para o banco
+      delete params.args.__bypassRLS;
+      return next(params);
   }
 
   // Injeta organizationId em queries de leitura
@@ -65,7 +64,10 @@ export function rlsMiddleware(
     if (params.args.where) {
       // Se já existe um where, faz merge
       params.args.where = {
-        AND: [{ organizationId }, params.args.where],
+        AND: [
+          { organizationId },
+          params.args.where
+        ]
       };
     } else {
       params.args.where = { organizationId };
@@ -94,7 +96,7 @@ export function rlsMiddleware(
     if (Array.isArray(params.args.data)) {
       params.args.data = params.args.data.map((item: any) => ({
         ...item,
-        organizationId,
+        organizationId
       }));
     } else if (params.args.data) {
       params.args.data.organizationId = organizationId;
@@ -109,7 +111,10 @@ export function rlsMiddleware(
 
     if (params.args.where) {
       params.args.where = {
-        AND: [{ organizationId }, params.args.where],
+        AND: [
+          { organizationId },
+          params.args.where
+        ]
       };
     } else {
       params.args.where = { organizationId };
@@ -123,7 +128,10 @@ export function rlsMiddleware(
 
     if (params.args.where) {
       params.args.where = {
-        AND: [{ organizationId }, params.args.where],
+        AND: [
+          { organizationId },
+          params.args.where
+        ]
       };
     } else {
       params.args.where = { organizationId };
@@ -139,12 +147,10 @@ export function rlsMiddleware(
  *
  * USO RESTRITO - APENAS PARA OPERAÇÕES DE SISTEMA
  */
-export function bypassRLS<T extends Record<string, any>>(
-  args?: T,
-): T & { __bypassRLS: true } {
+export function bypassRLS<T extends Record<string, any>>(args?: T): T & { __bypassRLS: true } {
   return {
     ...args,
-    __bypassRLS: true as const,
+    __bypassRLS: true as true
   } as T & { __bypassRLS: true };
 }
 

@@ -16,8 +16,8 @@ export class ProspectorActions {
       metadata: {
         cnpj: enrichedLead.cnpj,
         foundedDate: enrichedLead.foundedDate,
-        originalAddress: enrichedLead.address,
-      },
+        originalAddress: enrichedLead.address
+      }
     };
   }
 }

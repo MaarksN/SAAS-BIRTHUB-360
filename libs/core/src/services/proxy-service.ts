@@ -22,6 +22,6 @@ export class ProxyService {
   }
 
   static removeProxy(proxy: string) {
-    this.proxies = this.proxies.filter((p) => p !== proxy);
+    this.proxies = this.proxies.filter(p => p !== proxy);
   }
 }

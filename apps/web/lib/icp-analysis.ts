@@ -6,7 +6,7 @@ export const icpAnalysis = {
     return {
       recommendedIndustries: ['Fintech', 'Healthcare'],
       recommendedRoles: ['CTO', 'VP Engineering'],
-      confidenceScore: 0.89,
+      confidenceScore: 0.89
     };
-  },
+  }
 };

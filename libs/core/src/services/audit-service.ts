@@ -23,12 +23,10 @@ export class AuditService {
         organizationId: data.organizationId,
         metadata: data.metadata || {},
         ipAddress: data.ipAddress,
-        userAgent: data.userAgent,
-      },
+        userAgent: data.userAgent
+      }
     });
-    console.log(
-      `[Audit] ${data.action} on ${data.resource} by ${data.actorId}`,
-    );
+    console.log(`[Audit] ${data.action} on ${data.resource} by ${data.actorId}`);
   }
 
   async getLogs(organizationId: string, limit: number = 100) {
@@ -36,7 +34,7 @@ export class AuditService {
       where: { organizationId },
       orderBy: { createdAt: 'desc' },
       take: limit,
-      include: { actor: { select: { name: true, email: true } } },
+      include: { actor: { select: { name: true, email: true } } }
     });
   }
 }

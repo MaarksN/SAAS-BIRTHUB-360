@@ -1,9 +1,8 @@
-import { logger } from '@salesos/core';
-import * as cheerio from 'cheerio';
-import { Browser, Page } from 'puppeteer';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-
+import { Browser, Page } from 'puppeteer';
+import * as cheerio from 'cheerio';
+import { logger } from '@salesos/core';
 import { ProxyManager } from './proxy-manager';
 
 puppeteer.use(StealthPlugin());
@@ -41,17 +40,15 @@ export class ScraperEngine {
     // Proxy handling would go here (e.g. page.authenticate if using proxy with auth)
     const proxy = this.proxyManager.getNextProxy();
     if (proxy) {
-      // Setup proxy (simplified)
-      logger.info({ url, proxy }, 'Using proxy');
+       // Setup proxy (simplified)
+       logger.info({ url, proxy }, 'Using proxy');
     }
 
     // Resource Blocking
     await page.setRequestInterception(true);
     page.on('request', (req) => {
       const resourceType = req.resourceType();
-      if (
-        ['image', 'media', 'font', 'stylesheet', 'other'].includes(resourceType)
-      ) {
+      if (['image', 'media', 'font', 'stylesheet', 'other'].includes(resourceType)) {
         req.abort();
       } else {
         req.continue();

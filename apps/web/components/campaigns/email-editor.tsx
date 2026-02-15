@@ -1,7 +1,7 @@
 'use client';
 
+import { useState, useRef } from 'react';
 import { Button } from '@salesos/ui';
-import { useRef, useState } from 'react';
 
 interface EmailEditorProps {
   value: string;
@@ -9,19 +9,9 @@ interface EmailEditorProps {
   variables?: string[];
 }
 
-const DEFAULT_VARIABLES = [
-  'firstName',
-  'lastName',
-  'companyName',
-  'role',
-  'email',
-];
+const DEFAULT_VARIABLES = ['firstName', 'lastName', 'companyName', 'role', 'email'];
 
-export function EmailEditor({
-  value,
-  onChange,
-  variables = DEFAULT_VARIABLES,
-}: EmailEditorProps) {
+export function EmailEditor({ value, onChange, variables = DEFAULT_VARIABLES }: EmailEditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const insertVariable = (variable: string) => {
@@ -41,26 +31,21 @@ export function EmailEditor({
     // Restore focus and move cursor
     setTimeout(() => {
       textarea.focus();
-      textarea.setSelectionRange(
-        start + insertion.length,
-        start + insertion.length,
-      );
+      textarea.setSelectionRange(start + insertion.length, start + insertion.length);
     }, 0);
   };
 
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-700 bg-slate-900">
+    <div className="border border-slate-700 rounded-lg overflow-hidden bg-slate-900">
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-slate-700 bg-slate-800 p-2">
-        <span className="mr-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
-          Variables:
-        </span>
+      <div className="flex flex-wrap gap-2 p-2 bg-slate-800 border-b border-slate-700 items-center">
+        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider mr-2">Variables:</span>
         {variables.map((v) => (
           <button
             key={v}
             type="button"
             onClick={() => insertVariable(v)}
-            className="rounded border border-indigo-700/50 bg-indigo-900/50 px-2 py-1 text-xs font-medium text-indigo-200 transition-colors hover:bg-indigo-800"
+            className="px-2 py-1 text-xs font-medium bg-indigo-900/50 text-indigo-200 border border-indigo-700/50 rounded hover:bg-indigo-800 transition-colors"
           >
             {`{${v}}`}
           </button>
@@ -72,12 +57,12 @@ export function EmailEditor({
         ref={textareaRef}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="h-80 w-full resize-y bg-slate-900 p-4 font-mono text-sm text-slate-200 focus:outline-none"
+        className="w-full h-80 p-4 bg-slate-900 text-slate-200 font-mono text-sm focus:outline-none resize-y"
         placeholder="Hi {{firstName}}, I saw that {{companyName}} is growing..."
       />
 
       {/* Footer / Stats */}
-      <div className="flex justify-between border-t border-slate-700 bg-slate-800/50 px-4 py-2 text-xs text-slate-500">
+      <div className="flex justify-between px-4 py-2 bg-slate-800/50 text-xs text-slate-500 border-t border-slate-700">
         <span>Markdown Supported</span>
         <span>{value.length} characters</span>
       </div>

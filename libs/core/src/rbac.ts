@@ -75,7 +75,12 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     'lead:update',
     'lead:view',
   ],
-  VIEWER: ['user:view', 'campaign:view', 'lead:view', 'billing:view'],
+  VIEWER: [
+    'user:view',
+    'campaign:view',
+    'lead:view',
+    'billing:view',
+  ],
 };
 
 export function hasPermission(user: User, permission: Permission): boolean {
@@ -92,11 +97,11 @@ export function assertPermission(user: User, permission: Permission): void {
 
 // Legacy Role Hierarchy (Deprecated but kept for backward compatibility)
 export const ROLE_HIERARCHY: Record<Role, number> = {
-  OWNER: 4,
-  ADMIN: 3,
-  MANAGER: 2,
-  MEMBER: 1,
-  VIEWER: 0,
+  'OWNER': 4,
+  'ADMIN': 3,
+  'MANAGER': 2,
+  'MEMBER': 1,
+  'VIEWER': 0
 };
 
 export function hasRole(user: User, requiredRole: Role): boolean {

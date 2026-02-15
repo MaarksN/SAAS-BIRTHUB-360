@@ -1,6 +1,6 @@
-import { FlowProducer, Job, Worker } from 'bullmq';
-import { EventEmitter } from 'events';
+import { Worker, Job, FlowProducer } from 'bullmq';
 import Redis from 'ioredis';
+import { EventEmitter } from 'events';
 
 const WORKFLOW_QUEUE_NAME = 'workflows';
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
@@ -17,7 +17,7 @@ export class WorkflowEngine extends EventEmitter {
     super();
     // Fix: Use new Redis() instance for BullMQ connection
     const connection = new Redis(REDIS_URL, {
-      maxRetriesPerRequest: null, // Required by BullMQ
+        maxRetriesPerRequest: null // Required by BullMQ
     }) as any;
 
     this.flowProducer = new FlowProducer({ connection });
@@ -33,28 +33,24 @@ export class WorkflowEngine extends EventEmitter {
       }
     });
 
-    this.worker = new Worker(
-      WORKFLOW_QUEUE_NAME,
-      async (job: Job) => {
-        console.log(`[WorkflowWorker] Processing ${job.name} (ID: ${job.id})`);
+    this.worker = new Worker(WORKFLOW_QUEUE_NAME, async (job: Job) => {
+      console.log(`[WorkflowWorker] Processing ${job.name} (ID: ${job.id})`);
 
-        switch (job.name) {
-          case 'onboarding-flow':
-            console.log('Flow completed!');
-            return { status: 'completed' };
+      switch (job.name) {
+        case 'onboarding-flow':
+          console.log('Flow completed!');
+          return { status: 'completed' };
 
-          case 'crawl-step':
-            return this.handleCrawlStep(job);
+        case 'crawl-step':
+          return this.handleCrawlStep(job);
 
-          case 'email-step':
-            return this.handleEmailStep(job);
+        case 'email-step':
+          return this.handleEmailStep(job);
 
-          default:
-            throw new Error(`Unknown step: ${job.name}`);
-        }
-      },
-      { connection },
-    );
+        default:
+          throw new Error(`Unknown step: ${job.name}`);
+      }
+    }, { connection });
   }
 
   async startOnboardingFlow(leadId: string, url: string) {
@@ -72,9 +68,9 @@ export class WorkflowEngine extends EventEmitter {
         {
           name: 'crawl-step',
           queueName: WORKFLOW_QUEUE_NAME,
-          data: { leadId, url, step: 'crawl' },
-        },
-      ],
+          data: { leadId, url, step: 'crawl' }
+        }
+      ]
     });
 
     console.log(`[WorkflowEngine] Started Onboarding Flow for ${leadId}`);
@@ -88,13 +84,10 @@ export class WorkflowEngine extends EventEmitter {
       type: 'crawl',
       payload: { url }, // Matches CrawlJobPayload
       timestamp: Date.now(),
-      retryCount: 0,
+      retryCount: 0
     };
 
-    await this.redisPublisher.rpush(
-      PYTHON_QUEUE_NAME,
-      JSON.stringify(pythonJob),
-    );
+    await this.redisPublisher.rpush(PYTHON_QUEUE_NAME, JSON.stringify(pythonJob));
     console.log(`[WorkflowEngine] Dispatched crawl for ${url}`);
 
     // 2. Wait for Completion Signal (The "Saga" part)

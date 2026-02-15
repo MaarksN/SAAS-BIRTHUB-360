@@ -1,6 +1,5 @@
-import { describe, expect, it } from 'vitest';
-
-import { getTenantId, runWithTenant } from './tenant-context';
+import { describe, it, expect } from 'vitest';
+import { runWithTenant, getTenantId } from './tenant-context';
 
 describe('TenantContext', () => {
   it('should propagate tenant ID in async scope', () => {

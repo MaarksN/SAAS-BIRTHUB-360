@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-
+import { useState, useEffect } from 'react';
 import { ABTestingService, Experiment } from '../lib/ab-testing';
 
 export function useABTest(userId: string, experiment: Experiment) {

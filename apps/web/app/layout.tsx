@@ -1,11 +1,9 @@
-import '../styles/globals.css';
-
-import { GlobalErrorBoundary } from '@salesos/ui';
 import { Inter } from 'next/font/google';
-
+import '../styles/globals.css';
 import { Providers } from '../components/providers';
-import { ServiceWorkerRegister } from '../components/ServiceWorkerRegister';
 import { Toaster } from '../components/sonner';
+import { GlobalErrorBoundary } from '@salesos/ui';
+import { ServiceWorkerRegister } from '../components/ServiceWorkerRegister';
 
 const inter = Inter({ subsets: ['latin'], display: 'swap' });
 
@@ -24,7 +22,9 @@ export default function RootLayout({
       <body className={inter.className}>
         <ServiceWorkerRegister />
         <Providers>
-          <GlobalErrorBoundary>{children}</GlobalErrorBoundary>
+          <GlobalErrorBoundary>
+            {children}
+          </GlobalErrorBoundary>
           <Toaster />
         </Providers>
       </body>

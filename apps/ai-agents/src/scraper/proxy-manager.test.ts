@@ -1,5 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ProxyManager } from './proxy-manager';
 
 describe('ProxyManager', () => {

@@ -1,5 +1,5 @@
+import { Readable, Transform, PassThrough } from 'stream';
 import { stringify } from 'csv-stringify';
-import { PassThrough, Readable, Transform } from 'stream';
 import { createGzip } from 'zlib';
 
 export interface ExportConfig {
@@ -9,10 +9,7 @@ export interface ExportConfig {
 }
 
 export class ExportService {
-  constructor(
-    private db: any,
-    private s3: any,
-  ) {}
+  constructor(private db: any, private s3: any) {}
 
   async exportData(config: ExportConfig): Promise<string> {
     console.log('Starting export job...');
@@ -23,11 +20,7 @@ export class ExportService {
       read() {
         // Mock data generation
         for (let i = 0; i < 1000; i++) {
-          this.push({
-            id: i,
-            name: `Lead ${i}`,
-            email: `lead${i}@example.com`,
-          });
+          this.push({ id: i, name: `Lead ${i}`, email: `lead${i}@example.com` });
         }
         this.push(null);
       },

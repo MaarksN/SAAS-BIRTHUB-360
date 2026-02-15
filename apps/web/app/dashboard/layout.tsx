@@ -1,8 +1,7 @@
 import React from 'react';
-
+import { SDRSidebar } from '../../components/sdr-sidebar';
 import { ApiKeyManager } from '../../components/api-key-manager';
 import { OnboardingTour } from '../../components/OnboardingTour';
-import { SDRSidebar } from '../../components/sdr-sidebar';
 
 export default function DashboardLayout({
   children,
@@ -12,14 +11,14 @@ export default function DashboardLayout({
   return (
     <div className="flex min-h-screen bg-slate-50">
       <SDRSidebar />
-      <main className="max-h-screen flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-7xl p-8">
-          <div className="mb-8 flex justify-end">
-            <div className="w-full max-w-sm">
-              <ApiKeyManager />
+      <main className="flex-1 overflow-y-auto max-h-screen">
+        <div className="max-w-7xl mx-auto px-8 py-8">
+            <div className="mb-8 flex justify-end">
+                <div className="w-full max-w-sm">
+                    <ApiKeyManager />
+                </div>
             </div>
-          </div>
-          {children}
+            {children}
         </div>
       </main>
       <OnboardingTour />

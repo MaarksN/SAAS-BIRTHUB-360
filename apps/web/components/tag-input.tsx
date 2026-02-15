@@ -8,11 +8,7 @@ interface TagInputProps {
   placeholder?: string;
 }
 
-export function TagInput({
-  tags,
-  onChange,
-  placeholder = 'Add tag...',
-}: TagInputProps) {
+export function TagInput({ tags, onChange, placeholder = "Add tag..." }: TagInputProps) {
   const [tagInput, setTagInput] = useState('');
 
   const handleTagKeyDown = (e: React.KeyboardEvent) => {
@@ -28,25 +24,16 @@ export function TagInput({
   };
 
   const removeTag = (tagToRemove: string) => {
-    onChange(tags.filter((tag) => tag !== tagToRemove));
+    onChange(tags.filter(tag => tag !== tagToRemove));
   };
 
   return (
     <div>
-      <div className="mb-2 flex flex-wrap gap-2">
-        {tags.map((tag) => (
-          <span
-            key={tag}
-            className="flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-1 text-xs font-bold text-indigo-800"
-          >
+      <div className="flex flex-wrap gap-2 mb-2">
+        {tags.map(tag => (
+          <span key={tag} className="bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1">
             #{tag}
-            <button
-              type="button"
-              onClick={() => removeTag(tag)}
-              className="hover:text-red-500"
-            >
-              ×
-            </button>
+            <button type="button" onClick={() => removeTag(tag)} className="hover:text-red-500">×</button>
           </span>
         ))}
       </div>

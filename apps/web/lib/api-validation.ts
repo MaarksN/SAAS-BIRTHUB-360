@@ -1,6 +1,6 @@
+import { z } from 'zod';
 import { BaseResponseSchema, ErrorResponseSchema } from '@salesos/core';
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
 
 export class ApiError extends Error {
   code: string;
@@ -14,20 +14,13 @@ export class ApiError extends Error {
   }
 }
 
-export async function validateApiResponse<T>(
-  response: Response,
-  schema: z.ZodSchema<T>,
-): Promise<T> {
+export async function validateApiResponse<T>(response: Response, schema: z.ZodSchema<T>): Promise<T> {
   const data = await response.json();
 
   // First check if it's an error response
   const errorResult = ErrorResponseSchema.safeParse(data);
   if (errorResult.success) {
-    throw new ApiError(
-      errorResult.data.error,
-      errorResult.data.error_code,
-      errorResult.data.details,
-    );
+      throw new ApiError(errorResult.data.error, errorResult.data.error_code, errorResult.data.details);
   }
 
   // Then validate against expected schema
@@ -44,41 +37,32 @@ export async function validateApiResponse<T>(
 }
 
 export function handleApiError(error: unknown) {
-  console.error('API Error:', error);
+    console.error('API Error:', error);
 
-  if (error instanceof ApiError) {
-    return NextResponse.json(
-      {
+    if (error instanceof ApiError) {
+        return NextResponse.json({
+            success: false,
+            error: error.message,
+            error_code: error.code,
+            details: error.details,
+            timestamp: new Date().toISOString()
+        }, { status: 400 });
+    }
+
+    if (error instanceof z.ZodError) {
+        return NextResponse.json({
+            success: false,
+            error: 'Validation Error',
+            error_code: 'VALIDATION_ERROR',
+            details: error.errors,
+            timestamp: new Date().toISOString()
+        }, { status: 400 });
+    }
+
+    return NextResponse.json({
         success: false,
-        error: error.message,
-        error_code: error.code,
-        details: error.details,
-        timestamp: new Date().toISOString(),
-      },
-      { status: 400 },
-    );
-  }
-
-  if (error instanceof z.ZodError) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Validation Error',
-        error_code: 'VALIDATION_ERROR',
-        details: error.errors,
-        timestamp: new Date().toISOString(),
-      },
-      { status: 400 },
-    );
-  }
-
-  return NextResponse.json(
-    {
-      success: false,
-      error: 'Internal Server Error',
-      error_code: 'INTERNAL_ERROR',
-      timestamp: new Date().toISOString(),
-    },
-    { status: 500 },
-  );
+        error: 'Internal Server Error',
+        error_code: 'INTERNAL_ERROR',
+        timestamp: new Date().toISOString()
+    }, { status: 500 });
 }

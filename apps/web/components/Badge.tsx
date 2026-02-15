@@ -1,4 +1,4 @@
-import * as React from 'react';
+import * as React from "react";
 
 interface BadgeProps {
   label: string;
@@ -6,11 +6,7 @@ interface BadgeProps {
   className?: string;
 }
 
-export const Badge: React.FC<BadgeProps> = ({
-  label,
-  color = 'blue',
-  className,
-}) => {
+export const Badge: React.FC<BadgeProps> = ({ label, color = 'blue', className }) => {
   const colors = {
     blue: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
     green: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
@@ -21,9 +17,7 @@ export const Badge: React.FC<BadgeProps> = ({
   };
 
   return (
-    <span
-      className={`rounded border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${colors[color]} ${className || ''}`}
-    >
+    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${colors[color]} ${className || ""}`}>
       {label}
     </span>
   );

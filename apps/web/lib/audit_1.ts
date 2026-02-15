@@ -12,9 +12,9 @@ export class AuditService {
     const logEntry: AuditLogEntry = {
       ...entry,
       id: Math.random().toString(36).substring(7),
-      timestamp: new Date(),
+      timestamp: new Date()
     };
-    console.log('AUDIT LOG:', JSON.stringify(logEntry));
+    console.log("AUDIT LOG:", JSON.stringify(logEntry));
     // Implementation would write to immutable storage
   }
 

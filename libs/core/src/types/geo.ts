@@ -18,10 +18,5 @@ export interface LocalBusiness {
 }
 
 export interface IGeoProvider {
-  searchPlaces(
-    query: string,
-    lat: number,
-    long: number,
-    radius: number,
-  ): Promise<LocalBusiness[]>;
+  searchPlaces(query: string, lat: number, long: number, radius: number): Promise<LocalBusiness[]>;
 }

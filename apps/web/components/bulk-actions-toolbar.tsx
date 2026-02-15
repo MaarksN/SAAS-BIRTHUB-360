@@ -8,25 +8,21 @@ interface BulkActionsToolbarProps {
   onCancel: () => void;
 }
 
-export function BulkActionsToolbar({
-  selectedCount,
-  onDelete,
-  onCancel,
-}: BulkActionsToolbarProps) {
+export function BulkActionsToolbar({ selectedCount, onDelete, onCancel }: BulkActionsToolbarProps) {
   if (selectedCount === 0) return null;
 
   return (
-    <div className="animate-in slide-in-from-bottom fixed bottom-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-4 rounded-full bg-slate-800 px-6 py-3 text-white shadow-xl">
+    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-xl flex items-center gap-4 animate-in slide-in-from-bottom z-50">
       <span>{selectedCount} selecionados</span>
       <button
         onClick={onDelete}
-        className="font-bold text-red-400 transition-colors hover:text-red-300"
+        className="text-red-400 font-bold hover:text-red-300 transition-colors"
       >
         Excluir
       </button>
       <button
         onClick={onCancel}
-        className="transition-colors hover:text-slate-300"
+        className="hover:text-slate-300 transition-colors"
       >
         Cancelar
       </button>

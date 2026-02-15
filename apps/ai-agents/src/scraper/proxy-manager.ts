@@ -5,10 +5,8 @@ export class ProxyManager {
   constructor(initialProxies: string[] = []) {
     this.proxies = initialProxies;
     if (process.env.PROXY_LIST) {
-      // Priority to env vars
-      this.proxies = process.env.PROXY_LIST.split(',')
-        .map((p) => p.trim())
-        .filter(Boolean);
+        // Priority to env vars
+        this.proxies = process.env.PROXY_LIST.split(',').map(p => p.trim()).filter(Boolean);
     }
   }
 

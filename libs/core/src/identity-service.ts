@@ -1,5 +1,5 @@
-import { logger } from './logger';
 import { prisma } from './prisma';
+import { logger } from './logger';
 
 interface LeadInput {
   email: string;
@@ -24,10 +24,7 @@ export const processLeadIngestion = async (input: LeadInput) => {
   });
 
   if (existingLead) {
-    logger.info(
-      { leadId: existingLead.id },
-      'Lead exists, performing smart merge',
-    );
+    logger.info({ leadId: existingLead.id }, 'Lead exists, performing smart merge');
 
     // 2. Smart Merge (Enrichment in-place)
     // Only update fields that are null/empty in existing record
@@ -35,10 +32,8 @@ export const processLeadIngestion = async (input: LeadInput) => {
 
     if (!existingLead.name && input.name) updateData.name = input.name;
     if (!existingLead.phone && input.phone) updateData.phone = input.phone;
-    if (!existingLead.companyName && input.companyName)
-      updateData.companyName = input.companyName;
-    if (!existingLead.linkedInUrl && input.linkedInUrl)
-      updateData.linkedInUrl = input.linkedInUrl;
+    if (!existingLead.companyName && input.companyName) updateData.companyName = input.companyName;
+    if (!existingLead.linkedInUrl && input.linkedInUrl) updateData.linkedInUrl = input.linkedInUrl;
 
     // If we have updates, perform update
     if (Object.keys(updateData).length > 0) {

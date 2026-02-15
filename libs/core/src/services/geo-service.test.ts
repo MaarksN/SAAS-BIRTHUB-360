@@ -1,5 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
-
+import { describe, it, expect, vi } from 'vitest';
 import { GeoService } from './geo-service';
 
 describe('GeoService', () => {
@@ -8,7 +7,7 @@ describe('GeoService', () => {
       redisUrl: 'redis://localhost:6379',
       googleMapsKey: 'test',
       serpApiKey: 'test',
-      db: { query: vi.fn().mockResolvedValue([]) },
+      db: { query: vi.fn().mockResolvedValue([]) }
     });
     expect(service).toBeDefined();
   });

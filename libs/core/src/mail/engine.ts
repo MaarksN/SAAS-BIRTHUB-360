@@ -1,9 +1,9 @@
-import { logger } from '../logger';
 import { prisma } from '../prisma';
+import { IEmailProvider } from './types';
 import { MockProvider } from './providers/mock-provider';
 import { ResendProvider } from './providers/resend-provider';
 import { injectTracking } from './tracking';
-import { IEmailProvider } from './types';
+import { logger } from '../logger';
 
 // Factory to get provider instance
 function getProvider(type: string, credentials: any): IEmailProvider {
@@ -28,19 +28,15 @@ export class SenderEngine {
     // Ideally we pass context, but here we just need the record.
     const emailTask = await prisma.scheduledEmail.findUnique({
       where: { id: scheduledEmailId },
-      include: { sender: true },
+      include: { sender: true }
     });
 
-    if (!emailTask)
-      throw new Error(`Email task not found: ${scheduledEmailId}`);
+    if (!emailTask) throw new Error(`Email task not found: ${scheduledEmailId}`);
     if (!emailTask.sender) throw new Error('No sender account assigned');
 
     try {
       // 2. Prepare Provider
-      const provider = getProvider(
-        emailTask.sender.provider,
-        emailTask.sender.credentials,
-      );
+      const provider = getProvider(emailTask.sender.provider, emailTask.sender.credentials);
 
       // 3. Inject Tracking
       const trackedHtml = injectTracking(emailTask.body, emailTask.id);
@@ -51,7 +47,7 @@ export class SenderEngine {
         from: emailTask.sender.email,
         subject: emailTask.subject,
         html: trackedHtml,
-        trackingId: emailTask.id,
+        trackingId: emailTask.id
       });
 
       // 5. Update Status
@@ -61,21 +57,19 @@ export class SenderEngine {
           status: 'SENT',
           sentAt: new Date(),
           // Store provider ID if needed in metadata
-        },
+        }
       });
 
       // 6. Update Usage (Sender Daily Limit)
       await prisma.emailAccount.update({
         where: { id: emailTask.senderId! },
         data: {
-          usedToday: { increment: 1 },
-        },
+          usedToday: { increment: 1 }
+        }
       });
 
-      logger.info(
-        { emailId: emailTask.id, providerId: result.id },
-        'Email sent successfully',
-      );
+      logger.info({ emailId: emailTask.id, providerId: result.id }, 'Email sent successfully');
+
     } catch (error: any) {
       logger.error({ emailId: emailTask.id, error }, 'Failed to send email');
 
@@ -83,8 +77,8 @@ export class SenderEngine {
         where: { id: emailTask.id },
         data: {
           status: 'FAILED',
-          error: error.message,
-        },
+          error: error.message
+        }
       });
 
       // Circuit Breaker logic could go here (if too many failures, pause campaign)

@@ -8,12 +8,8 @@ export class OnboardingService {
   getTour(featureId: string): TourStep[] {
     console.log(`Fetching tour for ${featureId}`);
     return [
-      {
-        target: '#header',
-        title: 'Welcome',
-        content: 'This is your dashboard.',
-      },
-      { target: '#search', title: 'Search', content: 'Find leads here.' },
+      { target: '#header', title: 'Welcome', content: 'This is your dashboard.' },
+      { target: '#search', title: 'Search', content: 'Find leads here.' }
     ];
   }
 
@@ -21,7 +17,7 @@ export class OnboardingService {
 
   // 41. "Aha!" Moment Trigger
   async triggerAhaMoment(userId: string): Promise<string> {
-    return 'User enriched their first lead! Displaying celebration confetti.';
+    return "User enriched their first lead! Displaying celebration confetti.";
   }
 
   // 42. Personalized Welcome Video
@@ -31,10 +27,7 @@ export class OnboardingService {
 
   // 43. Checklist Gamification
   async getChecklist(userId: string): Promise<any> {
-    return {
-      steps: ['Connect LinkedIn', 'Import CSV', 'Send Email'],
-      progress: 33,
-    };
+    return { steps: ["Connect LinkedIn", "Import CSV", "Send Email"], progress: 33 };
   }
 
   // 44. Interactive Tooltips
@@ -54,7 +47,7 @@ export class OnboardingService {
 
   // 47. "Did You Know?" Rotator
   async getTipOfTheDay(): Promise<string> {
-    return 'Did you know? You can sync with Salesforce in 1 click.';
+    return "Did you know? You can sync with Salesforce in 1 click.";
   }
 
   // 48. Contextual Help Chatbot
@@ -64,7 +57,7 @@ export class OnboardingService {
 
   // 49. Implementation Roadmap
   async getRoadmap(userId: string): Promise<string> {
-    return 'Day 1: Setup. Day 7: First Campaign. Day 30: ROI Analysis.';
+    return "Day 1: Setup. Day 7: First Campaign. Day 30: ROI Analysis.";
   }
 
   // 50. Team Invite Viral Loop
@@ -79,22 +72,22 @@ export class OnboardingService {
 
   // 52. "Magic Link" Login
   async sendMagicLink(email: string): Promise<string> {
-    return 'Magic link sent! No password needed.';
+    return "Magic link sent! No password needed.";
   }
 
   // 53. Setup Wizard
   async runWizard(): Promise<string> {
-    return 'Step 1/5: Connecting Calendar...';
+    return "Step 1/5: Connecting Calendar...";
   }
 
   // 54. Integration Auto-Discovery
   async detectIntegrations(email: string): Promise<string[]> {
-    return ['Gmail', 'Slack', 'Salesforce (detected via domain)'];
+    return ["Gmail", "Slack", "Salesforce (detected via domain)"];
   }
 
   // 55. Role-Based Customization
   async customizeUI(role: string): Promise<string> {
-    return role === 'SDR' ? 'Outbound View' : 'Executive View';
+    return role === 'SDR' ? "Outbound View" : "Executive View";
   }
 
   // 56. "First Win" Celebration
@@ -104,7 +97,7 @@ export class OnboardingService {
 
   // 57. Usage Analytics Email
   async sendWeeklyReport(userId: string): Promise<string> {
-    return 'You saved 5 hours this week!';
+    return "You saved 5 hours this week!";
   }
 
   // 58. Nudge Notifications
@@ -114,11 +107,11 @@ export class OnboardingService {
 
   // 59. Academy/Certification Link
   async getCertificationStatus(userId: string): Promise<string> {
-    return 'Certified SalesOS Pro (Level 1)';
+    return "Certified SalesOS Pro (Level 1)";
   }
 
   // 60. Feedback Loop
   async collectFeedback(score: number): Promise<string> {
-    return score > 8 ? 'Ask for G2 Review' : 'Open Support Ticket';
+    return score > 8 ? "Ask for G2 Review" : "Open Support Ticket";
   }
 }

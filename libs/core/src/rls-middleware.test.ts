@@ -1,8 +1,7 @@
+import { describe, it, expect, beforeEach } from 'vitest';
 import { PrismaClient } from '@birthhub/database';
-import { beforeEach, describe, expect, it } from 'vitest';
-
-import { runWithContext } from './context';
 import { rlsMiddleware } from './rls-middleware';
+import { runWithContext } from './context';
 
 describe('RLS Middleware - Security Tests', () => {
   let prisma: PrismaClient;
@@ -19,10 +18,10 @@ describe('RLS Middleware - Security Tests', () => {
       async () => {
         // Tentar buscar lead que pertence à org-b-456
         const lead = await prisma.lead.findUnique({
-          where: { id: 'lead-from-org-b' },
+          where: { id: 'lead-from-org-b' }
         });
         return lead;
-      },
+      }
     );
 
     // Deve retornar null porque o RLS bloqueou
@@ -37,10 +36,10 @@ describe('RLS Middleware - Security Tests', () => {
         return await prisma.lead.create({
           data: {
             email: 'test@example.com',
-            name: 'Test Lead',
-          },
+            name: 'Test Lead'
+          }
         });
-      },
+      }
     );
 
     // O organizationId deve ter sido injetado automaticamente
@@ -52,12 +51,10 @@ describe('RLS Middleware - Security Tests', () => {
       { organizationId: 'org-a-123' },
       async () => {
         return await prisma.lead.findMany();
-      },
+      }
     );
 
     // Todos os leads devem pertencer à org-a-123
-    expect(leads.every((lead) => lead.organizationId === 'org-a-123')).toBe(
-      true,
-    );
+    expect(leads.every(lead => lead.organizationId === 'org-a-123')).toBe(true);
   });
 });

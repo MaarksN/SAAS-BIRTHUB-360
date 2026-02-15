@@ -1,7 +1,7 @@
-import { logger, processLeadIngestion } from '@salesos/core';
-import crypto from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { z } from 'zod';
+import { processLeadIngestion, logger } from '@salesos/core';
 
 const LeadSchema = z.object({
   email: z.string().email(),
@@ -33,20 +33,17 @@ export async function POST(req: NextRequest) {
         const signatureBuffer = Buffer.from(signature);
         const digestBuffer = Buffer.from(digest);
 
-        if (
-          signatureBuffer.length !== digestBuffer.length ||
-          !crypto.timingSafeEqual(signatureBuffer, digestBuffer)
-        ) {
-          logger.warn('Invalid webhook signature');
-          return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (signatureBuffer.length !== digestBuffer.length || !crypto.timingSafeEqual(signatureBuffer, digestBuffer)) {
+             logger.warn('Invalid webhook signature');
+             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
       }
     } else {
-      // Fallback: Check API Key
-      const apiKey = req.headers.get('x-api-key');
-      if (!process.env.API_KEY || apiKey !== process.env.API_KEY) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-      }
+        // Fallback: Check API Key
+        const apiKey = req.headers.get('x-api-key');
+        if (!process.env.API_KEY || apiKey !== process.env.API_KEY) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
     }
 
     // Parse Payload
@@ -54,14 +51,8 @@ export async function POST(req: NextRequest) {
     const result = LeadSchema.safeParse(json);
 
     if (!result.success) {
-      logger.warn(
-        { errors: result.error.flatten() },
-        'Invalid webhook payload',
-      );
-      return NextResponse.json(
-        { error: 'Invalid payload', details: result.error.flatten() },
-        { status: 400 },
-      );
+      logger.warn({ errors: result.error.flatten() }, 'Invalid webhook payload');
+      return NextResponse.json({ error: 'Invalid payload', details: result.error.flatten() }, { status: 400 });
     }
 
     const { data } = result;
@@ -72,9 +63,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
     logger.error({ error }, 'Webhook processing failed');
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

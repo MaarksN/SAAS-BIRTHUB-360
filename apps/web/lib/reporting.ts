@@ -11,7 +11,7 @@ export class ReportingEngine {
     console.log(`Generating report: ${definition.name}`);
     return {
       columns: [...definition.dimensions, ...definition.metrics],
-      data: [],
+      data: []
     };
   }
 }

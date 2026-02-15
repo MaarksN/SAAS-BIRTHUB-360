@@ -1,6 +1,6 @@
 export function CommandPalette({ commands }: { commands: any[] }) {
   return (
-    <div className="rounded border p-4">
+    <div className="p-4 border rounded">
       <h3>Command Palette</h3>
       <ul>
         {commands.map((cmd) => (

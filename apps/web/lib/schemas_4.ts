@@ -20,6 +20,4 @@ export const CNPJEnrichmentResultSchema = z.object({
   }),
 });
 
-export type CNPJEnrichmentResultDto = z.infer<
-  typeof CNPJEnrichmentResultSchema
->;
+export type CNPJEnrichmentResultDto = z.infer<typeof CNPJEnrichmentResultSchema>;

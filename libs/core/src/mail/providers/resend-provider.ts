@@ -1,7 +1,6 @@
 import { Resend } from 'resend';
-
+import { IEmailProvider, EmailMessage, EmailProviderConfig } from '../types';
 import { logger } from '../../logger';
-import { EmailMessage, EmailProviderConfig, IEmailProvider } from '../types';
 
 export class ResendProvider implements IEmailProvider {
   private resend: Resend;
@@ -47,11 +46,7 @@ export class ResendProvider implements IEmailProvider {
     }
   }
 
-  async getQuota(): Promise<{
-    used: number;
-    limit: number;
-    remaining: number;
-  }> {
+  async getQuota(): Promise<{ used: number; limit: number; remaining: number }> {
     // Resend API limits depend on plan. Not easily fetchable via API yet.
     return { used: 0, limit: 100, remaining: 100 }; // Placeholder
   }

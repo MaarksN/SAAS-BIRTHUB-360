@@ -1,11 +1,6 @@
-import { logger } from '@salesos/core';
-
+import { IBuyingCommitteeMap, IEmailValidation, IMessageGeneration } from '../types/bdr';
 import { BuyingCommitteeMapSchema, EmailValidationSchema } from '../schemas';
-import {
-  IBuyingCommitteeMap,
-  IEmailValidation,
-  IMessageGeneration,
-} from '../types/bdr';
+import { logger } from '@salesos/core';
 
 export class BDRService {
   // 1. Mapeamento de Buying Committee
@@ -14,7 +9,9 @@ export class BDRService {
 
     const result = {
       companyId,
-      contacts: [{ name: 'Mock CTO', role: 'CTO', influenceLevel: 'HIGH' }],
+      contacts: [
+        { name: 'Mock CTO', role: 'CTO', influenceLevel: 'HIGH' }
+      ]
     };
 
     // Validate output
@@ -28,14 +25,10 @@ export class BDRService {
   }
 
   // 2. Organograma Visual da Conta
-  async getOrgChart(companyId: string) {
-    return { nodes: [], edges: [] };
-  }
+  async getOrgChart(companyId: string) { return { nodes: [], edges: [] }; }
 
   // 3. Deep Search de Contatos
-  async deepSearch(name: string, company: string) {
-    return { emails: [], phones: [] };
-  }
+  async deepSearch(name: string, company: string) { return { emails: [], phones: [] }; }
 
   // 4. Validação de E-mail Real-time
   async validateEmail(email: string): Promise<IEmailValidation> {
@@ -51,24 +44,16 @@ export class BDRService {
   }
 
   // 5. Descoberta de Celulares Diretos
-  async findMobileNumbers(contactId: string) {
-    return ['+5511999999999'];
-  }
+  async findMobileNumbers(contactId: string) { return ['+5511999999999']; }
 
   // 6. Trigger Events de Mercado
-  async getTriggerEvents(companyId: string) {
-    return [];
-  }
+  async getTriggerEvents(companyId: string) { return []; }
 
   // 7. Detecção de Timing de Compra
-  async detectBuyingTiming(companyId: string) {
-    return { score: 80, signal: 'Funding raised' };
-  }
+  async detectBuyingTiming(companyId: string) { return { score: 80, signal: 'Funding raised' }; }
 
   // 8. Scripts Outbound Contextuais
-  async getScript(context: any) {
-    return 'Hello...';
-  }
+  async getScript(context: any) { return 'Hello...'; }
 
   // 9. Gerador de Mensagens Personalizadas
   async generateMessage(context: any): Promise<IMessageGeneration> {
@@ -76,76 +61,53 @@ export class BDRService {
   }
 
   // 10. Battlecards Automáticos
-  async getBattlecard(competitorId: string) {
-    return {};
-  }
+  async getBattlecard(competitorId: string) { return {}; }
 
   // 11. Identificação de Stack Tecnológico
-  async identifyTechStack(domain: string) {
-    return ['AWS', 'React'];
-  }
+  async identifyTechStack(domain: string) { return ['AWS', 'React']; }
 
   // 12. Análise de Concorrentes Instalados
-  async analyzeInstalledCompetitors(companyId: string) {
-    return [];
-  }
+  async analyzeInstalledCompetitors(companyId: string) { return []; }
 
   // 13. Registro Histórico por Conta
-  async getAccountHistory(companyId: string) {
-    return [];
-  }
+  async getAccountHistory(companyId: string) { return []; }
 
   // 14. Score de Maturidade da Conta
-  async scoreAccountMaturity(companyId: string) {
-    return 75;
-  }
+  async scoreAccountMaturity(companyId: string) { return 75; }
 
   // 15. Planejador de Entrada (Account Plan)
-  async generateAccountPlan(companyId: string) {
-    return {};
-  }
+  async generateAccountPlan(companyId: string) { return {}; }
 
   // 16. Sequência Outbound Inteligente
-  async generateSequence(target: any) {
-    return { steps: [] };
-  }
+  async generateSequence(target: any) { return { steps: [] }; }
 
   // 17. Priorização Automática de Contas
-  async prioritizeAccounts(accounts: any[]) {
-    return accounts;
-  }
+  async prioritizeAccounts(accounts: any[]) { return accounts; }
 
   // 18. Detecção de Bloqueadores
-  async detectBlockers(companyId: string) {
-    return [];
-  }
+  async detectBlockers(companyId: string) { return []; }
 
   // 19. Atribuição de Influência
-  async assignInfluence(contactId: string) {
-    return 'HIGH';
-  }
+  async assignInfluence(contactId: string) { return 'HIGH'; }
 
   // 20. Relatório de Eficiência Outbound
-  async getEfficiencyReport() {
-    return {};
-  }
+  async getEfficiencyReport() { return {}; }
 
   // --- ARSENAL EXPANSION (Tools 21-40) ---
 
   // 21. Pattern Interrupt Generator
   async generatePatternInterrupt(channel: 'email' | 'call'): Promise<string> {
-    if (channel === 'email')
-      return 'Subject: 🚩 Quick question about your quota';
+    if (channel === 'email') return "Subject: 🚩 Quick question about your quota";
     return "Call Opener: 'I'll be honest, this is a cold call. Do you want to hang up now or give me 30 seconds?'";
   }
 
   // 22. Omni-channel Sequence Builder
   async buildOmniSequence(role: string): Promise<any> {
     return {
-      day1: 'LinkedIn Connection',
-      day2: 'Email 1 (Value)',
-      day4: 'Phone Call 1',
-      day6: 'LinkedIn Voice Note',
+      day1: "LinkedIn Connection",
+      day2: "Email 1 (Value)",
+      day4: "Phone Call 1",
+      day6: "LinkedIn Voice Note"
     };
   }
 
@@ -157,9 +119,9 @@ export class BDRService {
   // 24. "No-Oriented" Questions
   async generateNoQuestions(): Promise<string[]> {
     return [
-      'Would it be a terrible idea to explore a new CRM?',
-      'Have you given up on hitting Q4 targets?',
-      'Are you against saving 20% on cloud costs?',
+      "Would it be a terrible idea to explore a new CRM?",
+      "Have you given up on hitting Q4 targets?",
+      "Are you against saving 20% on cloud costs?"
     ];
   }
 
@@ -180,7 +142,7 @@ export class BDRService {
 
   // 28. Referral Tree Mapper
   async mapReferrals(contactId: string): Promise<string[]> {
-    return ['Colleague A (Ex-Company X)', 'Manager B (Shared connection)'];
+    return ["Colleague A (Ex-Company X)", "Manager B (Shared connection)"];
   }
 
   // 29. Outbound deliverability Check
@@ -205,10 +167,7 @@ export class BDRService {
 
   // 33. Social Listening Alerts
   async socialListen(keywords: string[]): Promise<string[]> {
-    return [
-      "Lead X posted about 'Hiring SDRs'",
-      "Company Y mentioned 'Expansion'",
-    ];
+    return ["Lead X posted about 'Hiring SDRs'", "Company Y mentioned 'Expansion'"];
   }
 
   // 34. Intent Signal Scorer
@@ -228,7 +187,7 @@ export class BDRService {
 
   // 37. Pricing Anchor
   async pricingAnchor(): Promise<string> {
-    return 'Most enterprise solutions cost $50k+. We start at $5k.';
+    return "Most enterprise solutions cost $50k+. We start at $5k.";
   }
 
   // 38. Risk Reversal Offer
@@ -238,11 +197,11 @@ export class BDRService {
 
   // 39. Urgency Builder
   async buildUrgency(): Promise<string> {
-    return 'Our onboarding slots for October are almost full. Can we finalize by Friday to secure your spot?';
+    return "Our onboarding slots for October are almost full. Can we finalize by Friday to secure your spot?";
   }
 
   // 40. Champion Enablement Kit
   async enableChampion(): Promise<string> {
-    return 'Here is a 1-page PDF you can forward to your CFO to justify the budget.';
+    return "Here is a 1-page PDF you can forward to your CFO to justify the budget.";
   }
 }

@@ -33,16 +33,13 @@ export class HubSpotIntegration {
   }
 
   static async getContacts(accessToken: string, limit = 10) {
-    const response = await fetch(
-      `https://api.hubapi.com/crm/v3/objects/contacts?limit=${limit}`,
-      {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
+    const response = await fetch(`https://api.hubapi.com/crm/v3/objects/contacts?limit=${limit}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
       },
-    );
+    });
 
     if (!response.ok) {
       throw new Error('Failed to fetch HubSpot contacts');
@@ -51,21 +48,15 @@ export class HubSpotIntegration {
     return response.json();
   }
 
-  static async createContact(
-    accessToken: string,
-    properties: Record<string, string>,
-  ) {
-    const response = await fetch(
-      'https://api.hubapi.com/crm/v3/objects/contacts',
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ properties }),
+  static async createContact(accessToken: string, properties: Record<string, string>) {
+    const response = await fetch('https://api.hubapi.com/crm/v3/objects/contacts', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
       },
-    );
+      body: JSON.stringify({ properties }),
+    });
 
     if (!response.ok) {
       throw new Error('Failed to create HubSpot contact');

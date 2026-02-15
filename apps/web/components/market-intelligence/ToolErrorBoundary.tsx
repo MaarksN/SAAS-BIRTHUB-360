@@ -1,8 +1,8 @@
 'use client';
 
+import React from 'react';
 import { Card, CardContent } from '@salesos/ui';
 import { Button } from '@salesos/ui';
-import React from 'react';
 
 interface Props {
   children: React.ReactNode;
@@ -61,7 +61,7 @@ export class ToolErrorBoundary extends React.Component<Props, State> {
             <Button
               variant="outline"
               onClick={this.handleRetry}
-              className="border-red-200 text-red-700 hover:bg-red-100"
+              className="border-red-200 hover:bg-red-100 text-red-700"
             >
               Retry
             </Button>

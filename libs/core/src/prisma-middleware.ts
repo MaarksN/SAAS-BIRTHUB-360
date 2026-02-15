@@ -1,35 +1,16 @@
 import { Prisma } from '@birthhub/database';
 
 const SOFT_DELETE_MODELS = [
-  'Organization',
-  'User',
-  'Permission',
-  'CompanyProfile',
-  'EnrichmentLog',
-  'DataReliabilityScore',
-  'BuyingCommittee',
-  'Contact',
-  'OutboundSequence',
-  'Lead',
-  'LeadScore',
-  'Cadence',
-  'Deal',
-  'Quote',
-  'Meeting',
-  'SubscriptionPlan',
-  'UsageLog',
-  'CreditTransaction',
-  'AiFeedback',
-  'Notification',
-  'Campaign',
-  'EmailAccount',
-  'ScheduledEmail',
-  'Integration',
+  'Organization', 'User', 'Permission', 'CompanyProfile', 'EnrichmentLog',
+  'DataReliabilityScore', 'BuyingCommittee', 'Contact', 'OutboundSequence',
+  'Lead', 'LeadScore', 'Cadence', 'Deal', 'Quote', 'Meeting',
+  'SubscriptionPlan', 'UsageLog', 'CreditTransaction', 'AiFeedback',
+  'Notification', 'Campaign', 'EmailAccount', 'ScheduledEmail', 'Integration'
 ];
 
 export async function softDeleteMiddleware(
   params: Prisma.MiddlewareParams,
-  next: (params: Prisma.MiddlewareParams) => Promise<any>,
+  next: (params: Prisma.MiddlewareParams) => Promise<any>
 ) {
   const { model, action, args } = params;
 
@@ -53,29 +34,20 @@ export async function softDeleteMiddleware(
       }
     }
 
-    if (
-      [
-        'findUnique',
-        'findFirst',
-        'findMany',
-        'count',
-        'aggregate',
-        'groupBy',
-      ].includes(action)
-    ) {
-      // For findUnique, we change to findFirst to allow filtering
-      if (action === 'findUnique') {
-        params.action = 'findFirst';
-      }
+    if (['findUnique', 'findFirst', 'findMany', 'count', 'aggregate', 'groupBy'].includes(action)) {
+       // For findUnique, we change to findFirst to allow filtering
+       if (action === 'findUnique') {
+         params.action = 'findFirst';
+       }
 
-      if (!params.args) params.args = {};
-      if (!params.args.where) params.args.where = {};
+       if (!params.args) params.args = {};
+       if (!params.args.where) params.args.where = {};
 
-      // Only inject if deletedAt is NOT present in where clause
-      // This allows 'withDeleted()' (deletedAt: undefined) to bypass this injection
-      if (!('deletedAt' in params.args.where)) {
-        params.args.where.deletedAt = null;
-      }
+       // Only inject if deletedAt is NOT present in where clause
+       // This allows 'withDeleted()' (deletedAt: undefined) to bypass this injection
+       if (!('deletedAt' in params.args.where)) {
+         params.args.where.deletedAt = null;
+       }
     }
   }
 
@@ -91,8 +63,8 @@ export function withDeleted<T extends Record<string, any>>(args?: T): T {
     ...args,
     where: {
       ...(args?.where || {}),
-      deletedAt: undefined,
-    },
+      deletedAt: undefined
+    }
   } as unknown as T;
 }
 
@@ -106,8 +78,8 @@ export function onlyDeleted<T extends Record<string, any>>(args?: T): T {
     where: {
       ...(args?.where || {}),
       deletedAt: {
-        not: null,
-      },
-    },
+        not: null
+      }
+    }
   } as unknown as T;
 }

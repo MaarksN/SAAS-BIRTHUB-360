@@ -1,5 +1,5 @@
-import { AlertTriangle, CheckCircle, Info, XCircle } from 'lucide-react';
-import * as React from 'react';
+import * as React from "react";
+import { CheckCircle, AlertTriangle, XCircle, Info } from "lucide-react";
 
 export interface ToastProps {
   message: string;
@@ -7,11 +7,7 @@ export interface ToastProps {
   onClose: () => void;
 }
 
-export const Toast: React.FC<ToastProps> = ({
-  message,
-  type = 'info',
-  onClose,
-}) => {
+export const Toast: React.FC<ToastProps> = ({ message, type = 'info', onClose }) => {
   React.useEffect(() => {
     const timer = setTimeout(onClose, 3000);
     return () => clearTimeout(timer);
@@ -25,20 +21,16 @@ export const Toast: React.FC<ToastProps> = ({
   };
 
   const icons = {
-    success: <CheckCircle className="size-5" />,
-    error: <XCircle className="size-5" />,
-    warning: <AlertTriangle className="size-5" />,
-    info: <Info className="size-5" />,
+    success: <CheckCircle className="w-5 h-5" />,
+    error: <XCircle className="w-5 h-5" />,
+    warning: <AlertTriangle className="w-5 h-5" />,
+    info: <Info className="w-5 h-5" />,
   };
 
   return (
-    <div
-      className={`animate-in slide-in-from-bottom-5 fade-in fixed bottom-8 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-full px-6 py-3 text-white shadow-2xl duration-300 ${colors[type]}`}
-    >
+    <div className={`fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 px-6 py-3 rounded-full text-white shadow-2xl animate-in slide-in-from-bottom-5 fade-in duration-300 z-50 ${colors[type]}`}>
       {icons[type]}
-      <span className="text-xs font-bold uppercase tracking-widest">
-        {message}
-      </span>
+      <span className="text-xs font-bold uppercase tracking-widest">{message}</span>
     </div>
   );
 };

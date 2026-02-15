@@ -1,8 +1,7 @@
-import { AppError, ErrorCode } from '@salesos/core';
-import { describe, expect, it } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { z } from 'zod';
-
 import { validate } from './validate';
+import { AppError, ErrorCode } from '@salesos/core';
 
 describe('validate', () => {
   const schema = z.object({
@@ -25,9 +24,7 @@ describe('validate', () => {
       const err = error as AppError;
       expect(err.statusCode).toBe(400);
       expect(err.code).toBe(ErrorCode.INVALID_INPUT);
-      expect(err.message).toContain(
-        'age: Number must be greater than or equal to 18',
-      );
+      expect(err.message).toContain('age: Number must be greater than or equal to 18');
     }
   });
 });

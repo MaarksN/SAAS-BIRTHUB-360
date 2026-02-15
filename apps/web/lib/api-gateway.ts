@@ -14,9 +14,7 @@ export async function validateRequest(req: Request) {
   }
 
   // Cycle 35: Sandbox Logic
-  const isSandbox =
-    req.headers.get('x-salesos-sandbox') === 'true' ||
-    apiKey.startsWith('sk_test_');
+  const isSandbox = req.headers.get('x-salesos-sandbox') === 'true' || apiKey.startsWith('sk_test_');
 
   // 1. Verify Key (Hash)
   // Mock DB Lookup: "Is this hash in the DB?"
@@ -39,7 +37,7 @@ export async function validateRequest(req: Request) {
       'X-RateLimit-Limit': limit.toString(),
       'X-RateLimit-Remaining': '99', // Mock
       'X-RateLimit-Reset': Date.now().toString(), // Mock
-      'X-SalesOS-Sandbox': isSandbox ? 'true' : 'false',
-    },
+      'X-SalesOS-Sandbox': isSandbox ? 'true' : 'false'
+    }
   };
 }

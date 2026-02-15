@@ -1,7 +1,7 @@
-import { env } from '@salesos/core/env';
-import { prisma } from '@salesos/core/prisma';
-import crypto from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@salesos/core/prisma';
+import { env } from '@salesos/core/env';
+import crypto from 'crypto';
 
 export async function POST(req: NextRequest) {
   const body = await req.json();

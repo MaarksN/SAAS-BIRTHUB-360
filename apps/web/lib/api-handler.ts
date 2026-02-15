@@ -1,7 +1,6 @@
-import { AppError, ErrorCategory, ErrorCode, logger } from '@salesos/core';
 import { NextRequest, NextResponse } from 'next/server';
-import { ZodError, ZodSchema } from 'zod';
-
+import { ZodSchema, ZodError } from 'zod';
+import { AppError, ErrorCode, ErrorCategory, logger } from '@salesos/core';
 import { withRequestContext } from './api-context';
 
 type NextContext = { params: Record<string, string | string[]> };
@@ -9,7 +8,7 @@ type NextContext = { params: Record<string, string | string[]> };
 // Handler signature: (req, context: { params, body }) => Promise
 type ApiHandler<T> = (
   req: NextRequest,
-  context: NextContext & { body?: T },
+  context: NextContext & { body?: T }
 ) => Promise<NextResponse | Response>;
 
 interface ApiHandlerOptions<T> {
@@ -19,7 +18,7 @@ interface ApiHandlerOptions<T> {
 
 export function createApiHandler<T = any>(
   handler: ApiHandler<T>,
-  options: ApiHandlerOptions<T> = {},
+  options: ApiHandlerOptions<T> = {}
 ) {
   return async (req: NextRequest, context: NextContext) => {
     return withRequestContext(req, async () => {
@@ -31,8 +30,8 @@ export function createApiHandler<T = any>(
           try {
             // Check if request has body before parsing
             if (req.body) {
-              const body = await req.json();
-              parsedBody = options.schema.parse(body);
+                const body = await req.json();
+                parsedBody = options.schema.parse(body);
             }
           } catch (error) {
             if (error instanceof ZodError) {
@@ -41,7 +40,7 @@ export function createApiHandler<T = any>(
                 400,
                 ErrorCode.INVALID_INPUT,
                 ErrorCategory.VALIDATION,
-                true,
+                true
               );
             }
             throw error;
@@ -50,38 +49,36 @@ export function createApiHandler<T = any>(
 
         // Execute handler with enhanced context (params + body)
         return await handler(req, { ...context, body: parsedBody });
+
       } catch (error: any) {
         // Log the error with context (automatically injected by logger)
         if (error instanceof AppError) {
-          logger.warn(
-            { code: error.code, statusCode: error.statusCode },
-            error.message,
-          );
-          return NextResponse.json(
-            {
-              success: false,
-              error: {
-                code: error.code,
-                message: error.message,
-                details: (error as any).details, // In case we want to expose Zod details later
-              },
-            },
-            { status: error.statusCode },
-          );
+            logger.warn({ code: error.code, statusCode: error.statusCode }, error.message);
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: {
+                        code: error.code,
+                        message: error.message,
+                        details: (error as any).details // In case we want to expose Zod details later
+                    }
+                },
+                { status: error.statusCode }
+            );
         }
 
         // Unhandled Error
         logger.error({ error }, 'Unhandled API Error');
 
         return NextResponse.json(
-          {
-            success: false,
-            error: {
-              code: ErrorCode.INTERNAL_ERROR,
-              message: 'Internal Server Error',
+            {
+                success: false,
+                error: {
+                    code: ErrorCode.INTERNAL_ERROR,
+                    message: 'Internal Server Error'
+                }
             },
-          },
-          { status: 500 },
+            { status: 500 }
         );
       }
     });

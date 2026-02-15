@@ -1,11 +1,6 @@
 import dns from 'node:dns/promises';
 
-export type EmailStatus =
-  | 'VALID'
-  | 'INVALID'
-  | 'DISPOSABLE'
-  | 'RISKY'
-  | 'CATCH_ALL';
+export type EmailStatus = 'VALID' | 'INVALID' | 'DISPOSABLE' | 'RISKY' | 'CATCH_ALL';
 
 const DISPOSABLE_DOMAINS = [
   'yopmail.com',
@@ -16,9 +11,7 @@ const DISPOSABLE_DOMAINS = [
   'sharklasers.com',
 ];
 
-export const validateEmail = async (
-  email: string,
-): Promise<{ isValid: boolean; status: EmailStatus; reason?: string }> => {
+export const validateEmail = async (email: string): Promise<{ isValid: boolean; status: EmailStatus; reason?: string }> => {
   // 1. Syntax Check (RFC 5322 regex is complex, this is a practical one)
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   if (!emailRegex.test(email)) {
@@ -29,11 +22,7 @@ export const validateEmail = async (
 
   // 2. Disposable Check
   if (DISPOSABLE_DOMAINS.includes(domain.toLowerCase())) {
-    return {
-      isValid: false,
-      status: 'DISPOSABLE',
-      reason: 'Disposable domain',
-    };
+    return { isValid: false, status: 'DISPOSABLE', reason: 'Disposable domain' };
   }
 
   // 3. DNS MX Check
@@ -46,11 +35,7 @@ export const validateEmail = async (
     mxRecords.sort((a, b) => a.priority - b.priority);
   } catch (error: any) {
     if (error.code === 'ENOTFOUND' || error.code === 'ENODATA') {
-      return {
-        isValid: false,
-        status: 'INVALID',
-        reason: 'Domain not found or no MX',
-      };
+      return { isValid: false, status: 'INVALID', reason: 'Domain not found or no MX' };
     }
     // Network error or other DNS error, might be temporary
     return { isValid: false, status: 'RISKY', reason: 'DNS lookup failed' };

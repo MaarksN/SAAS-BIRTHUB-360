@@ -1,5 +1,5 @@
-import { runWithContext } from '@salesos/core';
 import { headers } from 'next/headers';
+import { runWithContext } from '@salesos/core';
 
 /**
  * Wraps a Server Component or Action with the Tenant Context.
@@ -14,7 +14,7 @@ export async function withContext<T>(callback: () => Promise<T>): Promise<T> {
   const context = {
     organizationId,
     userId,
-    role,
+    role
   };
 
   return runWithContext(context, callback);

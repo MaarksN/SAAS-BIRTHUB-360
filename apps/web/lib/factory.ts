@@ -1,5 +1,4 @@
 import { Queue, QueueOptions } from 'bullmq';
-
 import { createRedisConnection } from './client';
 import { QueueName } from './definitions';
 

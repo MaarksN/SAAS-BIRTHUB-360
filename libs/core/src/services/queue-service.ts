@@ -11,25 +11,18 @@ export class QueueService {
   /**
    * Cycle 16: Node (Producer) uses Zod to validate payload before sending to Redis.
    */
-  async produce<T>(
-    queueName: string,
-    schema: ZodSchema<T>,
-    type: string,
-    payload: T,
-  ): Promise<void> {
+  async produce<T>(queueName: string, schema: ZodSchema<T>, type: string, payload: T): Promise<void> {
     const result = schema.safeParse(payload);
 
     if (!result.success) {
-      throw new Error(
-        `Schema Mismatch: Payload validation failed for queue ${queueName}. Details: ${result.error.message}`,
-      );
+      throw new Error(`Schema Mismatch: Payload validation failed for queue ${queueName}. Details: ${result.error.message}`);
     }
 
     const job = {
       type: type,
       payload: result.data, // Use sanitized/validated data
       timestamp: Date.now(),
-      retryCount: 0,
+      retryCount: 0
     };
 
     try {
