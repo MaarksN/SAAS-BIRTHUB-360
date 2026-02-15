@@ -8,17 +8,10 @@ from utils.logger import logger
 from services.icp_agent import ICPAgent
 from schemas.agent import ICPClassificationRequest
 from services.linkedin_scraper import LinkedInScraper
+from services.email_finder import email_validator_service
 
 router = APIRouter()
-try:
-    icp_agent = ICPAgent()
-except NameError:
-    # If ICPAgent is not imported correctly in original file, we handle it here
-    # But now we imported it explicitly so it should be fine.
-    # However, to avoid double instantiation issues if the file was partially broken...
-    # Let's just instantiate it.
-    icp_agent = ICPAgent()
-
+icp_agent = ICPAgent()
 linkedin_scraper = LinkedInScraper()
 
 # --- Models Robustos ---
@@ -117,4 +110,28 @@ async def scrape_linkedin_profile(request: LinkedInScrapeRequest):
     if result.get("status") == "failed" or result.get("status") == "error":
         logger.warning(f"Scrape failed: {result.get('error')}")
 
+    return result
+
+# --- Cycle 36: Email Finder ---
+class EmailFinderRequest(BaseModel):
+    first_name: str = Field(..., description="Primeiro nome do lead")
+    last_name: str = Field(..., description="Sobrenome do lead")
+    domain: str = Field(..., description="Domínio da empresa (ex: google.com)")
+
+class EmailFinderResponse(BaseModel):
+    status: str
+    email: Optional[str] = None
+    confidence: Optional[str] = None
+    candidates: Optional[List[str]] = None
+    message: Optional[str] = None
+    logs: Optional[List[Dict[str, Any]]] = None
+
+@router.post("/ldr/find-email", response_model=EmailFinderResponse)
+async def find_email(request: EmailFinderRequest):
+    logger.info(f"Email finder requested for: {request.first_name} {request.last_name} @ {request.domain}")
+    result = await email_validator_service.find_valid_email(
+        request.first_name,
+        request.last_name,
+        request.domain
+    )
     return result
