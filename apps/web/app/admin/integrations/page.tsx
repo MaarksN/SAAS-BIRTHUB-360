@@ -1,6 +1,5 @@
 import { prisma } from '@salesos/core';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@salesos/ui';
+import { Button, Card, CardContent, CardHeader, CardTitle } from '@salesos/ui';
 import { Badge } from '@/components/ui/table'; // Reuse badge
 
 export default async function IntegrationsPage() {

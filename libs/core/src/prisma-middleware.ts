@@ -65,7 +65,7 @@ export function withDeleted<T extends Record<string, any>>(args?: T): T {
       ...(args?.where || {}),
       deletedAt: undefined
     }
-  } as T;
+  } as unknown as T;
 }
 
 /**
@@ -81,5 +81,5 @@ export function onlyDeleted<T extends Record<string, any>>(args?: T): T {
         not: null
       }
     }
-  } as T;
+  } as unknown as T;
 }

@@ -14,7 +14,7 @@ export function createCrmSyncWorker() {
             }
         }
     } catch (e) {
-        logger.error(e, 'Failed to process CRM sync');
+        logger.error({ error: e }, 'Failed to process CRM sync');
         throw e;
     }
   });

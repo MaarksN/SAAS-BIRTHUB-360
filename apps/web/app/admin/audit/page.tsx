@@ -1,6 +1,6 @@
 import { prisma } from '@salesos/core';
-import { Badge } from '@/components/ui/badge'; // Assuming shadcn/ui or similar
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/Badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@salesos/ui';
 import {
   Table,
   TableBody,

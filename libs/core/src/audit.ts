@@ -5,7 +5,7 @@ const AUDIT_QUEUE_NAME = 'audit-queue';
 
 // Create a dedicated queue for audit logs using shared Redis connection
 const auditQueue = new Queue(AUDIT_QUEUE_NAME, {
-  connection: redis,
+  connection: redis as any,
   defaultJobOptions: {
     removeOnComplete: true,
     removeOnFail: 100, // Keep last 100 failed jobs

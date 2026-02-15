@@ -1,6 +1,5 @@
 import { verifyInviteToken } from '@salesos/core';
-import { Button } from '@salesos/ui';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button, Card, CardContent, CardHeader, CardTitle } from '@salesos/ui';
 import { Input } from '@/components/Input';
 import { redirect } from 'next/navigation';
 

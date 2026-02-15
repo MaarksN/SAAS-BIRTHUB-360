@@ -27,7 +27,7 @@ const attachSignalListeners = () => {
 
 export const createQueue = <T>(name: string, options?: Partial<QueueOptions>) => {
   return new Queue<T>(name, {
-    connection: createConnection(),
+    connection: createConnection() as any,
     defaultJobOptions: {
       removeOnComplete: true,
       removeOnFail: false,
@@ -80,7 +80,7 @@ export const createWorker = <T = any>(
       });
     },
     {
-      connection: createConnection(),
+      connection: createConnection() as any,
       concurrency: options?.concurrency || 1,
       ...options
     }

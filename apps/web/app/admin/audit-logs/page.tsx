@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { useState } from 'react';
-import { Card } from '@/components/ui/card';
+import { Card } from '@salesos/ui';
 import {
   Table,
   TableBody,
