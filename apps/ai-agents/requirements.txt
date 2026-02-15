@@ -14,3 +14,5 @@ pytest
 google-generativeai
 anthropic
 numpy
+dnspython
+aiosmtplib

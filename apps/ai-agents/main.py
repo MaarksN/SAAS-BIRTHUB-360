@@ -1,4 +1,7 @@
-from fastapi import FastAPI, HTTPException
+import os
+import redis
+import psycopg2
+from fastapi import FastAPI, HTTPException, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from routers import ldr, bdr, sdr, ae, rag_router
 import uvicorn
@@ -34,6 +37,42 @@ app.include_router(rag_router.router, prefix="/api/v1", tags=["RAG - Search"])
 def health_check():
     logger.info("Health check requested")
     return {"status": "operational", "service": "ai-agents-core"}
+
+@app.get("/ready", status_code=200)
+def readiness_check(response: Response):
+    """
+    Readiness check that verifies connectivity to downstream services (DB, Redis).
+    """
+    is_ready = True
+    details = {}
+
+    # Check Database
+    try:
+        conn = psycopg2.connect(os.getenv("DATABASE_URL"))
+        cur = conn.cursor()
+        cur.execute("SELECT 1")
+        cur.close()
+        conn.close()
+        details["database"] = "up"
+    except Exception as e:
+        logger.error(f"Database readiness check failed: {e}")
+        details["database"] = f"down: {str(e)}"
+        is_ready = False
+
+    # Check Redis
+    try:
+        r = redis.from_url(os.getenv("REDIS_URL", "redis://redis:6379"))
+        r.ping()
+        details["redis"] = "up"
+    except Exception as e:
+        logger.error(f"Redis readiness check failed: {e}")
+        details["redis"] = f"down: {str(e)}"
+        is_ready = False
+
+    if not is_ready:
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+
+    return {"status": "ready" if is_ready else "not_ready", "details": details}
 
 if __name__ == "__main__":
     logger.info("Starting AI Agents Service...")

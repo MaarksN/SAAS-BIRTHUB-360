@@ -5,8 +5,8 @@ services:
   proxy:
     image: nginx:alpine
     ports:
-      - "80:80"
-      - "443:443"
+      - "8080:80"
+      - "8443:443"
     networks:
       - public-network
       - backend-network
@@ -18,14 +18,13 @@ services:
 
   # Next.js Web App
   web:
-    image: ${DOCKER_IMAGE_WEB:-salesos-web}:production
     build:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     environment:
-      DATABASE_URL: postgres://postgres:${DB_PASSWORD}@db:5432/salesos
+      DATABASE_URL: postgres://postgres:${DB_PASSWORD}@db:5432/salesos_staging
       REDIS_URL: redis://redis:6379
       NODE_ENV: production
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
@@ -44,12 +43,11 @@ services:
 
   # Worker (Scraping & AI)
   worker:
-    image: ${DOCKER_IMAGE_WORKER:-salesos-ai-agents}:production
     build:
       context: .
       dockerfile: apps/ai-agents/Dockerfile
     environment:
-      DATABASE_URL: postgres://postgres:${DB_PASSWORD}@db:5432/salesos
+      DATABASE_URL: postgres://postgres:${DB_PASSWORD}@db:5432/salesos_staging
       REDIS_URL: redis://redis:6379
       NODE_ENV: production
       OPENAI_API_KEY: ${OPENAI_API_KEY}
@@ -59,7 +57,6 @@ services:
       - db
       - redis
     restart: unless-stopped
-    # Worker is heavy, might need limits
     deploy:
       resources:
         limits:
@@ -77,9 +74,9 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: salesos
+      POSTGRES_DB: salesos_staging
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata_staging:/var/lib/postgresql/data
     networks:
       - backend-network
     restart: unless-stopped
@@ -94,7 +91,7 @@ services:
     image: redis:7-alpine
     command: redis-server /usr/local/etc/redis/redis.conf --requirepass "${REDIS_PASSWORD}"
     volumes:
-      - redisdata:/data
+      - redisdata_staging:/data
       - ./infra/redis.conf:/usr/local/etc/redis/redis.conf:ro
     networks:
       - backend-network
@@ -112,10 +109,10 @@ services:
       PGHOST: db
       PGUSER: postgres
       PGPASSWORD: ${DB_PASSWORD}
-      PGDATABASE: salesos
+      PGDATABASE: salesos_staging
     volumes:
       - ./scripts/backup.sh:/scripts/backup.sh:ro
-      - backups:/backups
+      - backups_staging:/backups
     networks:
       - backend-network
     depends_on:
@@ -128,9 +125,9 @@ networks:
     driver: bridge
   backend-network:
     driver: bridge
-    internal: true # No external access
+    internal: true
 
 volumes:
-  pgdata:
-  redisdata:
-  backups:
+  pgdata_staging:
+  redisdata_staging:
+  backups_staging:

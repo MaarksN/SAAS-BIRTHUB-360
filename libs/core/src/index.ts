@@ -42,3 +42,4 @@ export * from './services/event-bus';
 export * from './services/workflow-engine';
 export * from './services/analytics-service';
 export * from './services/marketplace-service';
+export * from './services/deal-service';
