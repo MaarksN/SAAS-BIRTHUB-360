@@ -1,9 +1,9 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 test.describe('Leads Dashboard', () => {
   test.beforeEach(async ({ page }) => {
     // Mock leads API response
-    await page.route('/api/leads', async route => {
+    await page.route('/api/leads', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -15,10 +15,10 @@ test.describe('Leads Dashboard', () => {
               email: 'john@example.com',
               companyName: 'Acme Corp',
               phone: '123-456-7890',
-              status: 'NEW'
-            }
-          ]
-        })
+              status: 'NEW',
+            },
+          ],
+        }),
       });
     });
 
@@ -36,16 +36,16 @@ test.describe('Leads Dashboard', () => {
 
   test('should optimistically update lead status', async ({ page }) => {
     // Mock the PATCH request
-    await page.route('/api/leads/lead-1', async route => {
+    await page.route('/api/leads/lead-1', async (route) => {
       // Simulate network delay to verify optimistic update
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
           id: 'lead-1',
-          status: 'QUALIFIED'
-        })
+          status: 'QUALIFIED',
+        }),
       });
     });
 

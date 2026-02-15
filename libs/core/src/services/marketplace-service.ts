@@ -10,7 +10,9 @@ export interface AgentListing {
 export class MarketplaceService {
   constructor(private db: any) {}
 
-  async listAgents(filter: { publicOnly: boolean } = { publicOnly: true }): Promise<AgentListing[]> {
+  async listAgents(
+    filter: { publicOnly: boolean } = { publicOnly: true },
+  ): Promise<AgentListing[]> {
     // Mock DB Call
     // const agents = await this.db.agentTemplate.findMany(...)
     return [
@@ -20,7 +22,7 @@ export class MarketplaceService {
         description: 'Specialized in B2B SaaS cold outreach.',
         price: 0,
         authorName: 'SalesOS Team',
-        rating: 4.8
+        rating: 4.8,
       },
       {
         id: 'agent-2',
@@ -28,8 +30,8 @@ export class MarketplaceService {
         description: 'Finds property investors on LinkedIn.',
         price: 49.99,
         authorName: 'RealtorPro',
-        rating: 4.5
-      }
+        rating: 4.5,
+      },
     ];
   }
 
@@ -39,7 +41,10 @@ export class MarketplaceService {
     return true;
   }
 
-  async publishAgent(userId: string, data: { name: string, prompt: string, price: number }) {
+  async publishAgent(
+    userId: string,
+    data: { name: string; prompt: string; price: number },
+  ) {
     console.log(`User ${userId} publishing new agent: ${data.name}`);
     // Logic: Create AgentTemplate
     return { id: 'new-agent-id', status: 'published' };

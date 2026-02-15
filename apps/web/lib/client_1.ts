@@ -5,13 +5,15 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
-export const prisma = global.prisma || new PrismaClient({
-  log: [
-    { emit: 'event', level: 'query' },
-    { emit: 'stdout', level: 'error' },
-    { emit: 'stdout', level: 'warn' },
-  ],
-});
+export const prisma =
+  global.prisma ||
+  new PrismaClient({
+    log: [
+      { emit: 'event', level: 'query' },
+      { emit: 'stdout', level: 'error' },
+      { emit: 'stdout', level: 'warn' },
+    ],
+  });
 
 if (!global.prisma) {
   // @ts-ignore

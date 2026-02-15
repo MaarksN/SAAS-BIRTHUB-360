@@ -1,4 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
 import { ApiKeyService } from './api-key-service';
 import { RateLimitService } from './rate-limit-service';
 
@@ -11,7 +12,7 @@ vi.mock('ioredis', () => {
         ttl: vi.fn(),
         exec: vi.fn().mockResolvedValue([
           [null, 1], // incr result: 1 (first request)
-          [null, -1] // ttl result: -1 (no expiration yet)
+          [null, -1], // ttl result: -1 (no expiration yet)
         ]),
       });
       expire = vi.fn().mockResolvedValue(1);

@@ -3,7 +3,9 @@ import { z } from 'zod';
 const envSchema = z.object({
   DATABASE_URL: z.string().url().startsWith('postgresql://'),
   REDIS_URL: z.string().url().optional().default('redis://localhost:6379'),
-  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  NODE_ENV: z
+    .enum(['development', 'test', 'production'])
+    .default('development'),
   PORT: z.coerce.number().optional().default(3000),
   OPENAI_API_KEY: z.string().min(1).optional(),
   STRIPE_SECRET_KEY: z.string().min(1).optional(),

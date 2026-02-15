@@ -20,21 +20,29 @@ export class AiFoundationService {
   }
 
   // 23. Prompt Registry: Version-controlled system for system prompts.
-  async promptRegistry(promptName: string, version: string = 'latest'): Promise<string> {
+  async promptRegistry(
+    promptName: string,
+    version: string = 'latest',
+  ): Promise<string> {
     const prompts: Record<string, string> = {
-      'cold-email': 'You are an expert SDR. Write a cold email about...'
+      'cold-email': 'You are an expert SDR. Write a cold email about...',
     };
     return prompts[promptName] || 'Default Prompt';
   }
 
   // 24. LLM Gateway: Abstraction layer (OpenAI/Anthropic).
-  async llmGateway(provider: 'OPENAI' | 'ANTHROPIC', prompt: string): Promise<string> {
+  async llmGateway(
+    provider: 'OPENAI' | 'ANTHROPIC',
+    prompt: string,
+  ): Promise<string> {
     console.log(`Calling ${provider} with prompt length ${prompt.length}`);
     return 'Generated response from LLM...';
   }
 
   // 25. AI Rate Limiting: specialized quotas per tenant.
-  async aiRateLimiting(tenantId: string): Promise<{ allowed: boolean; remainingTokens: number }> {
+  async aiRateLimiting(
+    tenantId: string,
+  ): Promise<{ allowed: boolean; remainingTokens: number }> {
     return { allowed: true, remainingTokens: 50000 };
   }
 }

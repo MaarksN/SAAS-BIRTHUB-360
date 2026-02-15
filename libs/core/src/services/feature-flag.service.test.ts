@@ -1,22 +1,23 @@
-import { FeatureFlagService } from '../feature-flag.service';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { prisma } from '../../prisma';
 import { redis } from '../../redis';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { FeatureFlagService } from '../feature-flag.service';
 
 vi.mock('../../prisma', () => ({
   prisma: {
     featureFlag: {
-      findUnique: vi.fn()
-    }
-  }
+      findUnique: vi.fn(),
+    },
+  },
 }));
 
 vi.mock('../../redis', () => ({
   redis: {
     get: vi.fn(),
     set: vi.fn(),
-    del: vi.fn()
-  }
+    del: vi.fn(),
+  },
 }));
 
 describe('FeatureFlagService', () => {
@@ -44,11 +45,13 @@ describe('FeatureFlagService', () => {
     const flag = {
       key: 'test',
       isEnabled: false,
-      rules: { users: ['user1'] }
+      rules: { users: ['user1'] },
     };
     (redis.get as any).mockResolvedValue(JSON.stringify(flag));
 
-    const result = await FeatureFlagService.isEnabled('test', { userId: 'user1' });
+    const result = await FeatureFlagService.isEnabled('test', {
+      userId: 'user1',
+    });
     expect(result).toBe(true);
   });
 
@@ -56,11 +59,13 @@ describe('FeatureFlagService', () => {
     const flag = {
       key: 'test',
       isEnabled: false,
-      rules: { users: ['user1'] }
+      rules: { users: ['user1'] },
     };
     (redis.get as any).mockResolvedValue(JSON.stringify(flag));
 
-    const result = await FeatureFlagService.isEnabled('test', { userId: 'user2' });
+    const result = await FeatureFlagService.isEnabled('test', {
+      userId: 'user2',
+    });
     expect(result).toBe(false);
   });
 });

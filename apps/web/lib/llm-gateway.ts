@@ -2,7 +2,7 @@ import { guard, logger } from '@salesos/core';
 
 // Mock feature flag
 const features = {
-  isEnabled: (flag: string) => true
+  isEnabled: (flag: string) => true,
 };
 
 export type LLMProvider = 'openai' | 'anthropic';
@@ -44,7 +44,7 @@ export const llmGateway = {
     logger.info('COST_EVENT: AI Completion started', {
       userId,
       provider: request.provider,
-      cost: 1
+      cost: 1,
     });
 
     // Mock LLM response
@@ -53,16 +53,20 @@ export const llmGateway = {
       // Simulate network call
       return `[AI Response from ${request.provider || 'openai'}] Based on the context, I suggest focusing on value-based selling...`;
     }, 3);
-  }
+  },
 };
 
-async function retry<T>(fn: () => Promise<T>, retries: number, delayMs = 1000): Promise<T> {
+async function retry<T>(
+  fn: () => Promise<T>,
+  retries: number,
+  delayMs = 1000,
+): Promise<T> {
   try {
     return await fn();
   } catch (error) {
     if (retries <= 0) throw error;
     logger.warn(`Retrying operation... (${retries} attempts left)`);
-    await new Promise(res => setTimeout(res, delayMs));
+    await new Promise((res) => setTimeout(res, delayMs));
     return retry(fn, retries - 1, delayMs * 2);
   }
 }

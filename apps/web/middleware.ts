@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
 export function middleware(request: NextRequest) {
   // Gerar ou extrair Request ID
@@ -35,7 +35,7 @@ export function middleware(request: NextRequest) {
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   response.headers.set(
     'Strict-Transport-Security',
-    'max-age=31536000; includeSubDomains'
+    'max-age=31536000; includeSubDomains',
   );
 
   // Content Security Policy (CSP)
@@ -55,15 +55,17 @@ export function middleware(request: NextRequest) {
 
   // Logs estruturados (opcional)
   if (process.env.LOG_REQUESTS === 'true') {
-    console.log(JSON.stringify({
-      event: 'http_request',
-      requestId,
-      method: request.method,
-      url: request.url,
-      ip,
-      userAgent,
-      timestamp: new Date().toISOString()
-    }));
+    console.log(
+      JSON.stringify({
+        event: 'http_request',
+        requestId,
+        method: request.method,
+        url: request.url,
+        ip,
+        userAgent,
+        timestamp: new Date().toISOString(),
+      }),
+    );
   }
 
   return response;
@@ -79,6 +81,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public folder
      */
-    '/((?!_next/static|_next/image|favicon.ico|public).*)'
-  ]
+    '/((?!_next/static|_next/image|favicon.ico|public).*)',
+  ],
 };

@@ -1,5 +1,6 @@
-import { prisma } from '../prisma';
 import { Prisma } from '@birthhub/database';
+
+import { prisma } from '../prisma';
 
 // Helper to generate random code
 function generateCode(length: number = 8): string {
@@ -51,7 +52,7 @@ export class ReferralService {
   static async createReferral(referrerId: string, refereeEmail: string) {
     // Check if referral already exists
     const existing = await prisma.referral.findFirst({
-        where: { referrerId, refereeEmail }
+      where: { referrerId, refereeEmail },
     });
 
     if (existing) return existing;
@@ -69,14 +70,16 @@ export class ReferralService {
   }
 
   static async validateCode(code: string): Promise<boolean> {
-      const user = await prisma.user.findUnique({ where: { referralCode: code } });
-      return !!user;
+    const user = await prisma.user.findUnique({
+      where: { referralCode: code },
+    });
+    return Boolean(user);
   }
 
   static async completeReferral(code: string, newUserId: string) {
     const newUser = await prisma.user.findUnique({
-        where: { id: newUserId },
-        include: { organization: true }
+      where: { id: newUserId },
+      include: { organization: true },
     });
     if (!newUser) throw new Error('New user not found');
 
@@ -88,89 +91,105 @@ export class ReferralService {
 
     // 2. If not found, look for referrer by code
     if (!referral) {
-        const referrer = await prisma.user.findUnique({
-            where: { referralCode: code },
-            include: { organization: true }
-        });
+      const referrer = await prisma.user.findUnique({
+        where: { referralCode: code },
+        include: { organization: true },
+      });
 
-        if (!referrer) {
-             throw new Error('Invalid referral code');
-        }
+      if (!referrer) {
+        throw new Error('Invalid referral code');
+      }
 
-        // Create the referral record on the fly
-        referral = await prisma.referral.create({
-            data: {
-                code,
-                referrerId: referrer.id,
-                refereeEmail: newUser.email,
-                status: 'PENDING',
-            },
-            include: { referrer: { include: { organization: true } } }
-        });
+      // Create the referral record on the fly
+      referral = await prisma.referral.create({
+        data: {
+          code,
+          referrerId: referrer.id,
+          refereeEmail: newUser.email,
+          status: 'PENDING',
+        },
+        include: { referrer: { include: { organization: true } } },
+      });
     }
 
     // Don't allow self-referral
     if (referral.referrerId === newUserId) {
-        throw new Error('Cannot refer yourself');
+      throw new Error('Cannot refer yourself');
     }
 
     // Transaction to update referral and credit both orgs
     await prisma.$transaction(async (tx) => {
-        // 1. Update Referral
-        await tx.referral.update({
-            where: { id: referral.id },
-            data: {
-                status: 'CONVERTED',
-                refereeId: newUserId,
-            }
-        });
+      // 1. Update Referral
+      await tx.referral.update({
+        where: { id: referral.id },
+        data: {
+          status: 'CONVERTED',
+          refereeId: newUserId,
+        },
+      });
 
-        // 2. Credit Referrer Organization
-        await this.addCredits(tx, referral.referrer.organizationId, 50, `Referral Reward: Invited ${newUser.email}`);
+      // 2. Credit Referrer Organization
+      await this.addCredits(
+        tx,
+        referral.referrer.organizationId,
+        50,
+        `Referral Reward: Invited ${newUser.email}`,
+      );
 
-        // 3. Credit Referee Organization
-        await this.addCredits(tx, newUser.organizationId, 50, `Referral Bonus: Invited by ${referral.referrer.email}`);
+      // 3. Credit Referee Organization
+      await this.addCredits(
+        tx,
+        newUser.organizationId,
+        50,
+        `Referral Bonus: Invited by ${referral.referrer.email}`,
+      );
     });
 
     return { success: true };
   }
 
-  private static async addCredits(tx: Prisma.TransactionClient, organizationId: string, amount: number, description: string) {
-      // Get last transaction to calculate balance
-      const lastTx = await tx.creditTransaction.findFirst({
-          where: { organizationId },
-          orderBy: { createdAt: 'desc' }
-      });
+  private static async addCredits(
+    tx: Prisma.TransactionClient,
+    organizationId: string,
+    amount: number,
+    description: string,
+  ) {
+    // Get last transaction to calculate balance
+    const lastTx = await tx.creditTransaction.findFirst({
+      where: { organizationId },
+      orderBy: { createdAt: 'desc' },
+    });
 
-      const currentBalance = lastTx ? Number(lastTx.balanceAfter) : 0;
-      const newBalance = currentBalance + amount;
+    const currentBalance = lastTx ? Number(lastTx.balanceAfter) : 0;
+    const newBalance = currentBalance + amount;
 
-      await tx.creditTransaction.create({
-          data: {
-              organizationId,
-              amount: new Prisma.Decimal(amount),
-              type: 'CREDIT',
-              description,
-              balanceAfter: new Prisma.Decimal(newBalance),
-          }
-      });
+    await tx.creditTransaction.create({
+      data: {
+        organizationId,
+        amount: new Prisma.Decimal(amount),
+        type: 'CREDIT',
+        description,
+        balanceAfter: new Prisma.Decimal(newBalance),
+      },
+    });
   }
 
   static async getReferralStats(userId: string) {
-      const referrals = await prisma.referral.findMany({
-          where: { referrerId: userId },
-          orderBy: { createdAt: 'desc' }
-      });
+    const referrals = await prisma.referral.findMany({
+      where: { referrerId: userId },
+      orderBy: { createdAt: 'desc' },
+    });
 
-      const totalRewards = referrals
-        .filter(r => r.status === 'CONVERTED')
-        .reduce((sum, r) => sum + r.rewardAmount, 0);
+    const totalRewards = referrals
+      .filter((r) => r.status === 'CONVERTED')
+      .reduce((sum, r) => sum + r.rewardAmount, 0);
 
-      return {
-          totalReferrals: referrals.length,
-          convertedReferrals: referrals.filter(r => r.status === 'CONVERTED').length,
-          totalRewards,
-          referrals
-      };
+    return {
+      totalReferrals: referrals.length,
+      convertedReferrals: referrals.filter((r) => r.status === 'CONVERTED')
+        .length,
+      totalRewards,
+      referrals,
+    };
   }
 }

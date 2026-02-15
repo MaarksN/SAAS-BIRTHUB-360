@@ -18,7 +18,12 @@ export async function createCampaign(formData: FormData) {
   const content = formData.get('content') as string;
   const scheduleAt = formData.get('scheduleAt') as string;
 
-  const result = campaignSchema.safeParse({ name, subject, content, scheduleAt });
+  const result = campaignSchema.safeParse({
+    name,
+    subject,
+    content,
+    scheduleAt,
+  });
 
   if (!result.success) {
     return { error: 'Validation failed' };
@@ -32,7 +37,7 @@ export async function createCampaign(formData: FormData) {
         // In real app, we would parse content to find variables and maybe save them separately
         // For now, just save basic fields.
         // Also need to link to audience.
-      }
+      },
     });
 
     // Create initial Scheduled Emails (Simulation)

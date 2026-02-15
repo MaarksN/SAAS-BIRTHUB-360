@@ -1,5 +1,5 @@
-import { PrismaClient, Role } from '@prisma/client';
 import { faker } from '@faker-js/faker';
+import { PrismaClient, Role } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -15,8 +15,8 @@ async function main() {
     create: {
       id: DEMO_ORG_ID,
       name: 'Demo Organization',
-      subscriptionStatus: 'active'
-    }
+      subscriptionStatus: 'active',
+    },
   });
 
   console.log('✅ Created organization:', org.name);
@@ -29,8 +29,8 @@ async function main() {
       email: 'admin@salesos.com',
       name: 'Admin User',
       role: 'OWNER' as Role,
-      organizationId: org.id
-    }
+      organizationId: org.id,
+    },
   });
 
   console.log('✅ Created user:', user.email);
@@ -45,11 +45,11 @@ async function main() {
         max_leads: 10000,
         ai_tokens: 1000000,
         seats: 10,
-        campaigns: 50
+        campaigns: 50,
       },
       priceMonthly: 100.0,
-      priceYearly: 1000.0
-    }
+      priceYearly: 1000.0,
+    },
   });
 
   console.log('✅ Created plan:', plan.name);
@@ -64,13 +64,13 @@ async function main() {
       name: faker.person.fullName(),
       companyName: faker.company.name(),
       phone: faker.phone.number(),
-      organizationId: org.id
+      organizationId: org.id,
     });
   }
 
   await prisma.lead.createMany({
     data: leads,
-    skipDuplicates: true
+    skipDuplicates: true,
   });
 
   console.log(`✅ Created ${leads.length} test leads`);
@@ -81,8 +81,8 @@ async function main() {
       name: 'Demo Campaign',
       status: 'ACTIVE',
       organizationId: org.id,
-      creatorId: user.id
-    }
+      creatorId: user.id,
+    },
   });
 
   console.log('✅ Created campaign:', campaign.name);

@@ -1,5 +1,5 @@
-import { LDRService } from '@salesos/prospector';
 import { SDRService } from '@salesos/hub';
+import { LDRService } from '@salesos/prospector';
 
 export interface SearchResult {
   source: 'PROSPECTOR' | 'HUB';
@@ -34,21 +34,24 @@ export class UnifiedSearchService {
           id: 'ext-123',
           title: 'Tech Solutions Ltda',
           subtitle: 'Enriched 2 days ago',
-          score: 85
+          score: 85,
         });
       }
     }
 
     // 2. Search in Hub (Mock Logic)
     // This would search the Postgres DB via Prisma
-    if (query.toLowerCase().includes('joao') || query.toLowerCase().includes('silva')) {
-        results.push({
-            source: 'HUB',
-            id: 'int-456',
-            title: 'João da Silva',
-            subtitle: 'Deal Stage: Negotiation',
-            score: 92
-        });
+    if (
+      query.toLowerCase().includes('joao') ||
+      query.toLowerCase().includes('silva')
+    ) {
+      results.push({
+        source: 'HUB',
+        id: 'int-456',
+        title: 'João da Silva',
+        subtitle: 'Deal Stage: Negotiation',
+        score: 92,
+      });
     }
 
     return results.sort((a, b) => (b.score || 0) - (a.score || 0));

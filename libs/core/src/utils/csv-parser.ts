@@ -31,8 +31,8 @@ export function parseCSV(csv: string): Record<string, string>[] {
 
   // Handle last line if no newline at EOF
   if (currentVal || currentLine.length > 0) {
-      currentLine.push(currentVal.trim());
-      lines.push(currentLine);
+    currentLine.push(currentVal.trim());
+    lines.push(currentLine);
   }
 
   if (lines.length < 2) return [];
@@ -43,7 +43,10 @@ export function parseCSV(csv: string): Record<string, string>[] {
   for (let i = 1; i < lines.length; i++) {
     const values = lines[i];
     // Allow lenient parsing if last field is empty/missing
-    if (values.length === headers.length || (values.length === headers.length - 1 && headers.length > values.length)) {
+    if (
+      values.length === headers.length ||
+      (values.length === headers.length - 1 && headers.length > values.length)
+    ) {
       const obj: Record<string, string> = {};
       headers.forEach((header, index) => {
         obj[header] = values[index] || '';

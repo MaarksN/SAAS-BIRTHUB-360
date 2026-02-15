@@ -1,9 +1,10 @@
 import Redis from 'ioredis';
-import { IGeoProvider, LocalBusiness } from '../types/geo';
-import { IDBProvider, GeoServiceConfig } from '../types/db';
+
 import { GooglePlacesNewAdapter } from '../adapters/google-places';
-import { SerpApiAdapter } from '../adapters/serp-api';
 import { MockGeoAdapter } from '../adapters/mock-geo';
+import { SerpApiAdapter } from '../adapters/serp-api';
+import { GeoServiceConfig, IDBProvider } from '../types/db';
+import { IGeoProvider, LocalBusiness } from '../types/geo';
 
 export class GeoService {
   private redis: Redis;
@@ -20,7 +21,13 @@ export class GeoService {
     this.db = config.db;
   }
 
-  async searchPlaces(query: string, lat: number, long: number, radius: number, provider: 'google' | 'serp' | 'mock' = 'google'): Promise<LocalBusiness[]> {
+  async searchPlaces(
+    query: string,
+    lat: number,
+    long: number,
+    radius: number,
+    provider: 'google' | 'serp' | 'mock' = 'google',
+  ): Promise<LocalBusiness[]> {
     const cacheKey = `geo:search:${query}:${lat}:${long}:${radius}`;
 
     // L1 Cache: Redis
@@ -36,7 +43,7 @@ export class GeoService {
     try {
       const dbResults = await this.db.query(
         `SELECT * FROM local_business WHERE ST_DWithin(location, ST_MakePoint($1, $2)::geography, $3)`,
-        [long, lat, radius]
+        [long, lat, radius],
       );
 
       if (dbResults && dbResults.length > 0) {
@@ -65,7 +72,9 @@ export class GeoService {
       await this.redis.set(cacheKey, JSON.stringify(results), 'EX', 86400);
 
       // Populate L2 Cache (Async)
-      this.populateL2Cache(results).catch(err => console.error('Error populating L2 cache', err));
+      this.populateL2Cache(results).catch((err) =>
+        console.error('Error populating L2 cache', err),
+      );
     }
 
     return results;
@@ -85,8 +94,8 @@ export class GeoService {
             business.location.coordinates[0],
             business.location.coordinates[1],
             JSON.stringify(business.types),
-            business.rating
-          ]
+            business.rating,
+          ],
         );
       }
     } catch (error) {

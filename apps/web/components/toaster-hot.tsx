@@ -1,6 +1,6 @@
 'use client';
 
-import { Toaster as HotToaster, toast as hotToast } from 'react-hot-toast';
+import { toast as hotToast, Toaster as HotToaster } from 'react-hot-toast';
 
 export function ToasterHot() {
   return (

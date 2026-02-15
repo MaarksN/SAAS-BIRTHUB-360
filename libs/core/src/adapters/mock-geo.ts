@@ -1,7 +1,12 @@
 import { IGeoProvider, LocalBusiness } from '../types/geo';
 
 export class MockGeoAdapter implements IGeoProvider {
-  async searchPlaces(query: string, lat: number, long: number, radius: number): Promise<LocalBusiness[]> {
+  async searchPlaces(
+    query: string,
+    lat: number,
+    long: number,
+    radius: number,
+  ): Promise<LocalBusiness[]> {
     console.log('MockGeoAdapter searching:', { query, lat, long, radius });
 
     return [
@@ -20,8 +25,8 @@ export class MockGeoAdapter implements IGeoProvider {
         website: 'https://example.com',
         source: 'mock',
         metadata: {
-          mock: true
-        }
+          mock: true,
+        },
       },
       {
         externalId: 'mock-2',
@@ -38,9 +43,9 @@ export class MockGeoAdapter implements IGeoProvider {
         website: 'https://example.org',
         source: 'mock',
         metadata: {
-          mock: true
-        }
-      }
+          mock: true,
+        },
+      },
     ];
   }
 }

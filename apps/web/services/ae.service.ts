@@ -7,13 +7,19 @@ export class AEService {
   }
 
   // 2. MEDDIC Coach Real-time
-  async getMEDDICAdvice(dealId: string) { return 'Focus on Economic Buyer'; }
+  async getMEDDICAdvice(dealId: string) {
+    return 'Focus on Economic Buyer';
+  }
 
   // 3. Detecção de Dominância de Fala
-  async analyzeSpeechDominance(audioUrl: string) { return { rep: 40, client: 60 }; }
+  async analyzeSpeechDominance(audioUrl: string) {
+    return { rep: 40, client: 60 };
+  }
 
   // 4. Análise de Engajamento
-  async analyzeEngagement(dealId: string) { return 'HIGH'; }
+  async analyzeEngagement(dealId: string) {
+    return 'HIGH';
+  }
 
   // 5. Gerador de Propostas Dinâmicas
   async generateProposal(dealId: string, items: any[]): Promise<IProposal> {
@@ -21,60 +27,90 @@ export class AEService {
   }
 
   // 6. Precificação Automática Validada
-  async calculatePrice(items: any[]) { return 1000; }
+  async calculatePrice(items: any[]) {
+    return 1000;
+  }
 
   // 7. Gestão de Descontos (Regras)
-  async validateDiscount(amount: number) { return true; }
+  async validateDiscount(amount: number) {
+    return true;
+  }
 
   // 8. Stakeholder Tracking (Documentos)
-  async trackStakeholders(dealId: string) { return []; }
+  async trackStakeholders(dealId: string) {
+    return [];
+  }
 
   // 9. Detecção de Risco de Perda
-  async detectChurnRisk(dealId: string) { return 0.1; }
+  async detectChurnRisk(dealId: string) {
+    return 0.1;
+  }
 
   // 10. Análise Preditiva de Fechamento
-  async predictClose(dealId: string) { return 0.8; }
+  async predictClose(dealId: string) {
+    return 0.8;
+  }
 
   // 11. Forecast Probabilístico (Deal Level)
-  async forecastDeal(dealId: string) { return { value: 1000, date: new Date() }; }
+  async forecastDeal(dealId: string) {
+    return { value: 1000, date: new Date() };
+  }
 
   // 12. Gerador de Follow-up Contextual
-  async generateFollowUp(meetingId: string) { return 'Hi...'; }
+  async generateFollowUp(meetingId: string) {
+    return 'Hi...';
+  }
 
   // 13. Comparador com Concorrentes
-  async compareCompetitors(dealId: string) { return {}; }
+  async compareCompetitors(dealId: string) {
+    return {};
+  }
 
   // 14. Registro Automático de Calls
-  async logCall(dealId: string) { return true; }
+  async logCall(dealId: string) {
+    return true;
+  }
 
   // 15. Extração de Próximos Passos
-  async extractNextSteps(meetingId: string) { return []; }
+  async extractNextSteps(meetingId: string) {
+    return [];
+  }
 
   // 16. Alertas de Estagnação
-  async checkStagnation(dealId: string) { return false; }
+  async checkStagnation(dealId: string) {
+    return false;
+  }
 
   // 17. Simulador de Cenários do Deal
-  async simulateScenario(dealId: string) { return {}; }
+  async simulateScenario(dealId: string) {
+    return {};
+  }
 
   // 18. Análise de Win/Loss
-  async analyzeWinLoss(dealId: string) { return 'Price'; }
+  async analyzeWinLoss(dealId: string) {
+    return 'Price';
+  }
 
   // 19. Limpeza Automática de Pipeline
-  async cleanPipeline() { return true; }
+  async cleanPipeline() {
+    return true;
+  }
 
   // 20. Relatório de Previsibilidade
-  async getForecastReport() { return {}; }
+  async getForecastReport() {
+    return {};
+  }
 
   // --- ARSENAL EXPANSION (Tools 21-40) ---
 
   // 21. Mutual Action Plan (MAP) Generator
   async generateMAP(dealId: string): Promise<string> {
-    return "Phase 1: Discovery (Done)\nPhase 2: Tech Validation (Due: Oct 10)\nPhase 3: Legal Review (Due: Oct 20)\nPhase 4: Go Live (Oct 30)";
+    return 'Phase 1: Discovery (Done)\nPhase 2: Tech Validation (Due: Oct 10)\nPhase 3: Legal Review (Due: Oct 20)\nPhase 4: Go Live (Oct 30)';
   }
 
   // 22. Deal War Room Simulator
   async simulateWarRoom(dealId: string): Promise<string> {
-    return "Red Flags Identified: 1. Champion is leaving. 2. Budget approval pending. Strategy: Multi-thread to CFO immediately.";
+    return 'Red Flags Identified: 1. Champion is leaving. 2. Budget approval pending. Strategy: Multi-thread to CFO immediately.';
   }
 
   // 23. Legal Bypass Strategy
@@ -84,7 +120,7 @@ export class AEService {
 
   // 24. Procurement Cheat Sheet
   async procurementGuide(): Promise<string> {
-    return "Procurement cares about: 1. Security (Send SOC2). 2. Price (Show ROI). 3. Risk (Show guarantees).";
+    return 'Procurement cares about: 1. Security (Send SOC2). 2. Price (Show ROI). 3. Risk (Show guarantees).';
   }
 
   // 25. ROI Calculator (Specific)
@@ -99,8 +135,8 @@ export class AEService {
 
   // 27. Discount Authorization Matrix
   async checkDiscountAuth(discount: number): Promise<string> {
-    if (discount > 20) return "Requires VP Approval";
-    return "Approved";
+    if (discount > 20) return 'Requires VP Approval';
+    return 'Approved';
   }
 
   // 28. "Give-Get" Negotiation Framework
@@ -125,7 +161,10 @@ export class AEService {
 
   // 32. "Walking the Halls" (Virtual)
   async virtualWalk(): Promise<string[]> {
-    return ["Connecting with User A", "Connecting with User B to build groundswell support."];
+    return [
+      'Connecting with User A',
+      'Connecting with User B to build groundswell support.',
+    ];
   }
 
   // 33. Pre-Mortem Analysis
@@ -140,12 +179,12 @@ export class AEService {
 
   // 35. "Close Plan" Confirmation
   async confirmClosePlan(): Promise<string> {
-    return "Just confirming: If we resolve X by Tuesday, are we ready to sign on Wednesday?";
+    return 'Just confirming: If we resolve X by Tuesday, are we ready to sign on Wednesday?';
   }
 
   // 36. Payment Terms Flexibilizer
   async flexTerms(): Promise<string> {
-    return "We can offer Net 60 if you sign a 2-year deal.";
+    return 'We can offer Net 60 if you sign a 2-year deal.';
   }
 
   // 37. Signing Ceremony Coordinator
@@ -155,7 +194,7 @@ export class AEService {
 
   // 38. "Land and Expand" Mapper
   async mapExpansion(): Promise<string> {
-    return "Initial Deal: 50 Seats. Potential: 500 Seats in Division B.";
+    return 'Initial Deal: 50 Seats. Potential: 500 Seats in Division B.';
   }
 
   // 39. Churn Prevention Guarantee
@@ -165,6 +204,6 @@ export class AEService {
 
   // 40. Deal Celebration Generator
   async celebrateDeal(): Promise<string> {
-    return "🎉 Deal Closed! Commission estimated: $5,000. Team notified.";
+    return '🎉 Deal Closed! Commission estimated: $5,000. Team notified.';
   }
 }

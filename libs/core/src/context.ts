@@ -24,7 +24,7 @@ const asyncLocalStorage = new AsyncLocalStorage<RequestContext>();
  */
 export function runWithContext<T>(
   context: Partial<RequestContext>,
-  callback: () => T
+  callback: () => T,
 ): T {
   const fullContext: RequestContext = {
     requestId: context.requestId || randomUUID(),
@@ -33,7 +33,7 @@ export function runWithContext<T>(
     role: context.role,
     ip: context.ip,
     userAgent: context.userAgent,
-    startTime: Date.now()
+    startTime: Date.now(),
   };
 
   return asyncLocalStorage.run(fullContext, callback);

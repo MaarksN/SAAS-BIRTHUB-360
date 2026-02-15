@@ -1,8 +1,9 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
-import { validate } from './validate';
+
 import { AppError } from './AppError';
-import { ErrorCode, ErrorCategory } from './error-codes';
+import { ErrorCategory, ErrorCode } from './error-codes';
+import { validate } from './validate';
 
 describe('validate', () => {
   const schema = z.object({
@@ -40,7 +41,7 @@ describe('validate', () => {
   it('should throw AppError when validation fails', () => {
     const invalidData = {
       name: '', // Too short
-      age: 10,  // Too young
+      age: 10, // Too young
     };
 
     try {

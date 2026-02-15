@@ -7,7 +7,15 @@ import { z } from 'zod';
 // Zod Schema for input validation
 const updateLeadSchema = z.object({
   leadId: z.string(),
-  status: z.enum(['NEW', 'QUALIFIED', 'DISQUALIFIED', 'CONTACTED', 'NEGOTIATION', 'CLOSED_WON', 'CLOSED_LOST']),
+  status: z.enum([
+    'NEW',
+    'QUALIFIED',
+    'DISQUALIFIED',
+    'CONTACTED',
+    'NEGOTIATION',
+    'CLOSED_WON',
+    'CLOSED_LOST',
+  ]),
 });
 
 export async function updateLeadStatus(formData: FormData) {

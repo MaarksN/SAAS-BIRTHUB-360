@@ -15,7 +15,7 @@ export const sequenceBuilder = {
     return {
       id: Math.random().toString(36).substr(2, 9),
       name,
-      steps
+      steps,
     };
   },
   list: async (): Promise<Sequence[]> => {
@@ -26,9 +26,9 @@ export const sequenceBuilder = {
         steps: [
           { day: 0, type: 'EMAIL', templateId: 't1' },
           { day: 2, type: 'LINKEDIN_CONNECT', templateId: 't2' },
-          { day: 5, type: 'EMAIL', templateId: 't3' }
-        ]
-      }
+          { day: 5, type: 'EMAIL', templateId: 't3' },
+        ],
+      },
     ];
-  }
+  },
 };

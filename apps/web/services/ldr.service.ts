@@ -1,13 +1,12 @@
-import Redis from 'ioredis';
 import {
   env,
-  logger,
   ICNPJEnrichmentResult,
   IDataReliabilityScore,
+  logger,
   // CNPJEnrichmentResultSchema // Assuming this is in core or local
 } from '@salesos/core';
+import Redis from 'ioredis';
 // import { CNPJEnrichmentResultSchema } from '../schemas'; // Potential conflict if missing
-
 // Mock Schema if not found, or use Zod directly
 import { z } from 'zod';
 
@@ -24,10 +23,12 @@ const CNPJEnrichmentResultSchema = z.object({
   }),
   phones: z.array(z.string()).optional(),
   emails: z.array(z.string()).optional(),
-  cnae: z.object({
-    code: z.string(),
-    description: z.string(),
-  }).optional(),
+  cnae: z
+    .object({
+      code: z.string(),
+      description: z.string(),
+    })
+    .optional(),
   tradeName: z.string().optional(),
   reliabilityScore: z.number().optional(),
 });
@@ -93,24 +94,47 @@ export class LDRService {
     return parsed.data as ICNPJEnrichmentResult;
   }
 
-  async calculateReliabilityScore(companyId: string): Promise<IDataReliabilityScore> {
-    return { companyId, overallScore: 92, factors: { recency: 95, completeness: 88, consistency: 100, sourceCredibility: 90 } };
+  async calculateReliabilityScore(
+    companyId: string,
+  ): Promise<IDataReliabilityScore> {
+    return {
+      companyId,
+      overallScore: 92,
+      factors: {
+        recency: 95,
+        completeness: 88,
+        consistency: 100,
+        sourceCredibility: 90,
+      },
+    };
   }
 
   async validateSources(): Promise<{ status: string; checks: any[] }> {
-    return { status: "VALID", checks: [{ source: "Receita", status: "OK", timestamp: new Date() }] };
+    return {
+      status: 'VALID',
+      checks: [{ source: 'Receita', status: 'OK', timestamp: new Date() }],
+    };
   }
 
   // --- MARKET INTELLIGENCE (TOOLS 21-30) ---
 
   // 21. Tech Stack Detection
   async detectTechStack(domain: string): Promise<string[]> {
-    return ["Next.js", "Tailwind CSS", "PostgreSQL", "AWS", "Vercel", "HubSpot"];
+    return [
+      'Next.js',
+      'Tailwind CSS',
+      'PostgreSQL',
+      'AWS',
+      'Vercel',
+      'HubSpot',
+    ];
   }
 
   // 22. Employee Growth Rate
-  async estimateGrowth(companyId: string): Promise<{ rate: string, trend: 'UP' | 'DOWN' | 'FLAT' }> {
-    return { rate: "+15% (Last 6 Months)", trend: 'UP' };
+  async estimateGrowth(
+    companyId: string,
+  ): Promise<{ rate: string; trend: 'UP' | 'DOWN' | 'FLAT' }> {
+    return { rate: '+15% (Last 6 Months)', trend: 'UP' };
   }
 
   // 23. Recent News Finder
@@ -118,32 +142,37 @@ export class LDRService {
     return [
       `${company} levanta R$ 50M em Série B.`,
       `${company} anuncia novo CTO vindo da Amazon.`,
-      `${company} lança produto de IA Generativa.`
+      `${company} lança produto de IA Generativa.`,
     ];
   }
 
   // 24. Ad Spend Estimator
   async estimateAdSpend(domain: string): Promise<string> {
-    return "R$ 15k - 30k / mês (Google Ads + LinkedIn Ads)";
+    return 'R$ 15k - 30k / mês (Google Ads + LinkedIn Ads)';
   }
 
   // 25. Website Traffic Estimator
   async estimateTraffic(domain: string): Promise<string> {
-    return "150k visitas/mês (60% Orgânico)";
+    return '150k visitas/mês (60% Orgânico)';
   }
 
   // 26. Decision Maker Finder
   async findDecisionMakers(company: string, role: string): Promise<any[]> {
     return [
-      { name: "Ana Souza", role: "CTO", confidence: 95 },
-      { name: "Carlos Lima", role: "VP of Engineering", confidence: 88 }
+      { name: 'Ana Souza', role: 'CTO', confidence: 95 },
+      { name: 'Carlos Lima', role: 'VP of Engineering', confidence: 88 },
     ];
   }
 
   // 27. Email Verifier
-  async verifyEmail(email: string): Promise<{ valid: boolean, reason: string }> {
-    const isValid = email.includes("@") && !email.includes("gmail.com"); // Mock logic
-    return { valid: isValid, reason: isValid ? "SMTP Handshake OK" : "Dominio genérico ou inválido" };
+  async verifyEmail(
+    email: string,
+  ): Promise<{ valid: boolean; reason: string }> {
+    const isValid = email.includes('@') && !email.includes('gmail.com'); // Mock logic
+    return {
+      valid: isValid,
+      reason: isValid ? 'SMTP Handshake OK' : 'Dominio genérico ou inválido',
+    };
   }
 
   // 28. Social Media Links
@@ -151,13 +180,13 @@ export class LDRService {
     return {
       linkedin: `linkedin.com/company/${company.toLowerCase().replace(/\s/g, '')}`,
       instagram: `@${company.toLowerCase().replace(/\s/g, '')}`,
-      twitter: `@${company.toLowerCase().replace(/\s/g, '')}`
+      twitter: `@${company.toLowerCase().replace(/\s/g, '')}`,
     };
   }
 
   // 29. Competitor Identification
   async findCompetitors(company: string): Promise<string[]> {
-    return ["Competitor A", "BigCorp B", "Startup C"];
+    return ['Competitor A', 'BigCorp B', 'Startup C'];
   }
 
   // 30. ICP Match Score

@@ -24,7 +24,7 @@ async function main() {
   const org = await prisma.organization.create({
     data: {
       name: 'Acme Corp',
-    }
+    },
   });
   console.log('Created Org:', org.id);
 
@@ -33,8 +33,8 @@ async function main() {
     data: {
       email: 'demo@salesos.io',
       name: 'Demo User',
-      organizationId: org.id
-    }
+      organizationId: org.id,
+    },
   });
   console.log('Created User:', user.id);
 
@@ -45,20 +45,20 @@ async function main() {
       name: 'Target Company Inc',
       segment: 'Technology',
       reliability: {
-         create: {
-            score: 85,
-            factors: {}
-         }
-      }
-    }
+        create: {
+          score: 85,
+          factors: {},
+        },
+      },
+    },
   });
   console.log('Created Company:', company.id);
 
   // 4. Create Buying Committee & Contact
   const committee = await prisma.buyingCommittee.create({
     data: {
-      companyId: company.id
-    }
+      companyId: company.id,
+    },
   });
 
   const contact1 = await prisma.contact.create({
@@ -68,8 +68,8 @@ async function main() {
       role: 'CEO',
       buyingCommittee: { connect: { id: committee.id } },
       companyName: company.name,
-      stage: 'LEAD'
-    }
+      stage: 'LEAD',
+    },
   });
   console.log('Created Contact 1:', contact1.id);
 
@@ -80,8 +80,8 @@ async function main() {
       role: 'VP Sales',
       buyingCommittee: { connect: { id: committee.id } },
       companyName: company.name,
-      stage: 'LEAD'
-    }
+      stage: 'LEAD',
+    },
   });
   console.log('Created Contact 2:', contact2.id);
 
@@ -93,20 +93,20 @@ async function main() {
       stage: 'Negotiation',
       probability: 75,
       companyId: company.id,
-      ownerId: user.id
-    }
+      ownerId: user.id,
+    },
   });
   console.log('Created Deal:', deal.id);
 
-   const deal2 = await prisma.deal.create({
+  const deal2 = await prisma.deal.create({
     data: {
       title: 'Small Startup Deal',
       value: 5000,
       stage: 'Discovery',
       probability: 20,
       companyId: company.id,
-      ownerId: user.id
-    }
+      ownerId: user.id,
+    },
   });
   console.log('Created Deal 2:', deal2.id);
 
@@ -114,7 +114,7 @@ async function main() {
 }
 
 main()
-  .catch(e => {
+  .catch((e) => {
     console.error(e);
     process.exit(1);
   })

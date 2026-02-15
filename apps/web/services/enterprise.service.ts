@@ -1,5 +1,4 @@
 export class EnterpriseService {
-
   // 81. SAML/SSO Configuration
   async configureSSO(domain: string, metadataUrl: string): Promise<boolean> {
     console.log(`[Enterprise] Configured SSO for ${domain}`);
@@ -9,14 +8,31 @@ export class EnterpriseService {
   // 82. Audit Logs (Mock Data)
   async getAuditLogs(orgId: string): Promise<any[]> {
     return [
-      { id: 1, action: "USER_LOGIN", actor: "admin@corp.com", ip: "192.168.1.1", timestamp: new Date().toISOString() },
-      { id: 2, action: "EXPORT_LEADS", actor: "sdr@corp.com", ip: "192.168.1.2", timestamp: new Date().toISOString() }
+      {
+        id: 1,
+        action: 'USER_LOGIN',
+        actor: 'admin@corp.com',
+        ip: '192.168.1.1',
+        timestamp: new Date().toISOString(),
+      },
+      {
+        id: 2,
+        action: 'EXPORT_LEADS',
+        actor: 'sdr@corp.com',
+        ip: '192.168.1.2',
+        timestamp: new Date().toISOString(),
+      },
     ];
   }
 
   // 83. Role Management
-  async updateRolePermissions(roleId: string, permissions: string[]): Promise<boolean> {
-    console.log(`[Enterprise] Updated role ${roleId} with permissions: ${permissions.join(', ')}`);
+  async updateRolePermissions(
+    roleId: string,
+    permissions: string[],
+  ): Promise<boolean> {
+    console.log(
+      `[Enterprise] Updated role ${roleId} with permissions: ${permissions.join(', ')}`,
+    );
     return true;
   }
 
@@ -42,8 +58,11 @@ export class EnterpriseService {
   }
 
   // 88. Compliance Export
-  async exportUserData(userId: string, format: 'JSON' | 'CSV'): Promise<string> {
-    return "https://secure-storage.salesos.com/exports/user_123.zip";
+  async exportUserData(
+    userId: string,
+    format: 'JSON' | 'CSV',
+  ): Promise<string> {
+    return 'https://secure-storage.salesos.com/exports/user_123.zip';
   }
 
   // 89. 2FA Setup
@@ -52,7 +71,10 @@ export class EnterpriseService {
   }
 
   // 90. White Labeling
-  async updateBranding(logoUrl: string, primaryColor: string): Promise<boolean> {
+  async updateBranding(
+    logoUrl: string,
+    primaryColor: string,
+  ): Promise<boolean> {
     console.log(`[Enterprise] Branding updated: ${primaryColor}`);
     return true;
   }

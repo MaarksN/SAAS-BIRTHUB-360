@@ -5,7 +5,10 @@ export interface SocialProfile {
 }
 
 export class EnrichmentService {
-  async enrichProfile(handle: string, platform: 'linkedin' | 'twitter'): Promise<SocialProfile> {
+  async enrichProfile(
+    handle: string,
+    platform: 'linkedin' | 'twitter',
+  ): Promise<SocialProfile> {
     console.log(`Enriching ${platform} profile for ${handle}`);
     return {
       platform,
@@ -14,8 +17,8 @@ export class EnrichmentService {
         jobTitle: 'Sales Director',
         company: 'Example Corp',
         location: 'San Francisco, CA',
-        recentPosts: ['Excited about AI', 'Hiring SDRs']
-      }
+        recentPosts: ['Excited about AI', 'Hiring SDRs'],
+      },
     };
   }
 }

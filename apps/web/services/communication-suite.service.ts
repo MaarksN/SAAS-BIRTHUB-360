@@ -22,12 +22,18 @@ export class CommunicationSuiteService {
   }
 
   // 17. Sequence Builder: Tool to create multi-step email drip campaigns.
-  async sequenceBuilder(name: string, steps: ISequenceStep[]): Promise<{ id: string; stepsCount: number }> {
+  async sequenceBuilder(
+    name: string,
+    steps: ISequenceStep[],
+  ): Promise<{ id: string; stepsCount: number }> {
     return { id: 'seq-new', stepsCount: steps.length };
   }
 
   // 18. Template Engine: Variable-supported email templates with AI-assisted writing.
-  async templateEngine(template: string, variables: Record<string, string>): Promise<string> {
+  async templateEngine(
+    template: string,
+    variables: Record<string, string>,
+  ): Promise<string> {
     let content = template;
     for (const [key, val] of Object.entries(variables)) {
       content = content.replace(new RegExp(`{{${key}}}`, 'g'), val);
@@ -36,15 +42,19 @@ export class CommunicationSuiteService {
   }
 
   // 19. Calendar Integration: Two-way sync with Google/Outlook calendars.
-  async calendarIntegration(provider: 'GOOGLE' | 'OUTLOOK'): Promise<{ events: any[]; syncToken: string }> {
+  async calendarIntegration(
+    provider: 'GOOGLE' | 'OUTLOOK',
+  ): Promise<{ events: any[]; syncToken: string }> {
     return {
       events: [{ title: 'Demo Call', start: new Date() }],
-      syncToken: 'token-123'
+      syncToken: 'token-123',
     };
   }
 
   // 20. Dialer Integration: Softphone embedding (Twilio).
-  async dialerIntegration(phoneNumber: string): Promise<{ callId: string; status: 'INITIATED' }> {
+  async dialerIntegration(
+    phoneNumber: string,
+  ): Promise<{ callId: string; status: 'INITIATED' }> {
     console.log(`Dialing ${phoneNumber} via Twilio...`);
     return { callId: 'call-1', status: 'INITIATED' };
   }

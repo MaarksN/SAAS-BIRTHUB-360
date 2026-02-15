@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { ErrorCategory,ErrorCode } from './errors/error-codes';
+import { ErrorCategory, ErrorCode } from './errors/error-codes';
 
 export const ApiResponseMetaSchema = z.object({
   page: z.number().optional(),
@@ -10,16 +10,19 @@ export const ApiResponseMetaSchema = z.object({
 
 export type ApiResponseMeta = z.infer<typeof ApiResponseMetaSchema>;
 
-export const apiResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) => z.object({
-  success: z.boolean(),
-  data: dataSchema.optional(),
-  error: z.object({
-    message: z.string(),
-    code: z.nativeEnum(ErrorCode),
-    category: z.nativeEnum(ErrorCategory),
-  }).optional(),
-  meta: ApiResponseMetaSchema.optional(),
-});
+export const apiResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
+  z.object({
+    success: z.boolean(),
+    data: dataSchema.optional(),
+    error: z
+      .object({
+        message: z.string(),
+        code: z.nativeEnum(ErrorCode),
+        category: z.nativeEnum(ErrorCategory),
+      })
+      .optional(),
+    meta: ApiResponseMetaSchema.optional(),
+  });
 
 export interface ApiErrorDetail {
   message: string;
@@ -34,7 +37,10 @@ export interface ApiResponse<T> {
   meta?: ApiResponseMeta;
 }
 
-export function successResponse<T>(data: T, meta?: ApiResponseMeta): ApiResponse<T> {
+export function successResponse<T>(
+  data: T,
+  meta?: ApiResponseMeta,
+): ApiResponse<T> {
   return {
     success: true,
     data,
@@ -45,7 +51,7 @@ export function successResponse<T>(data: T, meta?: ApiResponseMeta): ApiResponse
 export function errorResponse(
   message: string,
   code: ErrorCode = ErrorCode.INTERNAL_ERROR,
-  category: ErrorCategory = ErrorCategory.SYSTEM
+  category: ErrorCategory = ErrorCategory.SYSTEM,
 ): ApiResponse<null> {
   return {
     success: false,

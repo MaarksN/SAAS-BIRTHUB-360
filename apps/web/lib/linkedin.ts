@@ -17,7 +17,9 @@ export class LinkedInAutomation {
 
   async sendConnectionRequest(request: ConnectionRequest): Promise<boolean> {
     await this.rateLimiter.waitForToken();
-    console.log(`Sending connection request to ${request.profileId} with message: ${request.message}`);
+    console.log(
+      `Sending connection request to ${request.profileId} with message: ${request.message}`,
+    );
     // Mock API call
     return true;
   }
@@ -26,9 +28,9 @@ export class LinkedInAutomation {
     console.log(`Fetching profile ${profileId}`);
     return {
       id: profileId,
-      name: "John Doe",
-      headline: "CEO at TechCorp",
-      connectionCount: 500
+      name: 'John Doe',
+      headline: 'CEO at TechCorp',
+      connectionCount: 500,
     };
   }
 

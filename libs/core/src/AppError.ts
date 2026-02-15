@@ -11,7 +11,7 @@ export class AppError extends Error {
     statusCode = 400,
     code: ErrorCode = ErrorCode.INVALID_INPUT,
     category: ErrorCategory = ErrorCategory.VALIDATION,
-    isOperational = true
+    isOperational = true,
   ) {
     super(message);
     this.statusCode = statusCode;

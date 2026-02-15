@@ -20,5 +20,5 @@ export const features = {
       return process.env[envKey] === 'true';
     }
     return DEFAULTS[flag];
-  }
+  },
 };

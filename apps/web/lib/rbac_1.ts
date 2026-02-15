@@ -1,10 +1,10 @@
 export type Role = 'ADMIN' | 'MANAGER' | 'MEMBER';
 
 export const PERMISSIONS = {
-  'VIEW_DASHBOARD': ['ADMIN', 'MANAGER', 'MEMBER'],
-  'MANAGE_USERS': ['ADMIN'],
-  'EXPORT_LEADS': ['ADMIN', 'MANAGER'],
-  'DELETE_CONTACT': ['ADMIN', 'MANAGER'],
+  VIEW_DASHBOARD: ['ADMIN', 'MANAGER', 'MEMBER'],
+  MANAGE_USERS: ['ADMIN'],
+  EXPORT_LEADS: ['ADMIN', 'MANAGER'],
+  DELETE_CONTACT: ['ADMIN', 'MANAGER'],
 } as const;
 
 export type Permission = keyof typeof PERMISSIONS;

@@ -1,4 +1,5 @@
 import { Queue } from 'bullmq';
+
 import { redis } from './redis';
 
 const AUDIT_QUEUE_NAME = 'audit-queue';
@@ -13,8 +14,8 @@ const auditQueue = new Queue(AUDIT_QUEUE_NAME, {
     backoff: {
       type: 'exponential',
       delay: 1000,
-    }
-  }
+    },
+  },
 });
 
 export interface AuditLogData {

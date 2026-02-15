@@ -1,5 +1,5 @@
-import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { Mutex } from 'async-mutex';
+import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 
 interface CrmConfig {
   clientId: string;
@@ -22,12 +22,14 @@ export class CrmService {
   }
 
   private setupInterceptors() {
-    this.api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
-      if (this.accessToken) {
-        config.headers.Authorization = `Bearer ${this.accessToken}`;
-      }
-      return config;
-    });
+    this.api.interceptors.request.use(
+      async (config: InternalAxiosRequestConfig) => {
+        if (this.accessToken) {
+          config.headers.Authorization = `Bearer ${this.accessToken}`;
+        }
+        return config;
+      },
+    );
 
     this.api.interceptors.response.use(
       (response) => response,
@@ -39,9 +41,13 @@ export class CrmService {
           const release = await this.mutex.acquire();
           try {
             // Check if token was refreshed while waiting for mutex
-            if (this.accessToken && this.accessToken !== originalRequest.headers?.Authorization?.replace('Bearer ', '')) {
-               originalRequest.headers.Authorization = `Bearer ${this.accessToken}`;
-               return this.api(originalRequest);
+            if (
+              this.accessToken &&
+              this.accessToken !==
+                originalRequest.headers?.Authorization?.replace('Bearer ', '')
+            ) {
+              originalRequest.headers.Authorization = `Bearer ${this.accessToken}`;
+              return this.api(originalRequest);
             }
 
             console.log('Refreshing token...');
@@ -49,21 +55,21 @@ export class CrmService {
             originalRequest.headers.Authorization = `Bearer ${this.accessToken}`;
             return this.api(originalRequest);
           } catch (refreshError) {
-             console.error('Token refresh failed', refreshError);
-             return Promise.reject(refreshError);
+            console.error('Token refresh failed', refreshError);
+            return Promise.reject(refreshError);
           } finally {
             release();
           }
         }
         return Promise.reject(error);
-      }
+      },
     );
   }
 
   private async refreshToken() {
     // Mock token refresh
     // In production: POST https://api.hubapi.com/oauth/v1/token ...
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
     this.accessToken = `new_access_token_${Date.now()}`;
     console.log('Token refreshed:', this.accessToken);
   }

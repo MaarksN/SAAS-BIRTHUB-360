@@ -12,9 +12,9 @@ export class SalesOSClient {
     this.client = axios.create({
       baseURL: config.baseUrl || 'https://api.salesos.com',
       headers: {
-        'Authorization': `Bearer ${config.apiKey}`,
-        'Content-Type': 'application/json'
-      }
+        Authorization: `Bearer ${config.apiKey}`,
+        'Content-Type': 'application/json',
+      },
     });
   }
 
@@ -26,13 +26,13 @@ export class SalesOSClient {
     enrich: async (id: string) => {
       const response = await this.client.post(`/leads/${id}/enrich`);
       return response.data;
-    }
+    },
   };
 
   public agents = {
     run: async (agentId: string, input: any) => {
       const response = await this.client.post(`/agents/${agentId}/run`, input);
       return response.data;
-    }
+    },
   };
 }

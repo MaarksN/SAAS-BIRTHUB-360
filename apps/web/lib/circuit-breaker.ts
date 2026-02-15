@@ -27,7 +27,7 @@ export class CircuitBreaker {
           'Service Unavailable (Circuit Breaker)',
           503,
           ErrorCode.SERVICE_UNAVAILABLE,
-          ErrorCategory.SYSTEM
+          ErrorCategory.SYSTEM,
         );
       }
     }

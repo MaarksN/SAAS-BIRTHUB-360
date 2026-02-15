@@ -6,8 +6,8 @@ export const scraper = {
       data: {
         email: 'scraped_email@example.com',
         phone: '+1-555-0100',
-        skills: ['SaaS', 'Leadership', 'Sales']
-      }
+        skills: ['SaaS', 'Leadership', 'Sales'],
+      },
     };
-  }
+  },
 };

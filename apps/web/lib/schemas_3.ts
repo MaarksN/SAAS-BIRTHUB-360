@@ -5,7 +5,7 @@ export const LeadScoreSchema = z.object({
   score: z.number().min(0).max(100),
   factors: z.object({
     behavioral: z.number(),
-    demographic: z.number()
+    demographic: z.number(),
   }),
 });
 

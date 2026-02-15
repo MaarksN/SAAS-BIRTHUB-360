@@ -1,4 +1,5 @@
-import { prisma, logger } from '@salesos/core';
+import { logger, prisma } from '@salesos/core';
+
 import { createQueue } from '../queue-wrapper';
 
 interface EmailJob {
@@ -37,16 +38,20 @@ class EmailScheduler {
       });
 
       // 3. Add to queue
-      await queue.add('send-email', {
-        scheduledEmailId: email.id,
-        organizationId: email.organizationId,
-      }, {
-        attempts: 3,
-        backoff: {
-          type: 'exponential',
-          delay: 5000,
+      await queue.add(
+        'send-email',
+        {
+          scheduledEmailId: email.id,
+          organizationId: email.organizationId,
         },
-      });
+        {
+          attempts: 3,
+          backoff: {
+            type: 'exponential',
+            delay: 5000,
+          },
+        },
+      );
 
       logger.info({ scheduledEmailId: email.id }, 'Email added to queue');
     }

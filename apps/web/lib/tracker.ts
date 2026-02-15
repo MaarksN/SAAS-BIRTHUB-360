@@ -14,7 +14,7 @@ export class EngagementTracker {
       likes: Math.floor(Math.random() * 100),
       comments: Math.floor(Math.random() * 20),
       shares: Math.floor(Math.random() * 10),
-      timestamp: new Date()
+      timestamp: new Date(),
     };
   }
 }

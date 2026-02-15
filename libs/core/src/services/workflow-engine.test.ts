@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { WorkflowEngine } from './workflow-engine';
 
 // Mock BullMQ
@@ -71,7 +72,7 @@ describe('WorkflowEngine', () => {
     // Verify dispatch happened
     expect(rpushSpy).toHaveBeenCalledWith(
       'ai:agents:crawl_queue',
-      expect.stringContaining('"type":"crawl"')
+      expect.stringContaining('"type":"crawl"'),
     );
 
     // Simulate completion event from Python (via Redis Subscriber event)
@@ -79,7 +80,7 @@ describe('WorkflowEngine', () => {
 
     // Wait for listener to be attached (handleCrawlStep awaits rpush)
     setTimeout(() => {
-        engine.emit('python_event', event);
+      engine.emit('python_event', event);
     }, 50);
 
     await expect(promise).resolves.toEqual(event);

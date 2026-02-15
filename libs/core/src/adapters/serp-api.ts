@@ -1,4 +1,5 @@
 import axios from 'axios';
+
 import { IGeoProvider, LocalBusiness } from '../types/geo';
 
 export class SerpApiAdapter implements IGeoProvider {
@@ -8,7 +9,12 @@ export class SerpApiAdapter implements IGeoProvider {
     this.apiKey = apiKey;
   }
 
-  async searchPlaces(query: string, lat: number, long: number, radius: number): Promise<LocalBusiness[]> {
+  async searchPlaces(
+    query: string,
+    lat: number,
+    long: number,
+    radius: number,
+  ): Promise<LocalBusiness[]> {
     if (!this.apiKey) {
       console.warn('SerpApi Key not provided');
       return [];
@@ -33,7 +39,10 @@ export class SerpApiAdapter implements IGeoProvider {
         address: place.address || '',
         location: {
           type: 'Point',
-          coordinates: [place.gps_coordinates?.longitude || 0, place.gps_coordinates?.latitude || 0],
+          coordinates: [
+            place.gps_coordinates?.longitude || 0,
+            place.gps_coordinates?.latitude || 0,
+          ],
         },
         types: place.types || [],
         rating: place.rating,

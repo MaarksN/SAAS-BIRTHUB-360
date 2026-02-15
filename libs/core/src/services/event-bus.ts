@@ -1,4 +1,5 @@
-import { Queue, QueueEvents, Worker, Job } from 'bullmq';
+import { Job, Queue, QueueEvents, Worker } from 'bullmq';
+
 import { env } from '../env';
 
 const EVENT_QUEUE_NAME = 'salesos-event-bus';
@@ -7,7 +8,7 @@ const EVENT_QUEUE_NAME = 'salesos-event-bus';
 const connection = {
   host: 'localhost',
   port: 6379,
-  ...(env.REDIS_URL ? parseRedisUrl(env.REDIS_URL) : {})
+  ...(env.REDIS_URL ? parseRedisUrl(env.REDIS_URL) : {}),
 };
 
 function parseRedisUrl(url: string) {
@@ -18,7 +19,7 @@ function parseRedisUrl(url: string) {
       port: parseInt(parsed.port || '6379'),
       password: parsed.password,
       username: parsed.username,
-      tls: parsed.protocol === 'rediss:' ? {} : undefined
+      tls: parsed.protocol === 'rediss:' ? {} : undefined,
     };
   } catch (e) {
     return {};
@@ -26,9 +27,18 @@ function parseRedisUrl(url: string) {
 }
 
 export type DomainEvent =
-  | { type: 'LEAD_CREATED', payload: { leadId: string, organizationId: string } }
-  | { type: 'LEAD_UPDATED', payload: { leadId: string, organizationId: string, changes: any } }
-  | { type: 'DEAL_WON', payload: { dealId: string, organizationId: string, amount: number } };
+  | {
+      type: 'LEAD_CREATED';
+      payload: { leadId: string; organizationId: string };
+    }
+  | {
+      type: 'LEAD_UPDATED';
+      payload: { leadId: string; organizationId: string; changes: any };
+    }
+  | {
+      type: 'DEAL_WON';
+      payload: { dealId: string; organizationId: string; amount: number };
+    };
 
 export class EventBus {
   private static queue: Queue;
@@ -41,8 +51,8 @@ export class EventBus {
           attempts: 3,
           backoff: { type: 'exponential', delay: 1000 },
           removeOnComplete: true,
-          removeOnFail: 1000
-        }
+          removeOnFail: 1000,
+        },
       });
     }
   }
@@ -52,10 +62,17 @@ export class EventBus {
     await this.queue.add(event.type, event.payload);
   }
 
-  static createWorker(name: string, handler: (job: Job<DomainEvent['payload']>) => Promise<void>) {
-    return new Worker(EVENT_QUEUE_NAME, async (job) => {
+  static createWorker(
+    name: string,
+    handler: (job: Job<DomainEvent['payload']>) => Promise<void>,
+  ) {
+    return new Worker(
+      EVENT_QUEUE_NAME,
+      async (job) => {
         // We can filter by job name (event type) inside the handler or here
         await handler(job);
-    }, { connection });
+      },
+      { connection },
+    );
   }
 }

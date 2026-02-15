@@ -1,6 +1,6 @@
+import { getOrganizationId, getRequestId, getUserId } from './context';
 import { prisma } from './prisma';
 import { TokenUsage } from './tokenizer';
-import { getOrganizationId, getUserId, getRequestId } from './context';
 
 export interface LogUsageParams {
   modelUsed: string;
@@ -37,8 +37,8 @@ export async function logAIUsage(params: LogUsageParams): Promise<void> {
         cachedTokens: params.cachedTokens || 0,
         latencyMs: params.latencyMs,
         estimatedCost: params.estimatedCost,
-        contextType: params.contextType
-      }
+        contextType: params.contextType,
+      },
     });
 
     console.log({
@@ -47,9 +47,8 @@ export async function logAIUsage(params: LogUsageParams): Promise<void> {
       orgId,
       model: params.modelUsed,
       tokens: params.inputTokens + params.outputTokens,
-      cost: params.estimatedCost
+      cost: params.estimatedCost,
     });
-
   } catch (error) {
     // Não deve falhar a requisição se logging falhar
     console.error('Failed to log AI usage:', error);
@@ -62,7 +61,7 @@ export async function logAIUsage(params: LogUsageParams): Promise<void> {
 export async function getOrganizationUsage(
   organizationId: string,
   startDate: Date,
-  endDate: Date = new Date()
+  endDate: Date = new Date(),
 ): Promise<{
   totalCost: number;
   totalTokens: number;
@@ -74,17 +73,26 @@ export async function getOrganizationUsage(
       organizationId,
       createdAt: {
         gte: startDate,
-        lte: endDate
-      }
-    }
+        lte: endDate,
+      },
+    },
   });
 
-  const totalCost = logs.reduce((sum, log) => sum + Number(log.estimatedCost), 0);
-  const totalTokens = logs.reduce((sum, log) => sum + log.inputTokens + log.outputTokens, 0);
+  const totalCost = logs.reduce(
+    (sum, log) => sum + Number(log.estimatedCost),
+    0,
+  );
+  const totalTokens = logs.reduce(
+    (sum, log) => sum + log.inputTokens + log.outputTokens,
+    0,
+  );
   const requestCount = logs.length;
 
   // Agregar por modelo
-  const byModel: Record<string, { cost: number; tokens: number; count: number }> = {};
+  const byModel: Record<
+    string,
+    { cost: number; tokens: number; count: number }
+  > = {};
 
   for (const log of logs) {
     if (!byModel[log.modelUsed]) {
@@ -99,7 +107,7 @@ export async function getOrganizationUsage(
     totalCost,
     totalTokens,
     requestCount,
-    byModel
+    byModel,
   };
 }
 
@@ -109,7 +117,7 @@ export async function getOrganizationUsage(
 export async function checkBudgetLimit(
   organizationId: string,
   budgetLimit: number,
-  warningThreshold: number = 0.8
+  warningThreshold: number = 0.8,
 ): Promise<{
   usage: number;
   limit: number;
@@ -128,6 +136,6 @@ export async function checkBudgetLimit(
     limit: budgetLimit,
     percentage,
     shouldWarn: percentage >= warningThreshold,
-    shouldBlock: percentage >= 1.0
+    shouldBlock: percentage >= 1.0,
   };
 }

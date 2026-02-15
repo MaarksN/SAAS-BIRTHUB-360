@@ -1,5 +1,5 @@
-import { createHmac } from 'crypto';
 import axios from 'axios';
+import { createHmac } from 'crypto';
 
 export class WebhookService {
   constructor(private db: any) {}
@@ -9,22 +9,25 @@ export class WebhookService {
     // const subs = await this.db.webhookSubscription.findMany({ where: { organizationId, events: { has: event } } });
 
     // Mock Subscriptions
-    const subs = [
-      { url: 'https://client-api.com/hooks', secret: 'whsec_123' }
-    ];
+    const subs = [{ url: 'https://client-api.com/hooks', secret: 'whsec_123' }];
 
     for (const sub of subs) {
       await this.sendWebhook(sub.url, sub.secret, event, payload);
     }
   }
 
-  private async sendWebhook(url: string, secret: string, event: string, payload: any) {
+  private async sendWebhook(
+    url: string,
+    secret: string,
+    event: string,
+    payload: any,
+  ) {
     const timestamp = Date.now();
     const body = JSON.stringify({
       id: `evt_${timestamp}`,
       event,
       created: timestamp,
-      data: payload
+      data: payload,
     });
 
     const signature = this.signPayload(body, secret);
@@ -34,9 +37,9 @@ export class WebhookService {
         headers: {
           'Content-Type': 'application/json',
           'X-SalesOS-Signature': signature,
-          'X-SalesOS-Event': event
+          'X-SalesOS-Event': event,
         },
-        timeout: 5000
+        timeout: 5000,
       });
       console.log(`Webhook sent to ${url}`);
     } catch (error) {

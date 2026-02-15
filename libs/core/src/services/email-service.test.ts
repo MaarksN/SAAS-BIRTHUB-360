@@ -1,6 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { EmailService } from './email-service';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { prisma } from '../prisma';
+import { EmailService } from './email-service';
 
 // Mock dependencies
 const { sendMock } = vi.hoisted(() => ({
@@ -49,37 +50,43 @@ describe('EmailService', () => {
     });
 
     expect(result).toEqual({ messageId: 'msg_123' });
-    expect(sendMock).toHaveBeenCalledWith(expect.objectContaining({
-      to: 'test@example.com',
-      subject: 'Hello',
-      headers: expect.objectContaining({
-        'X-Entity-Ref-ID': 'sched_1',
+    expect(sendMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: 'test@example.com',
+        subject: 'Hello',
+        headers: expect.objectContaining({
+          'X-Entity-Ref-ID': 'sched_1',
+        }),
       }),
-    }));
+    );
   });
 
   it('should throw error if Resend API returns error', async () => {
     sendMock.mockResolvedValue({ data: null, error: { message: 'API Error' } });
 
-    await expect(EmailService.sendNow({
-      scheduledEmailId: 'sched_1',
-      to: 'test@example.com',
-      subject: 'Hello',
-      html: '<p>Hi</p>',
-      organizationId: 'org_1',
-    })).rejects.toThrow('Resend API Error: API Error');
+    await expect(
+      EmailService.sendNow({
+        scheduledEmailId: 'sched_1',
+        to: 'test@example.com',
+        subject: 'Hello',
+        html: '<p>Hi</p>',
+        organizationId: 'org_1',
+      }),
+    ).rejects.toThrow('Resend API Error: API Error');
   });
 
   it('should propagate error if Resend throws', async () => {
     sendMock.mockRejectedValue(new Error('Network Error'));
 
-    await expect(EmailService.sendNow({
-      scheduledEmailId: 'sched_1',
-      to: 'test@example.com',
-      subject: 'Hello',
-      html: '<p>Hi</p>',
-      organizationId: 'org_1',
-    })).rejects.toThrow('Network Error');
+    await expect(
+      EmailService.sendNow({
+        scheduledEmailId: 'sched_1',
+        to: 'test@example.com',
+        subject: 'Hello',
+        html: '<p>Hi</p>',
+        organizationId: 'org_1',
+      }),
+    ).rejects.toThrow('Network Error');
   });
 
   it('markAsFailed should update scheduledEmail status', async () => {

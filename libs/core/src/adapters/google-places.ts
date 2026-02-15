@@ -1,4 +1,5 @@
 import axios from 'axios';
+
 import { IGeoProvider, LocalBusiness } from '../types/geo';
 
 export class GooglePlacesNewAdapter implements IGeoProvider {
@@ -8,7 +9,12 @@ export class GooglePlacesNewAdapter implements IGeoProvider {
     this.apiKey = apiKey;
   }
 
-  async searchPlaces(query: string, lat: number, long: number, radius: number): Promise<LocalBusiness[]> {
+  async searchPlaces(
+    query: string,
+    lat: number,
+    long: number,
+    radius: number,
+  ): Promise<LocalBusiness[]> {
     if (!this.apiKey) {
       console.warn('Google Maps API Key not provided');
       return [];
@@ -34,9 +40,10 @@ export class GooglePlacesNewAdapter implements IGeoProvider {
           headers: {
             'Content-Type': 'application/json',
             'X-Goog-Api-Key': this.apiKey,
-            'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location,places.types,places.rating,places.userRatingCount,places.websiteUri,places.nationalPhoneNumber',
+            'X-Goog-FieldMask':
+              'places.id,places.displayName,places.formattedAddress,places.location,places.types,places.rating,places.userRatingCount,places.websiteUri,places.nationalPhoneNumber',
           },
-        }
+        },
       );
 
       const places = response.data.places || [];
@@ -47,7 +54,10 @@ export class GooglePlacesNewAdapter implements IGeoProvider {
         address: place.formattedAddress || '',
         location: {
           type: 'Point',
-          coordinates: [place.location?.longitude || 0, place.location?.latitude || 0],
+          coordinates: [
+            place.location?.longitude || 0,
+            place.location?.latitude || 0,
+          ],
         },
         types: place.types || [],
         rating: place.rating,

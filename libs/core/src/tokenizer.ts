@@ -6,21 +6,21 @@ import { encoding_for_model, Tiktoken, TiktokenModel } from 'tiktoken';
  */
 const PRICING_TABLE = {
   // OpenAI
-  'gpt-4o': { input: 2.50, output: 10.00 },
-  'gpt-4o-mini': { input: 0.15, output: 0.60 },
-  'gpt-4-turbo': { input: 10.00, output: 30.00 },
-  'gpt-4': { input: 30.00, output: 60.00 },
-  'gpt-3.5-turbo': { input: 0.50, output: 1.50 },
+  'gpt-4o': { input: 2.5, output: 10.0 },
+  'gpt-4o-mini': { input: 0.15, output: 0.6 },
+  'gpt-4-turbo': { input: 10.0, output: 30.0 },
+  'gpt-4': { input: 30.0, output: 60.0 },
+  'gpt-3.5-turbo': { input: 0.5, output: 1.5 },
 
   // Anthropic
-  'claude-3-5-sonnet-20241022': { input: 3.00, output: 15.00 },
-  'claude-3-opus-20240229': { input: 15.00, output: 75.00 },
-  'claude-3-sonnet-20240229': { input: 3.00, output: 15.00 },
+  'claude-3-5-sonnet-20241022': { input: 3.0, output: 15.0 },
+  'claude-3-opus-20240229': { input: 15.0, output: 75.0 },
+  'claude-3-sonnet-20240229': { input: 3.0, output: 15.0 },
   'claude-3-haiku-20240307': { input: 0.25, output: 1.25 },
 
   // Gemini
-  'gemini-2.5-flash-preview': { input: 0.075, output: 0.30 },
-  'gemini-pro': { input: 0.50, output: 1.50 }
+  'gemini-2.5-flash-preview': { input: 0.075, output: 0.3 },
+  'gemini-pro': { input: 0.5, output: 1.5 },
 } as const;
 
 type ModelName = keyof typeof PRICING_TABLE;
@@ -40,7 +40,7 @@ const MODEL_TO_ENCODING: Record<string, TiktokenModel> = {
   'claude-3-sonnet-20240229': 'cl100k_base' as any,
   'claude-3-haiku-20240307': 'cl100k_base' as any,
   'gemini-2.5-flash-preview': 'cl100k_base' as any,
-  'gemini-pro': 'cl100k_base' as any
+  'gemini-pro': 'cl100k_base' as any,
 };
 
 /**
@@ -83,7 +83,7 @@ export function countTokens(text: string, model: string = 'gpt-4o'): number {
  */
 export function countChatTokens(
   messages: Array<{ role: string; content: string }>,
-  model: string = 'gpt-4o'
+  model: string = 'gpt-4o',
 ): number {
   try {
     const encoder = getEncoder(model);
@@ -111,7 +111,7 @@ export function countChatTokens(
   } catch (error) {
     console.error('Error counting chat tokens:', error);
     // Fallback
-    const totalText = messages.map(m => m.content).join(' ');
+    const totalText = messages.map((m) => m.content).join(' ');
     return Math.ceil(totalText.length / 4);
   }
 }
@@ -123,7 +123,7 @@ export function calculateCost(
   inputTokens: number,
   outputTokens: number,
   model: string,
-  cachedTokens: number = 0
+  cachedTokens: number = 0,
 ): number {
   const pricing = PRICING_TABLE[model as ModelName];
 
@@ -161,15 +161,21 @@ export function calculateUsage(
   input: string | Array<{ role: string; content: string }>,
   output: string,
   model: string,
-  cachedTokens: number = 0
+  cachedTokens: number = 0,
 ): TokenUsage {
-  const inputTokens = typeof input === 'string'
-    ? countTokens(input, model)
-    : countChatTokens(input, model);
+  const inputTokens =
+    typeof input === 'string'
+      ? countTokens(input, model)
+      : countChatTokens(input, model);
 
   const outputTokens = countTokens(output, model);
   const totalTokens = inputTokens + outputTokens;
-  const estimatedCost = calculateCost(inputTokens, outputTokens, model, cachedTokens);
+  const estimatedCost = calculateCost(
+    inputTokens,
+    outputTokens,
+    model,
+    cachedTokens,
+  );
 
   return {
     inputTokens,
@@ -177,7 +183,7 @@ export function calculateUsage(
     cachedTokens,
     totalTokens,
     estimatedCost,
-    model
+    model,
   };
 }
 
@@ -194,7 +200,9 @@ export function clearEncoderCache(): void {
 /**
  * Obtém preços de um modelo
  */
-export function getModelPricing(model: string): { input: number; output: number } | null {
+export function getModelPricing(
+  model: string,
+): { input: number; output: number } | null {
   return PRICING_TABLE[model as ModelName] || null;
 }
 

@@ -19,7 +19,11 @@ export class RateLimitService {
    * @param limit - Max requests per window
    * @param windowSeconds - Window size in seconds (default 60)
    */
-  async checkLimit(identifier: string, limit: number, windowSeconds: number = 60): Promise<RateLimitResult> {
+  async checkLimit(
+    identifier: string,
+    limit: number,
+    windowSeconds: number = 60,
+  ): Promise<RateLimitResult> {
     const key = `ratelimit:${identifier}`;
 
     // Multi command: INCR and TTL
@@ -47,12 +51,14 @@ export class RateLimitService {
       remainingTtl = windowSeconds;
     }
 
-    const resetAt = Math.floor(Date.now() / 1000) + (remainingTtl > 0 ? remainingTtl : windowSeconds);
+    const resetAt =
+      Math.floor(Date.now() / 1000) +
+      (remainingTtl > 0 ? remainingTtl : windowSeconds);
 
     return {
       allowed: count <= limit,
       remaining: Math.max(0, limit - count),
-      resetAt
+      resetAt,
     };
   }
 
@@ -63,7 +69,7 @@ export class RateLimitService {
     const key = `budget:${tenantId}`;
 
     // Check current spend in Redis (L1)
-    const currentSpend = parseFloat(await this.redis.get(key) || '0');
+    const currentSpend = parseFloat((await this.redis.get(key)) || '0');
     const monthlyLimit = 50.0; // Mock limit, normally fetch from DB/Cache
 
     if (currentSpend + estimatedCost > monthlyLimit) {

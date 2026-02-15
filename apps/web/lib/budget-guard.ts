@@ -8,7 +8,7 @@ export class QuotaExceededError extends Error {
   constructor(
     message: string,
     public usage: number,
-    public limit: number
+    public limit: number,
   ) {
     super(message);
     this.name = 'QuotaExceededError';
@@ -27,7 +27,7 @@ export async function guardAIRequest(organizationId?: string): Promise<void> {
 
   // Buscar limite do plano da organização
   // TODO: Integrar com Prisma para pegar o limite real
-  const budgetLimit = 50.00; // $50/mês para Pro plan (exemplo)
+  const budgetLimit = 50.0; // $50/mês para Pro plan (exemplo)
 
   const budget = await checkBudgetLimit(orgId, budgetLimit);
 
@@ -36,7 +36,7 @@ export async function guardAIRequest(organizationId?: string): Promise<void> {
     throw new QuotaExceededError(
       'Budget limit exceeded. Please upgrade your plan or wait for next billing cycle.',
       budget.usage,
-      budget.limit
+      budget.limit,
     );
   }
 
@@ -47,7 +47,7 @@ export async function guardAIRequest(organizationId?: string): Promise<void> {
       organizationId: orgId,
       usage: budget.usage,
       limit: budget.limit,
-      percentage: budget.percentage
+      percentage: budget.percentage,
     });
 
     // TODO: Enviar notificação para o usuário

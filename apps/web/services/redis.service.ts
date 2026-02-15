@@ -1,12 +1,15 @@
-import Redis from 'ioredis';
 import { env } from '@salesos/config';
+import Redis from 'ioredis';
+
 import { CacheService } from './types';
 
 export class RedisCacheService implements CacheService {
   private client: Redis;
 
   constructor(connectionString?: string) {
-    this.client = new Redis(connectionString || env.REDIS_URL || 'redis://localhost:6379');
+    this.client = new Redis(
+      connectionString || env.REDIS_URL || 'redis://localhost:6379',
+    );
   }
 
   async get<T>(key: string): Promise<T | null> {

@@ -11,7 +11,7 @@ export class WatchdogService {
     const health = {
       queueSize: await this.checkQueueSize(),
       errorRate: await this.checkErrorRate(),
-      status: 'healthy'
+      status: 'healthy',
     };
 
     if (health.queueSize > 1000) {

@@ -10,7 +10,7 @@ export class WhiteLabelService {
     primaryColor: '#0070f3',
     secondaryColor: '#000000',
     logoUrl: '/logo.png',
-    companyName: 'SalesOS'
+    companyName: 'SalesOS',
   };
 
   updateConfig(newConfig: Partial<ThemeConfig>): void {

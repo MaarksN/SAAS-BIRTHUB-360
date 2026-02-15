@@ -1,6 +1,6 @@
-import { describe, expect,it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-import { EmailSchema,PaginationSchema } from './common.schema';
+import { EmailSchema, PaginationSchema } from './common.schema';
 
 describe('Common Schemas', () => {
   describe('PaginationSchema', () => {
@@ -26,7 +26,9 @@ describe('Common Schemas', () => {
     });
 
     it('should normalize email', () => {
-      expect(EmailSchema.parse('  Test@Example.COM  ')).toBe('test@example.com');
+      expect(EmailSchema.parse('  Test@Example.COM  ')).toBe(
+        'test@example.com',
+      );
     });
 
     it('should fail on invalid email', () => {

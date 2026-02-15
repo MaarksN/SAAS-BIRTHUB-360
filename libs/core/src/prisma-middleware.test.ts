@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest';
 import { PrismaClient } from '@birthhub/database';
+import { beforeEach, describe, expect, it } from 'vitest';
+
 import { softDeleteMiddleware } from './prisma-middleware';
 
 describe('Soft Delete Middleware', () => {

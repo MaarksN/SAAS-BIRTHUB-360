@@ -1,6 +1,7 @@
+import { env, logger, prisma } from '@salesos/core';
 import { Job } from 'bullmq';
-import { prisma, logger, env } from '@salesos/core';
 import { Resend } from 'resend';
+
 import { createWorker } from '../queue-wrapper';
 
 interface EmailJob {
@@ -12,17 +13,13 @@ const resend = new Resend(env.RESEND_API_KEY || 're_123456789'); // Fallback for
 
 class EmailSenderWorker {
   constructor() {
-    createWorker<EmailJob>(
-      'email-sending',
-      this.processEmail.bind(this),
-      {
-        concurrency: 5,
-        limiter: {
-          max: 50,
-          duration: 60000,
-        },
-      }
-    );
+    createWorker<EmailJob>('email-sending', this.processEmail.bind(this), {
+      concurrency: 5,
+      limiter: {
+        max: 50,
+        duration: 60000,
+      },
+    });
 
     logger.info('Email Sender Worker initialized');
   }
@@ -44,8 +41,14 @@ class EmailSenderWorker {
       throw new Error(`ScheduledEmail ${scheduledEmailId} not found`);
     }
 
-    if (scheduledEmail.status !== 'PENDING' && scheduledEmail.status !== 'QUEUED') {
-      logger.info({ scheduledEmailId, status: scheduledEmail.status }, 'Email already processed');
+    if (
+      scheduledEmail.status !== 'PENDING' &&
+      scheduledEmail.status !== 'QUEUED'
+    ) {
+      logger.info(
+        { scheduledEmailId, status: scheduledEmail.status },
+        'Email already processed',
+      );
       return;
     }
 
@@ -63,13 +66,14 @@ class EmailSenderWorker {
         lead_name: scheduledEmail.lead?.name || 'there',
         company_name: scheduledEmail.lead?.companyName || '',
         // Add more variables as needed
-      }
+      },
     );
 
     // 4. Send via Resend
     try {
       const result = await resend.emails.send({
-        from: sender?.email || env.DEFAULT_FROM_EMAIL || 'onboarding@resend.dev',
+        from:
+          sender?.email || env.DEFAULT_FROM_EMAIL || 'onboarding@resend.dev',
         to: scheduledEmail.to,
         subject,
         html: body,
@@ -100,8 +104,10 @@ class EmailSenderWorker {
         });
       }
 
-      logger.info({ scheduledEmailId, trackingId: result.data?.id }, 'Email sent successfully');
-
+      logger.info(
+        { scheduledEmailId, trackingId: result.data?.id },
+        'Email sent successfully',
+      );
     } catch (error: any) {
       // 7. Handle error
       await prisma.scheduledEmail.update({
@@ -116,7 +122,11 @@ class EmailSenderWorker {
     }
   }
 
-  private renderTemplate(subject: string, body: string, variables: Record<string, string>): { subject: string; body: string } {
+  private renderTemplate(
+    subject: string,
+    body: string,
+    variables: Record<string, string>,
+  ): { subject: string; body: string } {
     let renderedSubject = subject;
     let renderedBody = body;
 

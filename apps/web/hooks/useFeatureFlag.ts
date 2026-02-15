@@ -1,6 +1,6 @@
-import { useEffect,useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import { FeatureFlag,features } from '../features';
+import { FeatureFlag, features } from '../features';
 
 export function useFeatureFlag(flag: FeatureFlag): boolean {
   const [isEnabled, setIsEnabled] = useState<boolean>(features.isEnabled(flag));

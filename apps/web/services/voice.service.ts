@@ -1,12 +1,12 @@
 export class VoiceService {
   // 161. Real-time Lie Detection (Stress Analysis)
   async detectDeception(audioChunk: any): Promise<string> {
-    return "Stress Marker Detected: High probability of withholding information.";
+    return 'Stress Marker Detected: High probability of withholding information.';
   }
 
   // 162. Emotional Resonance Scoring
   async scoreEmotion(audio: any): Promise<string> {
-    return "Emotion: Enthusiastic. Resonance: High.";
+    return 'Emotion: Enthusiastic. Resonance: High.';
   }
 
   // 163. Competitive Mention Alerts (Live)
@@ -31,7 +31,7 @@ export class VoiceService {
 
   // 167. Question Identification & Quality
   async rateQuestion(question: string): Promise<string> {
-    return "Open-ended question detected. Quality: High.";
+    return 'Open-ended question detected. Quality: High.';
   }
 
   // 168. Next Step Verbal Commitment Tracker
@@ -41,7 +41,7 @@ export class VoiceService {
 
   // 169. Call Sentiment Trend (Start vs End)
   async trendSentiment(): Promise<string> {
-    return "Start: Neutral -> End: Positive. Good job.";
+    return 'Start: Neutral -> End: Positive. Good job.';
   }
 
   // 170. Manager "Barge-In" Whisper
@@ -51,32 +51,32 @@ export class VoiceService {
 
   // 171. Automated Call Summary & CRM Entry
   async summarizeAndLog(callId: string): Promise<string> {
-    return "Call logged to Salesforce with Summary and Action Items.";
+    return 'Call logged to Salesforce with Summary and Action Items.';
   }
 
   // 172. Action Item Extraction
   async extractActions(transcript: string): Promise<string[]> {
-    return ["Send pricing", "Schedule tech review"];
+    return ['Send pricing', 'Schedule tech review'];
   }
 
   // 173. Voice Biometrics (Speaker ID)
   async identifySpeaker(audio: any): Promise<string> {
-    return "Speaker Identified: John Doe (CEO).";
+    return 'Speaker Identified: John Doe (CEO).';
   }
 
   // 174. Topic Modeling
   async mapTopics(transcript: string): Promise<string> {
-    return "Topics discussed: Pricing (40%), Features (30%), Security (30%).";
+    return 'Topics discussed: Pricing (40%), Features (30%), Security (30%).';
   }
 
   // 175. Silence Analysis
   async analyzeSilence(duration: number): Promise<string> {
-    return "Long silence (8s) after price reveal. Negotiation tactic?";
+    return 'Long silence (8s) after price reveal. Negotiation tactic?';
   }
 
   // 176. Interruption Counter
   async countInterruptions(): Promise<string> {
-    return "Rep interrupted client 4 times. Coaching moment.";
+    return 'Rep interrupted client 4 times. Coaching moment.';
   }
 
   // 177. Pacing Coach
@@ -96,6 +96,6 @@ export class VoiceService {
 
   // 180. Virtual "High Five"
   async triggerCelebration(callEvent: string): Promise<string> {
-    return "Meeting booked! Team alerted.";
+    return 'Meeting booked! Team alerted.';
   }
 }

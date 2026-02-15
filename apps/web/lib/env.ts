@@ -2,7 +2,9 @@ import { z } from 'zod';
 
 const envSchema = z.object({
   DATABASE_URL: z.string().url(),
-  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  NODE_ENV: z
+    .enum(['development', 'test', 'production'])
+    .default('development'),
   GEMINI_API_KEY: z.string().optional(),
   GOOGLE_API_KEY: z.string().optional(),
   AI_AGENT_URL: z.string().url().default('http://localhost:8000'),
@@ -21,4 +23,6 @@ if (!skipValidation && !_env.success) {
   throw new Error('Invalid environment variables');
 }
 
-export const env = _env.success ? _env.data : (process.env as unknown as z.infer<typeof envSchema>);
+export const env = _env.success
+  ? _env.data
+  : (process.env as unknown as z.infer<typeof envSchema>);

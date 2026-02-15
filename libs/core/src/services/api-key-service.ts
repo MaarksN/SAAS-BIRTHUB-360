@@ -1,7 +1,7 @@
-import { randomBytes, createHash } from 'crypto';
+import { createHash, randomBytes } from 'crypto';
 
 export interface GeneratedKey {
-  key: string;      // The raw key to show the user ONCE (e.g. sk_live_...)
+  key: string; // The raw key to show the user ONCE (e.g. sk_live_...)
   keyPrefix: string;
   hash: string;
 }
@@ -22,7 +22,7 @@ export class ApiKeyService {
     return {
       key: rawKey,
       keyPrefix: rawKey.substring(0, 15) + '...',
-      hash: this.hashKey(rawKey)
+      hash: this.hashKey(rawKey),
     };
   }
 

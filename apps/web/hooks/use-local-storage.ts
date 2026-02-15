@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export function useLocalStorage<T>(key: string, initialValue: T) {
   // State to store our value
@@ -8,12 +8,12 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
   // Initialize state on mount (client-side only)
   useEffect(() => {
     try {
-        const item = window.localStorage.getItem(key);
-        if (item) {
-            setStoredValue(JSON.parse(item));
-        }
+      const item = window.localStorage.getItem(key);
+      if (item) {
+        setStoredValue(JSON.parse(item));
+      }
     } catch (error) {
-        console.warn(`Error reading localStorage key "${key}":`, error);
+      console.warn(`Error reading localStorage key "${key}":`, error);
     }
   }, [key]);
 

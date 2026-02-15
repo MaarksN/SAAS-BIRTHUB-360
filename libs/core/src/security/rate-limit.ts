@@ -9,11 +9,11 @@ import { redis } from '../redis';
 export async function checkRateLimit(
   identifier: string,
   limit: number,
-  windowSeconds: number
+  windowSeconds: number,
 ): Promise<{ success: boolean; remaining: number }> {
   const key = `ratelimit:${identifier}`;
   const now = Date.now();
-  const windowStart = now - (windowSeconds * 1000);
+  const windowStart = now - windowSeconds * 1000;
 
   // Remove requests outside the window
   await redis.zremrangebyscore(key, 0, windowStart);
@@ -34,6 +34,6 @@ export async function checkRateLimit(
 
   return {
     success: true,
-    remaining: limit - count - 1
+    remaining: limit - count - 1,
   };
 }

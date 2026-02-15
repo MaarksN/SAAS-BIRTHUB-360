@@ -1,4 +1,5 @@
 import pino from 'pino';
+
 import { getContext, getRequestId } from './context';
 
 const isDevelopment = process.env.NODE_ENV === 'development';
@@ -9,7 +10,7 @@ const baseLogger = pino({
   formatters: {
     level: (label) => {
       return { level: label };
-    }
+    },
   },
   timestamp: pino.stdTimeFunctions.isoTime,
   ...(isDevelopment && {
@@ -18,10 +19,10 @@ const baseLogger = pino({
       options: {
         colorize: true,
         translateTime: 'HH:MM:ss',
-        ignore: 'pid,hostname'
-      }
-    }
-  })
+        ignore: 'pid,hostname',
+      },
+    },
+  }),
 });
 
 /**
@@ -78,28 +79,39 @@ export const logger = {
    */
   jobStarted: (jobId: string, queue: string, data?: any) => {
     const context = getContext();
-    baseLogger.info({
-      ...context,
-      event: 'job_started',
-      jobId,
-      queue,
-      data
-    }, `Job started: ${jobId} in queue ${queue}`);
+    baseLogger.info(
+      {
+        ...context,
+        event: 'job_started',
+        jobId,
+        queue,
+        data,
+      },
+      `Job started: ${jobId} in queue ${queue}`,
+    );
   },
 
   /**
    * Log de conclusão de job
    */
-  jobCompleted: (jobId: string, queue: string, duration: number, result?: any) => {
+  jobCompleted: (
+    jobId: string,
+    queue: string,
+    duration: number,
+    result?: any,
+  ) => {
     const context = getContext();
-    baseLogger.info({
-      ...context,
-      event: 'job_completed',
-      jobId,
-      queue,
-      duration,
-      result
-    }, `Job completed: ${jobId} in ${duration}ms`);
+    baseLogger.info(
+      {
+        ...context,
+        event: 'job_completed',
+        jobId,
+        queue,
+        duration,
+        result,
+      },
+      `Job completed: ${jobId} in ${duration}ms`,
+    );
   },
 
   /**
@@ -107,19 +119,22 @@ export const logger = {
    */
   jobFailed: (jobId: string, queue: string, duration: number, error: Error) => {
     const context = getContext();
-    baseLogger.error({
-      ...context,
-      event: 'job_failed',
-      jobId,
-      queue,
-      duration,
-      error: {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
-      }
-    }, `Job failed: ${jobId} - ${error.message}`);
-  }
+    baseLogger.error(
+      {
+        ...context,
+        event: 'job_failed',
+        jobId,
+        queue,
+        duration,
+        error: {
+          message: error.message,
+          stack: error.stack,
+          name: error.name,
+        },
+      },
+      `Job failed: ${jobId} - ${error.message}`,
+    );
+  },
 };
 
 export default logger;

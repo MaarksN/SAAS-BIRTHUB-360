@@ -1,10 +1,9 @@
-
-import fs from 'fs-extra';
-import path from 'path';
-import { glob } from 'glob';
-import PDFDocument from 'pdfkit';
-import { format } from 'date-fns';
 import { execSync } from 'child_process';
+import { format } from 'date-fns';
+import fs from 'fs-extra';
+import { glob } from 'glob';
+import path from 'path';
+import PDFDocument from 'pdfkit';
 import ts from 'typescript';
 
 // --- Configuration & Constants ---
@@ -17,18 +16,18 @@ const PERSONA = {
   name: 'Jules',
   role: 'Global CTO & Chief Product Officer',
   company: 'Birthub 360',
-  tone: 'Uncompromising Excellence'
+  tone: 'Uncompromising Excellence',
 };
 
 const COLORS = {
   primary: '#0F172A', // Slate 900
-  accent: '#3B82F6',  // Blue 500
+  accent: '#3B82F6', // Blue 500
   success: '#10B981', // Emerald 500
   warning: '#F59E0B', // Amber 500
-  error: '#EF4444',   // Red 500
-  text: '#334155',    // Slate 700
+  error: '#EF4444', // Red 500
+  text: '#334155', // Slate 700
   lightText: '#64748B', // Slate 500
-  bg: '#F8FAFC'       // Slate 50
+  bg: '#F8FAFC', // Slate 50
 };
 
 // --- Interfaces ---
@@ -70,10 +69,21 @@ interface AuditResult {
 
 function calculateCyclomaticComplexity(content: string): number {
   try {
-    const sourceFile = ts.createSourceFile('temp.ts', content, ts.ScriptTarget.Latest, true);
+    const sourceFile = ts.createSourceFile(
+      'temp.ts',
+      content,
+      ts.ScriptTarget.Latest,
+      true,
+    );
     let complexity = 1;
     function visit(node: ts.Node) {
-      if (ts.isIfStatement(node) || ts.isForStatement(node) || ts.isWhileStatement(node) || ts.isCaseClause(node) || ts.isConditionalExpression(node)) {
+      if (
+        ts.isIfStatement(node) ||
+        ts.isForStatement(node) ||
+        ts.isWhileStatement(node) ||
+        ts.isCaseClause(node) ||
+        ts.isConditionalExpression(node)
+      ) {
         complexity++;
       }
       ts.forEachChild(node, visit);
@@ -85,22 +95,29 @@ function calculateCyclomaticComplexity(content: string): number {
   }
 }
 
-async function analyzeArchitecture(): Promise<{ rootFiles: number; isMonorepoBroken: boolean }> {
-  const rootFiles = fs.readdirSync(ROOT_DIR).filter(f => {
+async function analyzeArchitecture(): Promise<{
+  rootFiles: number;
+  isMonorepoBroken: boolean;
+}> {
+  const rootFiles = fs.readdirSync(ROOT_DIR).filter((f) => {
     try {
-        return fs.statSync(path.join(ROOT_DIR, f)).isFile();
-    } catch { return false; }
+      return fs.statSync(path.join(ROOT_DIR, f)).isFile();
+    } catch {
+      return false;
+    }
   });
   const appsDir = fs.existsSync(path.join(ROOT_DIR, 'apps'));
   const libsDir = fs.existsSync(path.join(ROOT_DIR, 'libs'));
 
   // If package.json says workspaces but apps/libs are missing, it's broken.
-  const packageJson = fs.readJsonSync(path.join(ROOT_DIR, 'package.json'), { throws: false }) || {};
-  const claimsWorkspaces = !!packageJson.workspaces;
+  const packageJson =
+    fs.readJsonSync(path.join(ROOT_DIR, 'package.json'), { throws: false }) ||
+    {};
+  const claimsWorkspaces = Boolean(packageJson.workspaces);
 
   return {
     rootFiles: rootFiles.length,
-    isMonorepoBroken: claimsWorkspaces && (!appsDir || !libsDir)
+    isMonorepoBroken: claimsWorkspaces && (!appsDir || !libsDir),
   };
 }
 
@@ -108,7 +125,10 @@ async function scanCodebase(): Promise<AuditResult> {
   // Ensure output directory exists
   fs.ensureDirSync(REPORT_DIR);
 
-  const tsFiles = await glob('**/*.{ts,tsx}', { ignore: ['node_modules/**', 'dist/**', '.next/**'], cwd: ROOT_DIR });
+  const tsFiles = await glob('**/*.{ts,tsx}', {
+    ignore: ['node_modules/**', 'dist/**', '.next/**'],
+    cwd: ROOT_DIR,
+  });
 
   const metrics: AuditMetrics = {
     totalFiles: tsFiles.length,
@@ -118,7 +138,7 @@ async function scanCodebase(): Promise<AuditResult> {
     waterfalls: 0,
     zodUsage: 0,
     serverActions: 0,
-    highComplexityFiles: 0
+    highComplexityFiles: 0,
   };
 
   const innovation: InnovationMetrics = {
@@ -126,7 +146,7 @@ async function scanCodebase(): Promise<AuditResult> {
     voiceCapabilities: false,
     paymentInfrastructure: false,
     realTimeData: false,
-    agents: false
+    agents: false,
   };
 
   const toxicDebt: string[] = [];
@@ -139,10 +159,16 @@ async function scanCodebase(): Promise<AuditResult> {
   metrics.rootFiles = arch.rootFiles;
 
   if (arch.isMonorepoBroken) {
-    toxicDebt.push("CATASTROPHIC ARCHITECTURE: Monorepo structure defined in package.json but 'apps'/'libs' directories are missing. All code dumped in root.");
-    recommendations.push("IMMEDIATE REFACTOR: Move root components to 'apps/web' and libraries to 'libs/'.");
+    toxicDebt.push(
+      "CATASTROPHIC ARCHITECTURE: Monorepo structure defined in package.json but 'apps'/'libs' directories are missing. All code dumped in root.",
+    );
+    recommendations.push(
+      "IMMEDIATE REFACTOR: Move root components to 'apps/web' and libraries to 'libs/'.",
+    );
   } else if (metrics.rootFiles > 20) {
-    toxicDebt.push(`Root Directory Pollution: ${metrics.rootFiles} files in root. Indicates lack of modularity.`);
+    toxicDebt.push(
+      `Root Directory Pollution: ${metrics.rootFiles} files in root. Indicates lack of modularity.`,
+    );
   }
 
   // File Analysis
@@ -152,7 +178,7 @@ async function scanCodebase(): Promise<AuditResult> {
     // 0. AST Complexity
     const complexity = calculateCyclomaticComplexity(content);
     if (complexity > 15) {
-        metrics.highComplexityFiles++;
+      metrics.highComplexityFiles++;
     }
 
     // 1. Magic Numbers (Tailwind arbitrary values)
@@ -167,7 +193,10 @@ async function scanCodebase(): Promise<AuditResult> {
     }
 
     // 3. Waterfalls (useEffect with fetch)
-    if (content.match(/useEffect.*fetch/s) || content.match(/useEffect.*axios/s)) {
+    if (
+      content.match(/useEffect.*fetch/s) ||
+      content.match(/useEffect.*axios/s)
+    ) {
       metrics.waterfalls++;
     }
 
@@ -182,11 +211,27 @@ async function scanCodebase(): Promise<AuditResult> {
     }
 
     // --- Innovation Checks ---
-    if (content.includes('openai') || content.includes('langchain') || content.includes('llm')) innovation.aiIntegration = true;
-    if (content.includes('elevenlabs') || content.includes('deepgram') || content.includes('speech-to-text')) innovation.voiceCapabilities = true;
+    if (
+      content.includes('openai') ||
+      content.includes('langchain') ||
+      content.includes('llm')
+    )
+      innovation.aiIntegration = true;
+    if (
+      content.includes('elevenlabs') ||
+      content.includes('deepgram') ||
+      content.includes('speech-to-text')
+    )
+      innovation.voiceCapabilities = true;
     if (content.includes('stripe')) innovation.paymentInfrastructure = true;
-    if (content.includes('socket.io') || content.includes('redis') || content.includes('pusher')) innovation.realTimeData = true;
-    if (content.includes('Agent') && content.includes('Tool')) innovation.agents = true;
+    if (
+      content.includes('socket.io') ||
+      content.includes('redis') ||
+      content.includes('pusher')
+    )
+      innovation.realTimeData = true;
+    if (content.includes('Agent') && content.includes('Tool'))
+      innovation.agents = true;
   }
 
   // --- Scoring Logic ---
@@ -202,30 +247,42 @@ async function scanCodebase(): Promise<AuditResult> {
   if (metrics.highComplexityFiles > 5) score -= 5;
 
   if (metrics.waterfalls > 5) {
-    toxicDebt.push(`Client-Side Waterfalls detected in ${metrics.waterfalls} components. Kill useEffect for data fetching.`);
+    toxicDebt.push(
+      `Client-Side Waterfalls detected in ${metrics.waterfalls} components. Kill useEffect for data fetching.`,
+    );
   }
 
   if (metrics.zodUsage < 5 && metrics.totalFiles > 20) {
-     toxicDebt.push("Dangerous Input Validation: Zod usage is dangerously low.");
+    toxicDebt.push('Dangerous Input Validation: Zod usage is dangerously low.');
   }
 
   if (metrics.serverActions === 0 && metrics.totalFiles > 10) {
-    recommendations.push("Modernize Data Mutation: No Server Actions detected. Migrate API routes to Actions.");
+    recommendations.push(
+      'Modernize Data Mutation: No Server Actions detected. Migrate API routes to Actions.',
+    );
   }
 
   if (metrics.highComplexityFiles > 10) {
-      toxicDebt.push(`Spaghetti Code Alert: ${metrics.highComplexityFiles} files exceed complexity threshold (15). Refactor immediately.`);
+    toxicDebt.push(
+      `Spaghetti Code Alert: ${metrics.highComplexityFiles} files exceed complexity threshold (15). Refactor immediately.`,
+    );
   }
 
   // Blue Ocean Opportunities
   if (innovation.aiIntegration && !innovation.voiceCapabilities) {
-    blueOcean.push("Multimodal Convergence: Add Voice Agents to existing AI text stack for <1s response interactions.");
+    blueOcean.push(
+      'Multimodal Convergence: Add Voice Agents to existing AI text stack for <1s response interactions.',
+    );
   }
   if (!innovation.agents) {
-    blueOcean.push("Autonomous Agents: Move from 'Copilots' to 'Autopilots'. Let the AI do the work, not just assist.");
+    blueOcean.push(
+      "Autonomous Agents: Move from 'Copilots' to 'Autopilots'. Let the AI do the work, not just assist.",
+    );
   }
   if (innovation.paymentInfrastructure) {
-     blueOcean.push("Usage-Based Pricing: Implement dynamic pricing based on AI token usage.");
+    blueOcean.push(
+      'Usage-Based Pricing: Implement dynamic pricing based on AI token usage.',
+    );
   }
 
   // Grade
@@ -245,9 +302,9 @@ async function scanCodebase(): Promise<AuditResult> {
     recommendations,
     techDebt: {
       acceptable: acceptableDebt,
-      toxic: toxicDebt
+      toxic: toxicDebt,
     },
-    blueOcean
+    blueOcean,
   };
 }
 
@@ -255,10 +312,19 @@ async function scanCodebase(): Promise<AuditResult> {
 
 function drawHeader(doc: PDFKit.PDFDocument, timestamp: string) {
   doc.rect(0, 0, 612, 120).fill(COLORS.primary);
-  doc.fillColor('#FFFFFF').fontSize(24).font('Helvetica-Bold').text('Birthub 360', 50, 40);
-  doc.fontSize(10).font('Helvetica').text('Technical & Innovation Audit 2026', 50, 70);
+  doc
+    .fillColor('#FFFFFF')
+    .fontSize(24)
+    .font('Helvetica-Bold')
+    .text('Birthub 360', 50, 40);
+  doc
+    .fontSize(10)
+    .font('Helvetica')
+    .text('Technical & Innovation Audit 2026', 50, 70);
   doc.fontSize(10).text(`Generated: ${timestamp}`, 50, 85);
-  doc.fontSize(10).text(`Auditor: ${PERSONA.name}`, 400, 40, { align: 'right' });
+  doc
+    .fontSize(10)
+    .text(`Auditor: ${PERSONA.name}`, 400, 40, { align: 'right' });
   doc.fontSize(10).text(PERSONA.role, 400, 55, { align: 'right' });
 
   let gitHash = 'UNKNOWN';
@@ -272,7 +338,11 @@ function drawHeader(doc: PDFKit.PDFDocument, timestamp: string) {
 
 function drawSectionTitle(doc: PDFKit.PDFDocument, title: string, y: number) {
   doc.rect(50, y, 512, 25).fill(COLORS.accent); // Background strip
-  doc.fillColor('#FFFFFF').fontSize(12).font('Helvetica-Bold').text(title.toUpperCase(), 60, y + 7);
+  doc
+    .fillColor('#FFFFFF')
+    .fontSize(12)
+    .font('Helvetica-Bold')
+    .text(title.toUpperCase(), 60, y + 7);
   return y + 40;
 }
 
@@ -283,18 +353,39 @@ function drawScore(doc: PDFKit.PDFDocument, result: AuditResult, y: number) {
   // Draw Circle
   const circleX = 500;
   const circleY = y + 20;
-  doc.circle(circleX, circleY, 30).lineWidth(3).stroke(result.score > 70 ? COLORS.success : COLORS.error);
-  doc.fontSize(18).font('Helvetica-Bold').text(result.score.toString(), circleX - 10, circleY - 8);
+  doc
+    .circle(circleX, circleY, 30)
+    .lineWidth(3)
+    .stroke(result.score > 70 ? COLORS.success : COLORS.error);
+  doc
+    .fontSize(18)
+    .font('Helvetica-Bold')
+    .text(result.score.toString(), circleX - 10, circleY - 8);
 
-  doc.fontSize(14).font('Helvetica-Bold').text(`Grade: ${result.grade}`, 50, y + 20);
-  doc.fontSize(10).font('Helvetica').text('A score below 70 indicates vulnerability to disruption.', 50, y + 40);
+  doc
+    .fontSize(14)
+    .font('Helvetica-Bold')
+    .text(`Grade: ${result.grade}`, 50, y + 20);
+  doc
+    .fontSize(10)
+    .font('Helvetica')
+    .text(
+      'A score below 70 indicates vulnerability to disruption.',
+      50,
+      y + 40,
+    );
 
   return y + 80;
 }
 
-function drawList(doc: PDFKit.PDFDocument, items: string[], y: number, color: string = COLORS.text) {
+function drawList(
+  doc: PDFKit.PDFDocument,
+  items: string[],
+  y: number,
+  color: string = COLORS.text,
+) {
   doc.fontSize(10).font('Helvetica');
-  items.forEach(item => {
+  items.forEach((item) => {
     doc.fillColor(color).text(`• ${item}`, 60, y, { width: 480 });
     y += doc.heightOfString(item, { width: 480 }) + 5;
   });
@@ -319,9 +410,10 @@ async function generateReport(result: AuditResult) {
   y = drawSectionTitle(doc, 'Executive Summary', y);
   y = drawScore(doc, result, y);
 
-  const summary = result.criticalIssues.length > 0
-    ? "The platform is currently in a CRITICAL state. Structural integrity is compromised by significant technical debt. Immediate refactoring is required before scaling."
-    : "The platform shows promise but requires modernization to reach 2026 standards.";
+  const summary =
+    result.criticalIssues.length > 0
+      ? 'The platform is currently in a CRITICAL state. Structural integrity is compromised by significant technical debt. Immediate refactoring is required before scaling.'
+      : 'The platform shows promise but requires modernization to reach 2026 standards.';
 
   doc.fillColor(COLORS.text).fontSize(10).text(summary, 50, y, { width: 500 });
   y += 40;
@@ -329,17 +421,26 @@ async function generateReport(result: AuditResult) {
   // Tech Debt Radar
   y = drawSectionTitle(doc, 'Tech Debt Radar (Risk Matrix)', y);
 
-  doc.fillColor(COLORS.error).font('Helvetica-Bold').text('TOXIC DEBT (Immediate Action Required):', 50, y);
+  doc
+    .fillColor(COLORS.error)
+    .font('Helvetica-Bold')
+    .text('TOXIC DEBT (Immediate Action Required):', 50, y);
   y += 20;
   if (result.techDebt.toxic.length === 0) {
-      doc.fillColor(COLORS.success).font('Helvetica').text('None detected.', 60, y);
-      y += 20;
+    doc
+      .fillColor(COLORS.success)
+      .font('Helvetica')
+      .text('None detected.', 60, y);
+    y += 20;
   } else {
-      y = drawList(doc, result.techDebt.toxic, y, COLORS.error);
+    y = drawList(doc, result.techDebt.toxic, y, COLORS.error);
   }
 
   y += 10;
-  doc.fillColor(COLORS.warning).font('Helvetica-Bold').text('Blue Ocean Opportunities (Strategy):', 50, y);
+  doc
+    .fillColor(COLORS.warning)
+    .font('Helvetica-Bold')
+    .text('Blue Ocean Opportunities (Strategy):', 50, y);
   y += 20;
   y = drawList(doc, result.blueOcean, y, COLORS.primary);
 
@@ -350,11 +451,31 @@ async function generateReport(result: AuditResult) {
   const metricsData = [
     ['Metric', 'Value', 'Status'],
     ['Total Files', result.metrics.totalFiles.toString(), 'Info'],
-    ['Magic Numbers', result.metrics.magicNumbers.toString(), result.metrics.magicNumbers > 10 ? 'Fail' : 'Pass'],
-    ['High Complexity Files', result.metrics.highComplexityFiles.toString(), result.metrics.highComplexityFiles > 5 ? 'Warning' : 'Good'],
-    ['Waterfalls', result.metrics.waterfalls.toString(), result.metrics.waterfalls > 0 ? 'Warning' : 'Pass'],
-    ['Server Actions', result.metrics.serverActions.toString(), result.metrics.serverActions > 0 ? 'Good' : 'Missing'],
-    ['Zod Validation', result.metrics.zodUsage.toString(), result.metrics.zodUsage > 0 ? 'Good' : 'Risk'],
+    [
+      'Magic Numbers',
+      result.metrics.magicNumbers.toString(),
+      result.metrics.magicNumbers > 10 ? 'Fail' : 'Pass',
+    ],
+    [
+      'High Complexity Files',
+      result.metrics.highComplexityFiles.toString(),
+      result.metrics.highComplexityFiles > 5 ? 'Warning' : 'Good',
+    ],
+    [
+      'Waterfalls',
+      result.metrics.waterfalls.toString(),
+      result.metrics.waterfalls > 0 ? 'Warning' : 'Pass',
+    ],
+    [
+      'Server Actions',
+      result.metrics.serverActions.toString(),
+      result.metrics.serverActions > 0 ? 'Good' : 'Missing',
+    ],
+    [
+      'Zod Validation',
+      result.metrics.zodUsage.toString(),
+      result.metrics.zodUsage > 0 ? 'Good' : 'Risk',
+    ],
   ];
 
   let tableY = y;
@@ -388,14 +509,17 @@ async function main() {
 
     // Commit logic
     try {
-        console.log('Committing report...');
-        execSync(`git add ${pdfPath}`);
-        execSync(`git commit -m "chore(audit): relatório de conformidade e inovação 2026"`);
-        console.log('Report committed successfully.');
+      console.log('Committing report...');
+      execSync(`git add ${pdfPath}`);
+      execSync(
+        `git commit -m "chore(audit): relatório de conformidade e inovação 2026"`,
+      );
+      console.log('Report committed successfully.');
     } catch (e) {
-        console.warn('Git commit failed (likely mostly due to no changes or repo state), but report is saved.');
+      console.warn(
+        'Git commit failed (likely mostly due to no changes or repo state), but report is saved.',
+      );
     }
-
   } catch (error) {
     console.error('Audit Protocol Failed:', error);
     process.exit(1);

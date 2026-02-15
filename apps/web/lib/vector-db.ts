@@ -14,8 +14,12 @@ export const vectorDb = {
   query: async (vector: number[], topK: number = 3) => {
     // Mock semantic search result
     return [
-      { id: 'doc1', score: 0.92, content: 'Previous conversation about pricing...' },
-      { id: 'doc2', score: 0.85, content: 'Competitor feature comparison...' }
+      {
+        id: 'doc1',
+        score: 0.92,
+        content: 'Previous conversation about pricing...',
+      },
+      { id: 'doc2', score: 0.85, content: 'Competitor feature comparison...' },
     ];
-  }
+  },
 };
