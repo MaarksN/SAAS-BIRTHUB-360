@@ -13,6 +13,7 @@
     "@anthropic-ai/sdk": "^0.74.0",
     "@birthhub/database": "*",
     "@salesos/core": "*",
+    "@salesos/queue-core": "*",
     "@salesos/ui": "*",
     "@tanstack/react-query": "^5.90.20",
     "@tanstack/react-query-devtools": "^5.91.3",

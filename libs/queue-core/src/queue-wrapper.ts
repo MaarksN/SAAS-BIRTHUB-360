@@ -1,7 +1,7 @@
-import { Queue, Worker, QueueOptions, WorkerOptions, Processor } from 'bullmq';
-import { logger, env, runWithContext, RequestContext } from '@salesos/core';
-import IORedis from 'ioredis';
+import { env, logger, RequestContext,runWithContext } from '@salesos/core';
+import { Processor,Queue, QueueOptions, Worker, WorkerOptions } from 'bullmq';
 import * as crypto from 'crypto';
+import IORedis from 'ioredis';
 
 const workers = new Set<Worker>();
 
@@ -27,6 +27,7 @@ const attachSignalListeners = () => {
 
 export const createQueue = <T>(name: string, options?: Partial<QueueOptions>) => {
   return new Queue<T>(name, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     connection: createConnection() as any,
     defaultJobOptions: {
       removeOnComplete: true,
@@ -42,6 +43,7 @@ export const createQueue = <T>(name: string, options?: Partial<QueueOptions>) =>
   });
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const createWorker = <T = any>(
   name: string,
   processor: Processor<T>,
@@ -53,7 +55,9 @@ export const createWorker = <T = any>(
       // Extrair contexto do job.data se existir
       const context: Partial<RequestContext> = {
         requestId: job.id || crypto.randomUUID(),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         userId: (job.data as any)?.userId,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         organizationId: (job.data as any)?.organizationId
       };
 
@@ -70,6 +74,7 @@ export const createWorker = <T = any>(
           logger.jobCompleted(job.id!, name, duration, result);
 
           return result;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
           const duration = Date.now() - start;
 
@@ -80,6 +85,7 @@ export const createWorker = <T = any>(
       });
     },
     {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       connection: createConnection() as any,
       concurrency: options?.concurrency || 1,
       ...options
