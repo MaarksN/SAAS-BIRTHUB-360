@@ -11,6 +11,9 @@ from services.linkedin_scraper import LinkedInScraper
 from services.email_finder import email_validator_service
 from services.technology_lookup import tech_lookup_service
 from services.domain_search import domain_search_service
+from services.google_maps_scraper import google_maps_scraper
+from services.visitor_id import visitor_id_service
+from services.news_monitor import news_monitor_service
 
 router = APIRouter()
 icp_agent = ICPAgent()
@@ -170,3 +173,33 @@ def domain_search(request: DomainSearchRequest):
     # Running as a sync function allows FastAPI to run it in a threadpool
     result = domain_search_service.search_related_domains(request.domain)
     return result
+
+# --- Cycle 39: Google Maps Scraper ---
+class GoogleMapsSearchRequest(BaseModel):
+    query: str = Field(..., description="Query de busca (ex: 'Pizzaria em Pinheiros')")
+
+@router.post("/ldr/google-maps-search")
+async def google_maps_search(request: GoogleMapsSearchRequest):
+    logger.info(f"Google Maps search requested for: {request.query}")
+    results = await google_maps_scraper.search_places(request.query)
+    return {"results": results}
+
+# --- Cycle 40: Visitor ID ---
+class VisitorIDRequest(BaseModel):
+    ip_address: str = Field(..., description="Endereço IP para identificação")
+
+@router.post("/ldr/identify-visitor")
+async def identify_visitor(request: VisitorIDRequest):
+    logger.info(f"Visitor identification requested for: {request.ip_address}")
+    result = await visitor_id_service.identify_ip(request.ip_address)
+    return result
+
+# --- Cycle 41: News Monitor ---
+class NewsMonitorRequest(BaseModel):
+    company_name: str = Field(..., description="Nome da empresa para monitoramento")
+
+@router.post("/ldr/news-alerts")
+async def news_alerts(request: NewsMonitorRequest):
+    logger.info(f"News alerts requested for: {request.company_name}")
+    results = await news_monitor_service.get_company_news(request.company_name)
+    return {"news": results}

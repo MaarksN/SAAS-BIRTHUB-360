@@ -18,3 +18,5 @@ dnspython
 aiosmtplib
 python-whois
 google-search-results
+feedparser
+ipwhois
