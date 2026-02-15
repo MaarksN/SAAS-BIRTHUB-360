@@ -18,6 +18,7 @@ services:
 
   # Next.js Web App
   web:
+    image: ${DOCKER_IMAGE_WEB:-salesos-web}:production
     build:
       context: .
       dockerfile: apps/web/Dockerfile
@@ -43,6 +44,7 @@ services:
 
   # Worker (Scraping & AI)
   worker:
+    image: ${DOCKER_IMAGE_WORKER:-salesos-ai-agents}:production
     build:
       context: .
       dockerfile: apps/ai-agents/Dockerfile

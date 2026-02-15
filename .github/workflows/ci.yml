@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "develop"]
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run lint
+
+  build:
+    name: Build JS/TS
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build
+      - name: Notify on Failure
+        if: failure()
+        run: echo "::error::Build failed! Please check the logs."
+      # - name: Slack Notification
+      #   if: failure()
+      #   uses: rtCamp/action-slack-notify@v2
+      #   env:
+      #     SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+
+  test-js:
+    name: Test JS/TS
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - run: npx turbo run test
+
+  test-python:
+    name: Test Python
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - name: Install dependencies
+        run: |
+          pip install -r apps/ai-agents/requirements.txt
+          pip install pytest pytest-asyncio
+      - name: Run tests
+        run: |
+          cd apps/ai-agents
+          pytest
+      - name: Notify on Failure
+        if: failure()
+        run: echo "::error::Python Tests failed!"
+
+  docker-build:
+    name: Docker Build Check
+    runs-on: ubuntu-latest
+    # Only run if relevant files changed or on main/develop
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Web
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          push: false
+          tags: salesos-web:test
+          build-args: |
+            NEXT_PUBLIC_API_URL=http://localhost:3000
+
+      - name: Build AI Agents
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: apps/ai-agents/Dockerfile
+          push: false
+          tags: salesos-ai-agents:test
