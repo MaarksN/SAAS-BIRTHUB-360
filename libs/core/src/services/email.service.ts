@@ -1,9 +1,11 @@
 import { Resend } from 'resend';
 import { prisma } from '../prisma';
 import { logger } from '../logger';
+import { env } from '../env';
 
 // Inicialização Lazy do Resend
-const resend = new Resend(process.env.RESEND_API_KEY || 're_123456789');
+// Note: process.env.RESEND_API_KEY is usually loaded by dotenv or framework
+const resend = new Resend(env.RESEND_API_KEY || 're_mock_key');
 
 interface SendEmailParams {
   scheduledEmailId: string;
@@ -11,7 +13,7 @@ interface SendEmailParams {
   subject: string;
   html: string;
   organizationId: string;
-  senderEmail?: string; // Opcional, fallback para env default
+  senderEmail?: string;
 }
 
 /**
@@ -29,7 +31,7 @@ export class EmailService {
     // Implementar checkBudgetLimit(organizationId) aqui se necessário
 
     // 2. Definir remetente
-    const from = senderEmail || process.env.DEFAULT_FROM_EMAIL || 'onboarding@resend.dev';
+    const from = senderEmail || env.DEFAULT_FROM_EMAIL || 'onboarding@resend.dev';
 
     try {
       // 3. Chamada à API externa
@@ -40,12 +42,12 @@ export class EmailService {
         html,
         headers: {
           'X-Entity-Ref-ID': scheduledEmailId, // Header para tracking de webhooks (Open/Click)
-          'X-Organization-ID': organizationId
+          'X-Organization-ID': organizationId,
         },
         tags: [
           { name: 'category', value: 'campaign_automation' },
-          { name: 'org_id', value: organizationId }
-        ]
+          { name: 'org_id', value: organizationId },
+        ],
       });
 
       if (data.error) {
@@ -58,7 +60,7 @@ export class EmailService {
       logger.error({
         error: error.message,
         scheduledEmailId,
-        provider: 'RESEND'
+        provider: 'RESEND',
       }, 'Failed to send email via provider');
 
       throw error; // Re-throw para o worker lidar com a estratégia de retry
@@ -73,9 +75,9 @@ export class EmailService {
       where: { id },
       data: {
         status: 'FAILED',
-        errorMessage: error.substring(0, 1000), // Truncate para segurança
-        processedAt: new Date()
-      }
+        error: error.substring(0, 1000), // Updated to use 'error' field instead of errorMessage
+        processedAt: new Date(),
+      },
     });
   }
 
@@ -89,8 +91,8 @@ export class EmailService {
         status: 'SENT',
         providerMessageId: messageId,
         processedAt: new Date(),
-        sentAt: new Date()
-      }
+        sentAt: new Date(),
+      },
     });
   }
 }

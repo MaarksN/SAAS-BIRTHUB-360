@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { EmailService } from './email-service';
+import { EmailService } from './email.service';
 import { prisma } from '../prisma';
 
 // Mock dependencies
