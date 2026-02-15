@@ -1,5 +1,5 @@
 import { prisma } from '../prisma';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '@birthhub/database';
 
 // Helper to generate random code
 function generateCode(length: number = 8): string {

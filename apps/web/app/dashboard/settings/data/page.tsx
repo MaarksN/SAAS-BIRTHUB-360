@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/Card';
+import { Card, CardHeader, CardTitle, CardContent } from '@salesos/ui';
 import { Button } from '@salesos/ui';
 import { Download, Upload, FileText } from 'lucide-react';
 import { toast } from 'sonner';

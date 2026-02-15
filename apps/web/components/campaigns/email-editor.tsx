@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Button } from '@/components/Button';
+import { Button } from '@salesos/ui';
 
 interface EmailEditorProps {
   value: string;

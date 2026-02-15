@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@birthhub/database';
 import { env } from '@salesos/config';
 
 declare global {

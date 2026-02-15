@@ -696,3 +696,20 @@ model FeatureFlag {
 
   @@map("feature_flags")
 }
+
+model Referral {
+  id             String    @id @default(cuid())
+  code           String
+  referrerId     String
+  referrer       User      @relation("ReferralsSent", fields: [referrerId], references: [id])
+  refereeEmail   String
+  refereeId      String?   @unique
+  referee        User?     @relation("ReferralReceived", fields: [refereeId], references: [id])
+  status         String    @default("PENDING") // PENDING, CONVERTED
+  rewardAmount   Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  @@map("referrals")
+}

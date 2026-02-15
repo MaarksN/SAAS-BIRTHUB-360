@@ -1,4 +1,4 @@
-import { Role, User } from '@prisma/client';
+import { Role, User } from '@birthhub/database';
 
 export { Role, User };
 

@@ -3,7 +3,7 @@
 import { useTheme } from 'next-themes';
 import { Button } from '@salesos/ui';
 import { Moon, Sun, Monitor, Contrast } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/Card';
+import { Card, CardHeader, CardTitle, CardContent } from '@salesos/ui';
 import { useState, useEffect } from 'react';
 
 export default function AppearanceSettings() {

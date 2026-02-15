@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@birthhub/database';
 import { rlsMiddleware } from './rls-middleware';
 import { runWithContext } from './context';
 

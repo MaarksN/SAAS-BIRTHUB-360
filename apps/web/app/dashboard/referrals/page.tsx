@@ -1,7 +1,7 @@
 'use client';
 
 import { ReferralDashboard } from '@/components/referrals/ReferralDashboard';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/Card';
+import { Card, CardHeader, CardTitle, CardContent } from '@salesos/ui';
 
 export default function ReferralsPage() {
   return (

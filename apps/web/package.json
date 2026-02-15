@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.74.0",
-    "@salesos/auth": "*",
+    "@birthhub/database": "*",
     "@salesos/core": "*",
     "@salesos/ui": "*",
     "@tanstack/react-query": "^5.90.20",

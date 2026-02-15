@@ -4,7 +4,8 @@
   "private": true,
   "workspaces": [
     "apps/*",
-    "libs/*"
+    "libs/*",
+    "packages/*"
   ],
   "scripts": {
     "build": "turbo run build",
@@ -19,8 +20,8 @@
     "workers:restart": "bash scripts/restart-workers.sh",
     "cleanup": "bash scripts/cleanup.sh",
     "db:seed": "tsx scripts/seed.ts",
-    "db:studio": "npx prisma studio --schema=libs/core/src/schema.prisma",
-    "db:reset": "npx prisma migrate reset --schema=libs/core/src/schema.prisma",
+    "db:studio": "npx prisma studio --schema=packages/database/prisma/schema.prisma",
+    "db:reset": "npx prisma migrate reset --schema=packages/database/prisma/schema.prisma",
     "ai:dev": "cd apps/ai-agents && uvicorn main:app --reload",
     "workers": "npm run workers:all --workspace=libs/queue-core"
   },
