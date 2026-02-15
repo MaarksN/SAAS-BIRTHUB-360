@@ -1,0 +1,27 @@
+name: Rollback Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag to rollback to (e.g. v1.2.3)'
+        required: true
+        type: string
+
+jobs:
+  rollback:
+    name: Rollback
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            cd /opt/salesos
+            export DOCKER_IMAGE_WEB=${{ secrets.DOCKERHUB_USERNAME }}/salesos-web
+            export DOCKER_IMAGE_WORKER=${{ secrets.DOCKERHUB_USERNAME }}/salesos-ai-agents
+            ./scripts/rollback.sh ${{ inputs.version }}

@@ -1,5 +1,5 @@
+import { logger,prisma } from '@salesos/core';
 import { createWorker } from '@salesos/queue-core';
-import { prisma, logger } from '@salesos/core';
 
 // This worker listens for 'sync-hubspot' jobs
 createWorker<{ leadId: string; organizationId: string }>('hubspot-sync-queue', async (job) => {

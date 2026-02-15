@@ -30,6 +30,8 @@
   "devDependencies": {
     "@faker-js/faker": "^10.3.0",
     "@jridgewell/resolve-uri": "^3.1.2",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
     "@types/fs-extra": "^11.0.4",
     "@types/glob": "^8.1.0",
     "@types/pdfkit": "^0.17.4",
@@ -49,8 +51,9 @@
     "prettier": "^3.0.0",
     "prisma": "^5.21.0",
     "rollup": "^4.57.1",
+    "semantic-release": "^23.0.0",
     "syncpack": "^12.0.0",
-    "turbo": "latest",
+    "turbo": "^2.8.9",
     "typescript": "^5.0.0",
     "vitest": "^4.0.18"
   },

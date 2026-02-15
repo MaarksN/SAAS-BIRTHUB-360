@@ -4,7 +4,6 @@ import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@ta
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState } from 'react';
 import { ThemeProvider } from './theme-provider';
-import { ToasterHot } from './toaster-hot';
 import { toast } from 'sonner';
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -31,7 +30,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
         enableSystem
         disableTransitionOnChange
       >
-        <ToasterHot />
         {children}
       </ThemeProvider>
       <ReactQueryDevtools initialIsOpen={false} />
