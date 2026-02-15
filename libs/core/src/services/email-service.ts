@@ -1,10 +1,11 @@
 import { Resend } from 'resend';
 import { prisma } from '../prisma';
 import { logger } from '../logger';
+import { env } from '../env';
 
 // Inicialização Lazy do Resend
 // Note: process.env.RESEND_API_KEY is usually loaded by dotenv or framework
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(env.RESEND_API_KEY || 're_mock_key');
 
 interface SendEmailParams {
   scheduledEmailId: string;
