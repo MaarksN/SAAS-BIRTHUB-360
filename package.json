@@ -24,6 +24,7 @@
     "db:seed": "tsx scripts/seed.ts",
     "db:studio": "npx prisma studio --schema=packages/database/prisma/schema.prisma",
     "db:reset": "npx prisma migrate reset --schema=packages/database/prisma/schema.prisma",
+    "test:coverage": "npx vitest run --coverage",
     "ai:dev": "cd apps/ai-agents && uvicorn main:app --reload",
     "workers": "npm run workers:all --workspace=libs/queue-core"
   },
@@ -45,6 +46,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "eslint-plugin-tailwindcss": "^3.18.2",
+    "glob": "^13.0.3",
     "husky": "^9.1.7",
     "jsdom": "^28.0.0",
     "lint-staged": "^16.2.7",
@@ -62,7 +64,6 @@
     "@prisma/client": "^5.21.0",
     "date-fns": "^4.1.0",
     "fs-extra": "^11.3.3",
-    "glob": "^13.0.1",
     "pdfkit": "^0.17.2",
     "tsx": "^4.21.0"
   }
