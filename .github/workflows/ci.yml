@@ -1,0 +1,40 @@
+name: CI Pipeline (Quality Gate)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  quality-check:
+    name: Build, Lint & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🏗️ Checkout do Código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Instalar Dependências
+        run: npm ci
+
+      - name: 💅 Linting (Verificar Estilo)
+        # Se falhar aqui, o código está sujo.
+        run: npm run lint
+        continue-on-error: false
+
+      - name: 🧪 Executar Testes Unitários
+        # Roda testes apenas se existirem. Se não tiver testes, não falha.
+        run: npx turbo run test --filter=...[HEAD^1]
+
+      - name: 🏗️ Teste de Build (Dry Run)
+        # Garante que o projeto compila sem erros
+        run: npx turbo run build --filter=apps/web

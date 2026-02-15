@@ -8,12 +8,14 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
-    "lint": "turbo run lint",
+    "setup": "node scripts/manager.mjs setup",
+    "dev": "node scripts/manager.mjs dev",
+    "build": "node scripts/manager.mjs build",
+    "test": "vitest run",
+    "lint": "npx turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "deploy:legacy": "powershell -ExecutionPolicy Bypass -File ./scripts/deploy.ps1",
     "prepare": "husky",
-    "setup": "bash scripts/setup.sh",
     "migrate": "bash scripts/migrate.sh",
     "deploy": "bash scripts/docker-deploy.sh",
     "health": "bash scripts/health-check.sh",
